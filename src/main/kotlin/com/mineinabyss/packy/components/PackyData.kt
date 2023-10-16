@@ -1,0 +1,25 @@
+package com.mineinabyss.packy.components
+
+import com.mineinabyss.geary.papermc.tracking.entities.toGearyOrNull
+import com.mineinabyss.packy.config.PackyTemplate
+import com.mineinabyss.packy.config.conflictsWith
+import com.mineinabyss.packy.config.packy
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
+import org.bukkit.entity.Player
+
+@Serializable
+@SerialName("packy:packy_data")
+data class PackyData(val enabledPackAddons: MutableSet<PackyTemplate> = mutableSetOf(), var bypassForced: Boolean = false)
+var Player.packyData
+    get() = this.toGearyOrNull()?.getOrSetPersisting { PackyData() } ?: PackyData(packy.templates.filter { it.default }.toMutableSet())
+    set(value) {
+        this.toGearyOrNull()?.setPersisting(value)
+    }
+fun Player.removeConflictingPacks(template: PackyTemplate) : Set<PackyTemplate> {
+    return mutableSetOf<PackyTemplate>().apply {
+        packyData.enabledPackAddons.removeIf { t ->
+            t.conflictsWith(template).run { if (this) add(t); this }
+        }
+    }.toSet()
+}

@@ -1,11 +1,15 @@
 package com.mineinabyss.packy
 
+import com.mineinabyss.geary.addons.GearyPhase
+import com.mineinabyss.geary.autoscan.autoscan
+import com.mineinabyss.geary.modules.geary
 import com.mineinabyss.idofront.config.config
 import com.mineinabyss.idofront.di.DI
 import com.mineinabyss.idofront.platforms.Platforms
 import com.mineinabyss.idofront.plugin.listeners
 import com.mineinabyss.packy.config.PackyConfig
 import com.mineinabyss.packy.config.PackyContext
+import com.mineinabyss.packy.config.PackyTemplate
 import com.mineinabyss.packy.helpers.PackyServer
 import com.mineinabyss.packy.listener.PlayerListener
 import org.bukkit.plugin.java.JavaPlugin
@@ -19,11 +23,17 @@ class PackyPlugin : JavaPlugin() {
 
     override fun onEnable() {
         createPackyContext()
-        PackyGenerator.setupInitialFiles()
-        PackyGenerator.buildPack()
+        PackyCommands()
+        PackyGenerator.setupForcedPackFiles()
         PackyServer.startServer()
 
         listeners(PlayerListener())
+
+        geary {
+            autoscan(classLoader, "com.mineinabyss.packy") {
+                all()
+            }
+        }
     }
 
     override fun onDisable() {
@@ -35,7 +45,8 @@ class PackyPlugin : JavaPlugin() {
         DI.add<PackyContext>(object : PackyContext {
             override val plugin = this@PackyPlugin
             override val config: PackyConfig by config("config", dataFolder.toPath(), PackyConfig())
-            override val pack: ResourcePack = ResourcePack.create()
+            override val defaultPack: ResourcePack = ResourcePack.create()
+            override val templates: Set<PackyTemplate> = config<Set<PackyTemplate>>("templates", dataFolder.toPath(), setOf()).getOrLoad()
         })
     }
 }

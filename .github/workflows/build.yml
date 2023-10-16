@@ -1,7 +1,9 @@
 name: Build
 
 on:
-  pull_request:
+  push:
+    branches:
+      - master
 
 concurrency:
   cancel-in-progress: true
