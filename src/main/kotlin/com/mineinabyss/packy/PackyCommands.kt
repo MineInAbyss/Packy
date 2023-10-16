@@ -1,19 +1,15 @@
 package com.mineinabyss.packy
 
 import com.mineinabyss.guiy.inventory.guiy
-import com.mineinabyss.idofront.commands.arguments.booleanArg
 import com.mineinabyss.idofront.commands.arguments.optionArg
 import com.mineinabyss.idofront.commands.arguments.playerArg
-import com.mineinabyss.idofront.commands.entrypoint.CommandDSLEntrypoint
 import com.mineinabyss.idofront.commands.execution.IdofrontCommandExecutor
 import com.mineinabyss.idofront.commands.extensions.actions.playerAction
 import com.mineinabyss.idofront.messaging.error
+import com.mineinabyss.idofront.messaging.logError
+import com.mineinabyss.idofront.messaging.logWarn
 import com.mineinabyss.idofront.messaging.success
-import com.mineinabyss.idofront.messaging.warn
 import com.mineinabyss.packy.components.packyData
-import com.mineinabyss.packy.components.removeConflictingPacks
-import com.mineinabyss.packy.config.PackyTemplate
-import com.mineinabyss.packy.config.conflictsWith
 import com.mineinabyss.packy.config.packy
 import com.mineinabyss.packy.helpers.PackyServer
 import com.mineinabyss.packy.menus.picker.PackPicker
@@ -23,8 +19,6 @@ import org.bukkit.command.Command
 import org.bukkit.command.CommandSender
 import org.bukkit.command.TabCompleter
 import org.bukkit.entity.Player
-import kotlin.jvm.optionals.getOrElse
-import kotlin.jvm.optionals.getOrNull
 
 class PackyCommands : IdofrontCommandExecutor(), TabCompleter {
     override val commands = commands(packy.plugin) {
@@ -49,7 +43,7 @@ class PackyCommands : IdofrontCommandExecutor(), TabCompleter {
             "picker" {
                 "add" {
                     val player: Player by playerArg()
-                    val pack by optionArg(packy.templates.filter { !it.forced && it !in player.packyData.enabledPackAddons }.map { it.id })
+                    val pack by optionArg(packy.templates.filterNot { it.forced || it in player.packyData.enabledPackAddons }.map { it.id })
                     action {
                         PackPicker.addPack(player, pack, sender)
                     }

@@ -23,10 +23,10 @@ data class PackyConfig(
     @EncodeDefault(ALWAYS) val menu: PackyMenu = PackyMenu()
 ) {
     val zipDestination get() = packy.plugin.dataFolder.toPath() / _zipDestination
-    @Serializable
-    data class PackyMcMeta(val format: Int = 15, val description: String = "Packy Resourcepack")
-    @Serializable
-    data class PackyServer(val ip: String = "127.0.0.1", val port: Int = 8080)
+    @Serializable data class PackyMcMeta(val format: Int = 15, val description: String = "Packy Resourcepack")
+    @Serializable data class PackyServer(val ip: String = "127.0.0.1", val port: Int = 8080) {
+        fun url(hash: String) = "http://$ip:$port/$hash.zip"
+    }
 
     @Serializable
     data class PackyMenu(

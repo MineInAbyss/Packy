@@ -1,5 +1,6 @@
 package com.mineinabyss.packy.components
 
+import com.mineinabyss.geary.papermc.tracking.entities.toGeary
 import com.mineinabyss.geary.papermc.tracking.entities.toGearyOrNull
 import com.mineinabyss.packy.config.PackyTemplate
 import com.mineinabyss.packy.config.conflictsWith
@@ -12,9 +13,9 @@ import org.bukkit.entity.Player
 @SerialName("packy:packy_data")
 data class PackyData(val enabledPackAddons: MutableSet<PackyTemplate> = mutableSetOf(), var bypassForced: Boolean = false)
 var Player.packyData
-    get() = this.toGearyOrNull()?.getOrSetPersisting { PackyData() } ?: PackyData(packy.templates.filter { it.default }.toMutableSet())
+    get() = this.toGeary().get<PackyData>() ?: PackyData().let { this.toGeary().setPersisting(it) }
     set(value) {
-        this.toGearyOrNull()?.setPersisting(value)
+        this.toGeary().setPersisting(value)
     }
 fun Player.removeConflictingPacks(template: PackyTemplate) : Set<PackyTemplate> {
     return mutableSetOf<PackyTemplate>().apply {

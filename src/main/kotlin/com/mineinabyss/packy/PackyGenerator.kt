@@ -1,55 +1,54 @@
 package com.mineinabyss.packy
 
-import com.mineinabyss.idofront.messaging.*
+import com.github.shynixn.mccoroutine.bukkit.asyncDispatcher
+import com.github.shynixn.mccoroutine.bukkit.launch
+import com.mineinabyss.idofront.messaging.logError
+import com.mineinabyss.idofront.messaging.logSuccess
 import com.mineinabyss.packy.components.packyData
 import com.mineinabyss.packy.config.packy
-import com.mineinabyss.packy.helpers.PackyServer
 import com.mineinabyss.packy.helpers.PackyServer.playerPack
-import com.mineinabyss.packy.helpers.PackyServer.playerPacks
-import com.mineinabyss.packy.helpers.toPackMeta
-import net.kyori.adventure.key.Key
-import org.apache.commons.io.filefilter.FileFileFilter
 import org.bukkit.entity.Player
-import team.unnamed.creative.BuiltResourcePack
 import team.unnamed.creative.ResourcePack
 import team.unnamed.creative.base.Writable
 import team.unnamed.creative.serialize.minecraft.MinecraftResourcePackReader
 import team.unnamed.creative.serialize.minecraft.MinecraftResourcePackWriter
 import kotlin.io.path.div
-import kotlin.io.path.pathString
 
 object PackyGenerator {
 
     fun setupForcedPackFiles() {
-        packy.config.zipDestination.toFile().deleteRecursively()
-        packy.defaultPack.icon(Writable.path(packy.plugin.dataFolder.toPath() / packy.config.icon))
-        packy.defaultPack.packMeta(packy.config.mcmeta.format, packy.config.mcmeta.description)
+        packy.plugin.launch(packy.plugin.asyncDispatcher) {
+            packy.config.zipDestination.toFile().deleteRecursively()
+            packy.defaultPack.icon(Writable.path(packy.plugin.dataFolder.toPath() / packy.config.icon))
+            packy.defaultPack.packMeta(packy.config.mcmeta.format, packy.config.mcmeta.description)
 
-        // Add all forced packs to defaultPack
-        packy.templates.filter { it.forced }.forEach { template ->
-            val templatePath = packy.plugin.dataFolder.toPath() / "templates" / template.id
-            val templatePack = MinecraftResourcePackReader.minecraft().readFromDirectory(templatePath.toFile())
-            mergePacks(packy.defaultPack, templatePack)
-            logSuccess("Added ${template.id}-template to defaultPack")
+            // Add all forced packs to defaultPack
+            packy.templates.filter { it.forced }.forEach { template ->
+                val templatePath = packy.plugin.dataFolder.toPath() / "templates" / template.id
+                val templatePack = MinecraftResourcePackReader.minecraft().readFromDirectory(templatePath.toFile())
+                mergePacks(packy.defaultPack, templatePack)
+                logSuccess("Added ${template.id}-template to defaultPack")
+            }
         }
     }
 
     fun createPlayerPack(player: Player): ResourcePack {
-        val pack = mergePacks(ResourcePack.create(), packy.defaultPack)
+        val playerPack = ResourcePack.create()
+        mergePacks(playerPack, packy.defaultPack)
 
         // Filters out all forced files as they are already in defaultPack
         // Filter all TemplatePacks that are not default or not in players enabledPackAddons
-        packy.templates.filter { !it.forced && it in player.packyData.enabledPackAddons }.forEach { template ->
+        packy.templates.filterNot { it.forced }.filter { it in player.packyData.enabledPackAddons }.forEach { template ->
             val templatePath = packy.plugin.dataFolder.toPath() / "templates" / template.id
             val templatePack = MinecraftResourcePackReader.minecraft().readFromDirectory(templatePath.toFile())
-            mergePacks(pack, templatePack)
+            mergePacks(playerPack, templatePack)
             logSuccess("Added ${template.id}-template to pack")
         }
 
         val playerPacks = (packy.plugin.dataFolder.toPath() / "playerPacks" / player.uniqueId.toString()).toFile().apply { deleteRecursively() }
-        MinecraftResourcePackWriter.minecraft().writeToDirectory(playerPacks, pack)
-        player.playerPack = pack
-        return pack
+        MinecraftResourcePackWriter.minecraft().writeToDirectory(playerPacks, playerPack)
+        player.playerPack = playerPack
+        return playerPack
     }
 
     private fun mergePacks(basePack: ResourcePack, mergePack: ResourcePack): ResourcePack {

@@ -1,6 +1,7 @@
 package com.mineinabyss.packy.helpers
 
 import com.mineinabyss.idofront.entities.toPlayer
+import com.mineinabyss.idofront.messaging.broadcastVal
 import com.mineinabyss.idofront.messaging.logError
 import com.mineinabyss.idofront.messaging.logSuccess
 import com.mineinabyss.idofront.textcomponents.miniMsg
@@ -24,17 +25,13 @@ object PackyServer {
     lateinit var packServer: ResourcePackServer
     val playerPacks: MutableMap<UUID, ResourcePack> = mutableMapOf()
     var Player.playerPack
-        get() = playerPacks.computeIfAbsent(this.uniqueId) { PackyGenerator.createPlayerPack(this) }
-        set(value) {
-            playerPacks[uniqueId] = value
-        }
+        get() = playerPacks[uniqueId] ?: PackyGenerator.createPlayerPack(this)
+        set(value) { playerPacks[uniqueId] = value }
     val Player.builtPlayerPack: BuiltResourcePack get() = MinecraftResourcePackWriter.minecraft().build(this.playerPack)
 
     fun sendPack(player: Player) {
-        val (ip, port) = packy.config.server.let { it.ip to it.port }
         val hash = player.builtPlayerPack.hash()
-        val url = "http://$ip:$port/$hash.zip"
-        player.setResourcePack(url, hash, packy.config.force && !player.packyData.bypassForced, packy.config.prompt.miniMsg())
+        player.setResourcePack(packy.config.server.url(hash), hash, packy.config.force && !player.packyData.bypassForced, packy.config.prompt.miniMsg())
     }
 
     fun startServer() {

@@ -3,6 +3,7 @@ package com.mineinabyss.packy.menus.picker
 import com.github.shynixn.mccoroutine.bukkit.asyncDispatcher
 import com.github.shynixn.mccoroutine.bukkit.launch
 import com.mineinabyss.idofront.messaging.error
+import com.mineinabyss.idofront.messaging.logWarn
 import com.mineinabyss.idofront.messaging.success
 import com.mineinabyss.idofront.messaging.warn
 import com.mineinabyss.packy.PackyGenerator
@@ -16,8 +17,9 @@ object PackPicker {
     fun addPack(player: Player, pack: String, sender: CommandSender? = null) {
         packy.plugin.launch(packy.plugin.asyncDispatcher) {
             packy.templates.find { it.id == pack }?.let { template ->
-                player.packyData.enabledPackAddons += template
                 val removedConflicting = player.removeConflictingPacks(template).map { it.id }
+                player.packyData.enabledPackAddons.add(template)
+
                 if ((sender as? Player)?.uniqueId != player.uniqueId) sender?.success("TemplatePack ${template.id} was added to ${player.name}'s addon-packs")
                 player.success("The template ${template.id} was added to your addon-packs")
                 if (removedConflicting.isNotEmpty()) {
@@ -34,10 +36,11 @@ object PackPicker {
 
     fun removePack(player: Player, pack: String, sender: CommandSender? = null) {
         packy.plugin.launch(packy.plugin.asyncDispatcher) {
-            packy.templates.find { it.id == pack }?.let {
-                player.packyData.enabledPackAddons += it
-                if ((sender as? Player)?.uniqueId != player.uniqueId) sender?.success("TemplatePack ${it.id} was removed from ${player.name}'s addon-packs")
-                player.success("TemplatePack ${it.id} was removed from your addon-packs")
+            packy.templates.find { it.id == pack }?.let { template ->
+                player.packyData.enabledPackAddons.remove(template)
+
+                if ((sender as? Player)?.uniqueId != player.uniqueId) sender?.success("TemplatePack ${template.id} was removed from ${player.name}'s addon-packs")
+                player.success("TemplatePack ${template.id} was removed from your addon-packs")
                 PackyGenerator.createPlayerPack(player)
             } ?: when {
                 (sender as? Player)?.uniqueId != player.uniqueId ->
