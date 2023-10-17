@@ -35,7 +35,10 @@ data class PackyConfig(
         val subMenus: Map<String, PackySubMenu> = mapOf()
     )
 
-    @Serializable data class PackySubMenu(val title: String = "Packy SubMenu", val height: Int = 6, val button: SerializableItemStack, val modifiers: Modifiers = Modifiers(), val packs: Map<String, PackyPack> = mapOf())
+    enum class SubMenuType {
+        MENU, CYCLING
+    }
+    @Serializable data class PackySubMenu(val title: String = "Packy SubMenu", val height: Int = 6, val button: SerializableItemStack, val modifiers: Modifiers = Modifiers(), val type: SubMenuType = SubMenuType.MENU, val packs: Map<String, PackyPack> = mapOf())
     @Serializable data class PackyPack(val button: SerializableItemStack, val modifiers: Modifiers)
     @Serializable data class Modifiers(val offset: Offset = Offset(), val size: Size = Size()) {
         fun toModifier(): Modifier = Modifier.at(offset.x, offset.y).size(size.width, size.height)

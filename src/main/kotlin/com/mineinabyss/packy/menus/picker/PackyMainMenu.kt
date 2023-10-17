@@ -1,36 +1,53 @@
 package com.mineinabyss.packy.menus.picker
 
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.*
 import com.mineinabyss.guiy.components.Item
-import com.mineinabyss.guiy.components.canvases.Chest
-import com.mineinabyss.guiy.guiyPlugin
-import com.mineinabyss.guiy.inventory.GuiyOwner
-import com.mineinabyss.guiy.inventory.guiy
 import com.mineinabyss.guiy.modifiers.Modifier
-import com.mineinabyss.guiy.modifiers.at
 import com.mineinabyss.guiy.modifiers.clickable
-import com.mineinabyss.guiy.modifiers.height
-import com.mineinabyss.guiy.navigation.Navigator
 import com.mineinabyss.idofront.items.editItemMeta
+import com.mineinabyss.idofront.messaging.logSuccess
 import com.mineinabyss.idofront.textcomponents.miniMsg
+import com.mineinabyss.idofront.textcomponents.serialize
+import com.mineinabyss.packy.components.packyData
+import com.mineinabyss.packy.config.PackyConfig
 import com.mineinabyss.packy.config.packy
-import com.mineinabyss.packy.helpers.PackyServer
 import com.mineinabyss.packy.menus.Button
 import org.bukkit.Material
-import org.bukkit.entity.Player
 import org.bukkit.inventory.ItemStack
 
-//class PackyUIScope(val player: Player) {
-//    var hasChanged = false
-//}
 
 @Composable
 fun PackyUIScope.PackyMenu() {
-    packy.config.menu.subMenus.values.map { subMenu ->
-        Item(subMenu.button.toItemStack(), subMenu.modifiers.toModifier().clickable {
-            nav.open(PackySubScreen(subMenu))
-        })
+    val subPackList = packy.config.menu.subMenus.map { it.value to it.value.packs.toList() }.toMap()
+    packy.config.menu.subMenus.values.forEach { subMenu ->
+        var packs by remember { mutableStateOf(subPackList[subMenu]!!.toMutableList()) }
+
+        when (subMenu.type) {
+            PackyConfig.SubMenuType.MENU -> Item(subMenu.button.toItemStack(), subMenu.modifiers.toModifier().clickable { nav.open(PackySubScreen(subMenu)) })
+
+            PackyConfig.SubMenuType.CYCLING -> {
+                val (templateId, pack) = packs.first()
+
+                ItemButton(subMenu, pack) {
+                    packs = packs.toMutableList().apply { add(removeFirst()) }
+
+                    val template = packy.templates.find { it.id == templateId }
+                    when {
+                        template !in player.packyData.enabledPackAddons -> PackPicker.addPack(player, templateId, player) || return@ItemButton
+                        else -> PackPicker.removePack(player, templateId, player) || return@ItemButton
+                    }
+                    hasChanged = true
+                    nav.refresh()
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun PackyUIScope.ItemButton(subMenu: PackyConfig.PackySubMenu, pack: PackyConfig.PackyPack, onClick: () -> Unit) {
+    Button(enabled = true, onClick = onClick) {
+        Item(pack.button.toItemStack(), subMenu.modifiers.toModifier())
     }
 }
 
