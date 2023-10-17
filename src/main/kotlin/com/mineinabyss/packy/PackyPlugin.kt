@@ -28,11 +28,11 @@ class PackyPlugin : JavaPlugin() {
 
         listeners(PlayerListener())
 
-        geary {
-            autoscan(classLoader, "com.mineinabyss.packy") {
-                all()
-            }
-        }
+//        geary {
+//            autoscan(classLoader, "com.mineinabyss.packy") {
+//                all()
+//            }
+//        }
     }
 
     override fun onDisable() {
@@ -44,7 +44,7 @@ class PackyPlugin : JavaPlugin() {
         DI.add<PackyContext>(object : PackyContext {
             override val plugin = this@PackyPlugin
             override val config: PackyConfig by config("config", dataFolder.toPath(), PackyConfig())
-            override val defaultPack: ResourcePack = ResourcePack.create()
+            override val defaultPack: ResourcePack = ResourcePack.resourcePack()
             override val templates: Set<PackyTemplate> = config<Set<PackyTemplate>>("templates", dataFolder.toPath(), setOf()).getOrLoad()
         })
     }

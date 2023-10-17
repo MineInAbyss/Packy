@@ -6,6 +6,7 @@ import com.mineinabyss.idofront.messaging.broadcast
 import com.mineinabyss.idofront.messaging.logError
 import com.mineinabyss.idofront.messaging.logSuccess
 import com.mineinabyss.idofront.messaging.logWarn
+import com.mineinabyss.idofront.textcomponents.miniMsg
 import com.mineinabyss.packy.components.packyData
 import com.mineinabyss.packy.config.packy
 import com.mineinabyss.packy.helpers.PackyServer.playerPack
@@ -36,7 +37,7 @@ object PackyGenerator {
     }
 
     fun createPlayerPack(player: Player): ResourcePack {
-        val playerPack = ResourcePack.create()
+        val playerPack = ResourcePack.resourcePack()
         mergePacks(playerPack, packy.defaultPack)
 
         // Filters out all forced files as they are already in defaultPack
@@ -58,7 +59,7 @@ object PackyGenerator {
         mergePack.textures().forEach(basePack::texture)
         mergePack.sounds().forEach(basePack::sound)
         mergePack.unknownFiles().forEach(basePack::unknownFile)
-        mergePack.packMeta()?.let { basePack.packMeta(it.format(), it.description().ifEmpty { basePack.description() }) }
+        mergePack.packMeta()?.let { basePack.packMeta(it.formats(), it.description().ifEmpty { basePack.description() ?: "" }.miniMsg()) }
         mergePack.icon()?.let { basePack.icon(it) }
 
         mergePack.models().forEach { model ->
@@ -71,11 +72,13 @@ object PackyGenerator {
         }
         mergePack.soundRegistries().forEach { soundRegistry ->
             val baseRegistry = basePack.soundRegistry(soundRegistry.namespace()) ?: return@forEach basePack.soundRegistry(soundRegistry)
-            basePack.soundRegistry(SoundRegistry.of(soundRegistry.namespace(), baseRegistry.sounds().toMutableSet().apply { addAll(soundRegistry.sounds()) }))
+            basePack.soundRegistry(SoundRegistry.soundRegistry(soundRegistry.namespace(), baseRegistry.sounds().toMutableSet().apply { addAll(soundRegistry.sounds()) }))
         }
         mergePack.atlases().forEach { atlas ->
             val baseAtlas = basePack.atlas(atlas.key()) ?: return@forEach basePack.atlas(atlas)
-            basePack.atlas(baseAtlas.toBuilder().apply { sources().addAll(atlas.sources()) }.build())
+            atlas.sources().forEach {
+                baseAtlas.toBuilder().addSource(it)
+            }
         }
         mergePack.languages().forEach { language ->
             val baseLanguage = basePack.language(language.key()) ?: return@forEach basePack.language(language)
