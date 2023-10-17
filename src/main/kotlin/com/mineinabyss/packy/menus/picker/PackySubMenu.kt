@@ -17,15 +17,13 @@ fun PackyUIScope.PackySubMenu(packyPacks: Map<String, PackyConfig.PackyPack>) {
         Button(pack.modifiers.offset.toAtModifier(),
             onClick = {
                 when {
-                    template !in player.packyData.enabledPackAddons -> PackPicker.addPack(player, templateId, player)
-                    else -> PackPicker.removePack(player, templateId, player)
+                    template !in player.packyData.enabledPackAddons -> PackPicker.addPack(player, templateId)
+                    else -> PackPicker.removePack(player, templateId)
                 }
                 hasChanged = true
                 nav.back()
             }
-        ) {
-            Item(pack.button.toItemStack(), pack.modifiers.size.toSizeModifier())
-        }
+        ) { Item(pack.button.toItemStack(), pack.modifiers.size.toSizeModifier()) }
     }
 
     BackButton(Modifier.at(4, 5))

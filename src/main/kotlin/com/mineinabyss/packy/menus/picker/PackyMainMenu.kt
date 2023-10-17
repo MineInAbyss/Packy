@@ -30,10 +30,11 @@ fun PackyUIScope.PackyMenu() {
 
                 ItemButton(subMenu, pack) {
                     val template = packy.templates.find { it.id == templateId }
+                    // Return if the task returns null, meaning button was spammed whilst a set was currently generating
                     when {
-                        template !in player.packyData.enabledPackAddons -> PackPicker.addPack(player, templateId, player) ?: return@ItemButton
-                        else -> PackPicker.removePack(player, templateId, player) ?: return@ItemButton
-                    }
+                        template !in player.packyData.enabledPackAddons -> PackPicker.addPack(player, templateId)
+                        else -> PackPicker.removePack(player, templateId)
+                    } ?: return@ItemButton
 
                     packs = packs.toMutableList().apply { add(removeFirst()) }
                     hasChanged = true
