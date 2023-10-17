@@ -26,16 +26,16 @@ fun PackyUIScope.PackyMenu() {
             PackyConfig.SubMenuType.MENU -> Item(subMenu.button.toItemStack(), subMenu.modifiers.toModifier().clickable { nav.open(PackySubScreen(subMenu)) })
 
             PackyConfig.SubMenuType.CYCLING -> {
-                val (templateId, pack) = packs.first()
+                val (templateId, pack) = packs.first().first to packs[1].second
 
                 ItemButton(subMenu, pack) {
-                    packs = packs.toMutableList().apply { add(removeFirst()) }
-
                     val template = packy.templates.find { it.id == templateId }
                     when {
-                        template !in player.packyData.enabledPackAddons -> PackPicker.addPack(player, templateId, player) || return@ItemButton
-                        else -> PackPicker.removePack(player, templateId, player) || return@ItemButton
+                        template !in player.packyData.enabledPackAddons -> PackPicker.addPack(player, templateId, player) ?: return@ItemButton
+                        else -> PackPicker.removePack(player, templateId, player) ?: return@ItemButton
                     }
+
+                    packs = packs.toMutableList().apply { add(removeFirst()) }
                     hasChanged = true
                     nav.refresh()
                 }
