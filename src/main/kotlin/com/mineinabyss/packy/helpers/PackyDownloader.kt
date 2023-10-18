@@ -41,9 +41,11 @@ object PackyDownloader {
     private fun getLatestCommitSha(githubUrl: String): String? {
         val (owner, repository) = githubUrl.substringAfter("github.com/").split("/")
         val branch = githubUrl.substringAfter("tree/").substringBefore("/")
-        val path = githubUrl.substringAfter("tree/$branch/") + "assets"
+        val path = githubUrl.substringAfter("tree/$branch/").substringBefore("?") + "assets"
+        val token = githubUrl.substringAfterLast("access_token=").substringBefore("&").takeIf { it != githubUrl }
         val apiUrl = "https://api.github.com/repos/$owner/$repository/commits?path=$path&sha=$branch"
         val connection = URL(apiUrl).openConnection() as HttpURLConnection
+        token?.let { connection.setRequestProperty("Authorization", "token $token") }
         connection.setRequestProperty("Accept", "application/vnd.github.v3+json")
 
         if (connection.responseCode == HttpURLConnection.HTTP_OK) {
@@ -71,23 +73,25 @@ object PackyDownloader {
     }
 
     fun downloadAndExtractTemplate(template: PackyTemplate) {
-        val downloadUrl = template.githubUrl ?: return
-        val destinationFolder = packy.plugin.dataFolder.toPath() / "templates/${template.id}"
+        val downloadUrl = template.githubUrl?.substringBeforeLast("?")?.removeSuffix("/assets")?.removeSuffix("/") ?: return
+        val destinationFolder = packy.plugin.dataFolder.toPath() / "templates" / template.id / "assets"
         val (owner, repository) = downloadUrl.substringAfter("github.com/").split("/", limit = 3)
-        val (branch, path) = downloadUrl.substringAfter("/tree/").split("/", limit = 3)
+        val branch = downloadUrl.substringAfter("tree/").substringBefore("/").substringBefore("?").removeSuffix("/")
+        val path = (downloadUrl.substringAfter("tree/").substringAfter(branch).substringBefore("?") + "/assets").removePrefix("/")
+        val accessToken = template.githubUrl.substringAfterLast("access_token=").substringBefore("&").takeIf { it != downloadUrl }
         val zipUrl = "https://github.com/$owner/$repository/archive/$branch.zip"
 
         runCatching {
-            (destinationFolder / "assets").toFile().deleteRecursively()
+            destinationFolder.toFile().deleteRecursively()
+            val connection = URL(zipUrl).openConnection()
+            accessToken?.let { connection.setRequestProperty("Authorization", "token $accessToken") }
+            val zipStream = ZipInputStream(connection.getInputStream())
 
-            val inputStream = URL(zipUrl).openStream()
-            val zipStream = ZipInputStream(inputStream)
-
-            var entry: ZipEntry? = zipStream.nextEntry
+            var entry = zipStream.nextEntry
             while (entry != null) {
-                val entryName = entry.name
-                if (entryName.startsWith("$repository-$branch/$path") && !entry.isDirectory) {
-                    val filePath = Paths.get(destinationFolder.pathString, entryName.substring("$repository-$branch/$path".length))
+                if (entry.name.startsWith("$repository-$branch/$path", true) && !entry.isDirectory) {
+                    val fileName = entry.name.substring("$repository-$branch/$path".length).removePrefix("assets/")
+                    val filePath = Paths.get(destinationFolder.pathString, fileName)
                     Files.createDirectories(filePath.parent)
                     FileOutputStream(filePath.toFile()).use { output ->
                         val buffer = ByteArray(1024)
@@ -107,4 +111,3 @@ object PackyDownloader {
             it.printStackTrace()
         }
     }
-}
