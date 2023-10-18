@@ -3,10 +3,9 @@ package com.mineinabyss.packy.menus.picker
 import com.github.shynixn.mccoroutine.bukkit.asyncDispatcher
 import com.github.shynixn.mccoroutine.bukkit.launch
 import com.mineinabyss.idofront.messaging.error
-import com.mineinabyss.idofront.messaging.logWarn
 import com.mineinabyss.idofront.messaging.success
 import com.mineinabyss.idofront.messaging.warn
-import com.mineinabyss.packy.PackyGenerator
+import com.mineinabyss.packy.helpers.PackyGenerator
 import com.mineinabyss.packy.components.packyData
 import com.mineinabyss.packy.components.removeConflictingPacks
 import com.mineinabyss.packy.config.packy

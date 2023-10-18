@@ -2,6 +2,7 @@ package com.mineinabyss.packy.helpers
 
 import com.google.gson.JsonParser
 import com.mineinabyss.idofront.messaging.logError
+import com.mineinabyss.idofront.messaging.logInfo
 import com.mineinabyss.idofront.messaging.logSuccess
 import com.mineinabyss.idofront.messaging.logWarn
 import com.mineinabyss.packy.config.PackyTemplate
@@ -16,24 +17,27 @@ import java.nio.file.Files
 import java.nio.file.Paths
 import java.util.zip.ZipEntry
 import java.util.zip.ZipInputStream
-import kotlin.io.path.div
-import kotlin.io.path.notExists
-import kotlin.io.path.pathString
-import kotlin.io.path.readLines
+import kotlin.io.path.*
 
 object PackyDownloader {
 
-    fun updateGithubTemplates(template: PackyTemplate) {
+    fun updateGithubTemplates(template: PackyTemplate): Boolean {
         val hashFile = packy.plugin.dataFolder.toPath() / "templates/${template.id}" / "localHash.txt"
         if (hashFile.notExists()) hashFile.toFile().createNewFile()
 
-        val latestCommitHash = getLatestCommitSha(template.githubUrl ?: return)
-        val localCommitHash = hashFile.readLines().find { it.matches("hash=.*".toRegex()) }
+        val latestCommitHash = getLatestCommitSha(template.githubUrl ?: return false)
+        val localCommitHash = hashFile.readLines().find { it.matches("hash=.*".toRegex()) }?.substringAfter("=")
 
         when {
             localCommitHash == null || localCommitHash != latestCommitHash ->
+            {
                 downloadAndExtractTemplate(template)
+                hashFile.writeLines("hash=$latestCommitHash".lineSequence())
+                logInfo("Updated localHash.txt for ${template.id}")
+            }
+            else -> logSuccess("Skipping download for ${template.id}, no changes applied to remote")
         }
+        return localCommitHash == null || localCommitHash != latestCommitHash
     }
 
     private fun getLatestCommitSha(githubUrl: String): String? {
@@ -61,8 +65,8 @@ object PackyDownloader {
             packy.templates.filter { it.githubUrl != null }.map {
                 async {
                     logWarn("Downloading ${it.id}-template from ${it.githubUrl}...")
-                    updateGithubTemplates(it)
-                    logSuccess("Successfully downloaded ${it.id}-template!")
+                    if (updateGithubTemplates(it))
+                        logSuccess("Successfully downloaded ${it.id}-template!")
                 }
             }.awaitAll()
         }
