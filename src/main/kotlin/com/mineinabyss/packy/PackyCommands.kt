@@ -1,19 +1,22 @@
 package com.mineinabyss.packy
 
+import com.github.shynixn.mccoroutine.bukkit.asyncDispatcher
+import com.github.shynixn.mccoroutine.bukkit.launch
 import com.mineinabyss.guiy.inventory.guiy
 import com.mineinabyss.idofront.commands.arguments.optionArg
 import com.mineinabyss.idofront.commands.arguments.playerArg
+import com.mineinabyss.idofront.commands.arguments.stringArg
 import com.mineinabyss.idofront.commands.execution.IdofrontCommandExecutor
 import com.mineinabyss.idofront.commands.extensions.actions.playerAction
-import com.mineinabyss.idofront.messaging.error
-import com.mineinabyss.idofront.messaging.logError
-import com.mineinabyss.idofront.messaging.logWarn
-import com.mineinabyss.idofront.messaging.success
+import com.mineinabyss.idofront.messaging.*
 import com.mineinabyss.packy.components.packyData
+import com.mineinabyss.packy.config.PackyTemplate
 import com.mineinabyss.packy.config.packy
+import com.mineinabyss.packy.helpers.PackyDownloader
 import com.mineinabyss.packy.helpers.PackyServer
 import com.mineinabyss.packy.menus.picker.PackPicker
 import com.mineinabyss.packy.menus.picker.PackyMainMenu
+import com.sun.jna.platform.unix.solaris.LibKstat.KstatNamed.UNION.STR
 import org.bukkit.Bukkit
 import org.bukkit.command.Command
 import org.bukkit.command.CommandSender
@@ -23,6 +26,32 @@ import org.bukkit.entity.Player
 class PackyCommands : IdofrontCommandExecutor(), TabCompleter {
     override val commands = commands(packy.plugin) {
         "packy" {
+            "github" {
+                val id: String by optionArg(packy.templates.filter { it.githubUrl != null }.map { it.id }.apply { toMutableSet().add("ALL") })
+                "download" {
+                    action {
+                        packy.plugin.launch(packy.plugin.asyncDispatcher) {
+                            when (id) {
+                                "ALL" -> {
+                                    sender.warn("Downloading all templates...")
+                                    PackyDownloader.downloadTemplates()
+                                    sender.success("Downloaded all templates!")
+                                }
+                                else -> {
+                                    val template = packy.templates.find { it.id == id } ?: return@launch sender.error("No template with given ID")
+                                    sender.warn("Downloading template $id...")
+                                    PackyDownloader.downloadAndExtractTemplate(template)
+                                    sender.success("Downloading template $id")
+                                }
+                            }
+
+                        }
+                    }
+                }
+                "update" {
+                    packy.templates.filter { it.githubUrl != null }.forEach(PackyDownloader::updateGithubTemplates)
+                }
+            }
             "reload" {
                 action {
                     packy.plugin.createPackyContext()
@@ -91,15 +120,17 @@ class PackyCommands : IdofrontCommandExecutor(), TabCompleter {
     ): List<String> {
         return if (command.name == "packy") {
             when (args.size) {
-                1 -> listOf("reload", "gui", "server", "send", "picker").filter { it.startsWith(args[0]) }
+                1 -> listOf("reload", "gui", "server", "send", "picker", "github").filter { it.startsWith(args[0]) }
                 2 -> when(args[0]) {
                     "server" -> listOf("start", "stop")
                     "picker" -> listOf("add", "remove")
                     "send" -> packy.plugin.server.onlinePlayers.map { it.name }
+                    "github" -> listOf("download", "update")
                     else -> listOf()
                 }.filter { it.startsWith(args[1]) }
                 3 -> when(args[0]) {
                     "picker" -> packy.plugin.server.onlinePlayers.map { it.name }
+                    "github" -> packy.templates.filter { it.githubUrl != null }.map { it.id }
                     else -> listOf()
                 }.filter { it.startsWith(args[2]) }
                 4 -> when(args[1]) {

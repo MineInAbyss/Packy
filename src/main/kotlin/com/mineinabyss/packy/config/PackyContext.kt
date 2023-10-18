@@ -11,4 +11,5 @@ interface PackyContext {
     val config: PackyConfig
     val defaultPack: ResourcePack
     val templates: Set<PackyTemplate>
+    val accessToken: PackyAccessToken
 }
