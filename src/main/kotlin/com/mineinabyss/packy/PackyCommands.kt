@@ -2,10 +2,6 @@ package com.mineinabyss.packy
 
 import com.github.shynixn.mccoroutine.bukkit.asyncDispatcher
 import com.github.shynixn.mccoroutine.bukkit.launch
-import com.github.shynixn.mccoroutine.bukkit.minecraftDispatcher
-import com.github.shynixn.mccoroutine.bukkit.ticks
-import com.google.gson.JsonArray
-import com.google.gson.JsonParser
 import com.mineinabyss.guiy.inventory.guiy
 import com.mineinabyss.idofront.commands.arguments.optionArg
 import com.mineinabyss.idofront.commands.arguments.playerArg
@@ -14,46 +10,46 @@ import com.mineinabyss.idofront.commands.execution.IdofrontCommandExecutor
 import com.mineinabyss.idofront.commands.extensions.actions.playerAction
 import com.mineinabyss.idofront.messaging.*
 import com.mineinabyss.packy.components.packyData
+import com.mineinabyss.packy.config.PackyTemplate
 import com.mineinabyss.packy.config.packy
 import com.mineinabyss.packy.helpers.PackyDownloader
 import com.mineinabyss.packy.helpers.PackyServer
 import com.mineinabyss.packy.menus.picker.PackPicker
 import com.mineinabyss.packy.menus.picker.PackyMainMenu
-import kotlinx.coroutines.delay
-import okio.Path.Companion.toPath
+import com.sun.jna.platform.unix.solaris.LibKstat.KstatNamed.UNION.STR
 import org.bukkit.Bukkit
 import org.bukkit.command.Command
 import org.bukkit.command.CommandSender
 import org.bukkit.command.TabCompleter
 import org.bukkit.entity.Player
-import java.io.BufferedReader
-import java.io.FileOutputStream
-import java.io.InputStreamReader
-import java.net.URL
-import java.nio.file.Files
-import java.nio.file.Paths
-import java.nio.file.StandardCopyOption
-import java.nio.file.StandardOpenOption
-import java.util.zip.ZipEntry
-import java.util.zip.ZipInputStream
-import kotlin.io.path.div
-import kotlin.io.path.pathString
-import kotlin.time.Duration.Companion.seconds
 
 class PackyCommands : IdofrontCommandExecutor(), TabCompleter {
     override val commands = commands(packy.plugin) {
         "packy" {
-            "download" {
-                val id: String by stringArg()
-                "github" {
-                    val githubUrl: String by stringArg()
+            "github" {
+                val id: String by optionArg(packy.templates.filter { it.githubUrl != null }.map { it.id }.apply { toMutableSet().add("ALL") })
+                "download" {
                     action {
                         packy.plugin.launch(packy.plugin.asyncDispatcher) {
-                            logInfo("Downloading template $id...")
-                            PackyDownloader.downloadZipAndExtract(githubUrl, (packy.plugin.dataFolder.toPath() / "templates/$id").pathString)
-                            logSuccess("Downloading template $id")
+                            when (id) {
+                                "ALL" -> {
+                                    sender.warn("Downloading all templates...")
+                                    PackyDownloader.downloadTemplates()
+                                    sender.success("Downloaded all templates!")
+                                }
+                                else -> {
+                                    val template = packy.templates.find { it.id == id } ?: return@launch sender.error("No template with given ID")
+                                    sender.warn("Downloading template $id...")
+                                    PackyDownloader.downloadAndExtractTemplate(template)
+                                    sender.success("Downloading template $id")
+                                }
+                            }
+
                         }
                     }
+                }
+                "update" {
+                    packy.templates.filter { it.githubUrl != null }.forEach(PackyDownloader::updateGithubTemplates)
                 }
             }
             "reload" {
@@ -124,15 +120,17 @@ class PackyCommands : IdofrontCommandExecutor(), TabCompleter {
     ): List<String> {
         return if (command.name == "packy") {
             when (args.size) {
-                1 -> listOf("reload", "gui", "server", "send", "picker").filter { it.startsWith(args[0]) }
+                1 -> listOf("reload", "gui", "server", "send", "picker", "github").filter { it.startsWith(args[0]) }
                 2 -> when(args[0]) {
                     "server" -> listOf("start", "stop")
                     "picker" -> listOf("add", "remove")
                     "send" -> packy.plugin.server.onlinePlayers.map { it.name }
+                    "github" -> listOf("download", "update")
                     else -> listOf()
                 }.filter { it.startsWith(args[1]) }
                 3 -> when(args[0]) {
                     "picker" -> packy.plugin.server.onlinePlayers.map { it.name }
+                    "github" -> packy.templates.filter { it.githubUrl != null }.map { it.id }
                     else -> listOf()
                 }.filter { it.startsWith(args[2]) }
                 4 -> when(args[1]) {
