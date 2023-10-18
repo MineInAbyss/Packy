@@ -50,7 +50,7 @@ object PackyServer {
     }
 
     private var handler = ResourcePackRequestHandler { request: ResourcePackRequest, exchange: HttpExchange ->
-        val data = request.uuid().toPlayer()?.builtPlayerPack?.bytes() ?: return@ResourcePackRequestHandler
+        val data = request.uuid().toPlayer()?.builtPlayerPack?.data()?.toByteArray() ?: return@ResourcePackRequestHandler
         exchange.responseHeaders["Content-Type"] = "application/zip"
         exchange.sendResponseHeaders(200, data.size.toLong())
         exchange.responseBody.use { responseStream -> responseStream.write(data) }
