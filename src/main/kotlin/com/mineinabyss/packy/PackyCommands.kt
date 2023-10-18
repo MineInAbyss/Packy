@@ -45,16 +45,14 @@ class PackyCommands : IdofrontCommandExecutor(), TabCompleter {
         "packy" {
             "download" {
                 val id: String by stringArg()
-                val url: String by stringArg()
-                action {
-                    packy.plugin.launch(packy.plugin.asyncDispatcher) {
-                        logInfo("Downloading template $id...")
-                        val owner = "MineInAbyss"
-                        val repository = "MineInAbyss-resourcepack"
-                        val branch = "master"
-                        val path = "common"
-                        PackyDownloader.downloadZipAndExtract(owner, repository, branch, path, (packy.plugin.dataFolder.toPath() / "templates/$id").pathString)
-                        logSuccess("Downloading template $id")
+                "github" {
+                    val githubUrl: String by stringArg()
+                    action {
+                        packy.plugin.launch(packy.plugin.asyncDispatcher) {
+                            logInfo("Downloading template $id...")
+                            PackyDownloader.downloadZipAndExtract(githubUrl, (packy.plugin.dataFolder.toPath() / "templates/$id").pathString)
+                            logSuccess("Downloading template $id")
+                        }
                     }
                 }
             }

@@ -9,6 +9,7 @@ import com.mineinabyss.idofront.plugin.listeners
 import com.mineinabyss.packy.config.PackyConfig
 import com.mineinabyss.packy.config.PackyContext
 import com.mineinabyss.packy.config.PackyTemplate
+import com.mineinabyss.packy.helpers.PackyDownloader
 import com.mineinabyss.packy.helpers.PackyServer
 import com.mineinabyss.packy.listener.PlayerListener
 import org.bukkit.plugin.java.JavaPlugin
@@ -23,6 +24,7 @@ class PackyPlugin : JavaPlugin() {
     override fun onEnable() {
         createPackyContext()
         PackyCommands()
+        PackyDownloader.downloadTemplates()
         PackyGenerator.setupForcedPackFiles()
         PackyServer.startServer()
 
