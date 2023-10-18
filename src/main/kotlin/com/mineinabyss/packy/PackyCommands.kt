@@ -1,28 +1,63 @@
 package com.mineinabyss.packy
 
+import com.github.shynixn.mccoroutine.bukkit.asyncDispatcher
+import com.github.shynixn.mccoroutine.bukkit.launch
+import com.github.shynixn.mccoroutine.bukkit.minecraftDispatcher
+import com.github.shynixn.mccoroutine.bukkit.ticks
+import com.google.gson.JsonArray
+import com.google.gson.JsonParser
 import com.mineinabyss.guiy.inventory.guiy
 import com.mineinabyss.idofront.commands.arguments.optionArg
 import com.mineinabyss.idofront.commands.arguments.playerArg
+import com.mineinabyss.idofront.commands.arguments.stringArg
 import com.mineinabyss.idofront.commands.execution.IdofrontCommandExecutor
 import com.mineinabyss.idofront.commands.extensions.actions.playerAction
-import com.mineinabyss.idofront.messaging.error
-import com.mineinabyss.idofront.messaging.logError
-import com.mineinabyss.idofront.messaging.logWarn
-import com.mineinabyss.idofront.messaging.success
+import com.mineinabyss.idofront.messaging.*
 import com.mineinabyss.packy.components.packyData
 import com.mineinabyss.packy.config.packy
+import com.mineinabyss.packy.helpers.PackyDownloader
 import com.mineinabyss.packy.helpers.PackyServer
 import com.mineinabyss.packy.menus.picker.PackPicker
 import com.mineinabyss.packy.menus.picker.PackyMainMenu
+import kotlinx.coroutines.delay
+import okio.Path.Companion.toPath
 import org.bukkit.Bukkit
 import org.bukkit.command.Command
 import org.bukkit.command.CommandSender
 import org.bukkit.command.TabCompleter
 import org.bukkit.entity.Player
+import java.io.BufferedReader
+import java.io.FileOutputStream
+import java.io.InputStreamReader
+import java.net.URL
+import java.nio.file.Files
+import java.nio.file.Paths
+import java.nio.file.StandardCopyOption
+import java.nio.file.StandardOpenOption
+import java.util.zip.ZipEntry
+import java.util.zip.ZipInputStream
+import kotlin.io.path.div
+import kotlin.io.path.pathString
+import kotlin.time.Duration.Companion.seconds
 
 class PackyCommands : IdofrontCommandExecutor(), TabCompleter {
     override val commands = commands(packy.plugin) {
         "packy" {
+            "download" {
+                val id: String by stringArg()
+                val url: String by stringArg()
+                action {
+                    packy.plugin.launch(packy.plugin.asyncDispatcher) {
+                        logInfo("Downloading template $id...")
+                        val owner = "MineInAbyss"
+                        val repository = "MineInAbyss-resourcepack"
+                        val branch = "master"
+                        val path = "common"
+                        PackyDownloader.downloadZipAndExtract(owner, repository, branch, path, (packy.plugin.dataFolder.toPath() / "templates/$id").pathString)
+                        logSuccess("Downloading template $id")
+                    }
+                }
+            }
             "reload" {
                 action {
                     packy.plugin.createPackyContext()
