@@ -20,7 +20,8 @@ object PackyDownloader {
 
     fun updateGithubTemplates(template: PackyTemplate): Boolean {
         val hashFile = packy.plugin.dataFolder.toPath() / "templates/${template.id}" / "localHash.txt"
-        if (hashFile.notExists()) hashFile.toFile().createNewFile()
+        hashFile.createParentDirectories()
+        if (hashFile.notExists()) hashFile.createFile()
 
         val latestCommitHash = getLatestCommitSha(template.githubUrl ?: return false)
         val localCommitHash = hashFile.readLines().find { it.matches("hash=.*".toRegex()) }?.substringAfter("=")
@@ -38,11 +39,11 @@ object PackyDownloader {
     }
 
     private fun getLatestCommitSha(githubUrl: String): String? {
-        val (owner, repository) = githubUrl.substringAfter("github.com/").split("/", limit = 3)
-        val (branch, path) = githubUrl.substringAfter("/tree/").split("/", limit = 3)
+        val (owner, repository) = githubUrl.substringAfter("github.com/").split("/")
+        val branch = githubUrl.substringAfter("tree/").substringBefore("/")
+        val path = githubUrl.substringAfter("tree/$branch/") + "assets"
         val apiUrl = "https://api.github.com/repos/$owner/$repository/commits?path=$path&sha=$branch"
-        val url = URL(apiUrl)
-        val connection = url.openConnection() as HttpURLConnection
+        val connection = URL(apiUrl).openConnection() as HttpURLConnection
         connection.setRequestProperty("Accept", "application/vnd.github.v3+json")
 
         if (connection.responseCode == HttpURLConnection.HTTP_OK) {
