@@ -39,13 +39,12 @@ object PackyDownloader {
     }
 
     private fun getLatestCommitSha(githubUrl: String): String? {
-        val (owner, repository) = githubUrl.substringAfter("github.com/").split("/")
-        val branch = githubUrl.substringAfter("tree/").substringBefore("/")
-        val path = githubUrl.substringAfter("tree/$branch/").substringBefore("?") + "assets"
-        val token = githubUrl.substringAfterLast("access_token=").substringBefore("&").takeIf { it != githubUrl }
+        val (owner, repository) = githubUrl.substringAfter("github.com/").split("/", limit = 3)
+        val branch = githubUrl.substringAfter("tree/").substringBefore("/").substringBefore("?").removeSuffix("/")
+        val path = (githubUrl.substringAfter("tree/").substringAfter(branch).substringBefore("?") + "/assets").removePrefix("/")
         val apiUrl = "https://api.github.com/repos/$owner/$repository/commits?path=$path&sha=$branch"
         val connection = URL(apiUrl).openConnection() as HttpURLConnection
-        token?.let { connection.setRequestProperty("Authorization", "token $token") }
+        connection.setRequestProperty("Authorization", "token ${packy.accessToken.token}")
         connection.setRequestProperty("Accept", "application/vnd.github.v3+json")
 
         if (connection.responseCode == HttpURLConnection.HTTP_OK) {
