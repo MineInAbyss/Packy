@@ -25,7 +25,6 @@ fun PackyUIScope.PackyMenu() {
 
         if (subMenu.packs.size == 1) {
             val templateId = subMenu.packs.keys.first()
-            broadcast(templateId)
             val template = packy.templates.find { it.id == templateId } ?: return
 
             Item(subMenu.button.toItemStack(), subMenu.modifiers.toModifier().clickable {
@@ -65,7 +64,7 @@ fun PackyUIScope.PackyMenu() {
 }
 
 @Composable
-fun PackyUIScope.ItemButton(subMenu: PackyConfig.PackySubMenu, pack: PackyConfig.PackyPack, onClick: () -> Unit) {
+fun ItemButton(subMenu: PackyConfig.PackySubMenu, pack: PackyConfig.PackyPack, onClick: () -> Unit) {
     Button(enabled = true, onClick = onClick) {
         Item(pack.button.toItemStack(), subMenu.modifiers.toModifier())
     }

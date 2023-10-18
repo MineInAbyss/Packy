@@ -9,6 +9,7 @@ import com.mineinabyss.guiy.modifiers.height
 import com.mineinabyss.guiy.navigation.Navigator
 import com.mineinabyss.packy.config.PackyConfig
 import com.mineinabyss.packy.config.packy
+import com.mineinabyss.packy.helpers.PackyGenerator
 import com.mineinabyss.packy.helpers.PackyServer
 import org.bukkit.entity.Player
 
@@ -33,7 +34,10 @@ fun GuiyOwner.PackyMainMenu(player: Player) {
         nav.withScreen(setOf(player), onEmpty = ::exit) { screen ->
             Chest(setOf(player), screen.title, Modifier.height(screen.height), onClose = {
                 player.closeInventory()
-                if (hasChanged) PackyServer.sendPack(player)
+                if (hasChanged) {
+                    PackyGenerator.createPlayerPack(player)
+                    PackyServer.sendPack(player)
+                }
             }) {
                 when (screen) {
                     PackyScreen.Default -> PackyMenu()

@@ -7,15 +7,20 @@ import com.mineinabyss.idofront.textcomponents.miniMsg
 import com.mineinabyss.packy.components.packyData
 import com.mineinabyss.packy.config.packy
 import com.mineinabyss.packy.helpers.PackyServer.playerPack
+import kotlinx.coroutines.CoroutineStart
+import kotlinx.coroutines.Job
 import org.bukkit.entity.Player
 import team.unnamed.creative.ResourcePack
 import team.unnamed.creative.base.Writable
 import team.unnamed.creative.serialize.minecraft.MinecraftResourcePackReader
 import team.unnamed.creative.serialize.minecraft.MinecraftResourcePackWriter
 import team.unnamed.creative.sound.SoundRegistry
+import java.util.UUID
 import kotlin.io.path.div
 
 object PackyGenerator {
+
+    val activeGeneratorJob: MutableMap<UUID, Job?> = mutableMapOf()
 
     fun setupForcedPackFiles() {
         packy.plugin.launch(packy.plugin.asyncDispatcher) {
@@ -33,23 +38,31 @@ object PackyGenerator {
         }
     }
 
-    fun createPlayerPack(player: Player): ResourcePack {
+    fun createPlayerPack(player: Player) {
+        player.playerPack = null
         val playerPack = ResourcePack.resourcePack()
-        mergePacks(playerPack, packy.defaultPack)
+        val job = packy.plugin.launch(packy.plugin.asyncDispatcher, CoroutineStart.LAZY) {
+            mergePacks(playerPack, packy.defaultPack)
 
-        // Filters out all forced files as they are already in defaultPack
-        // Filter all TemplatePacks that are not default or not in players enabledPackAddons
-        packy.templates.filterNot { it.forced }.filter { it in player.packyData.enabledPackAddons }.forEach { template ->
-            val templatePath = packy.plugin.dataFolder.toPath() / "templates" / template.id
-            val templatePack = MinecraftResourcePackReader.minecraft().readFromDirectory(templatePath.toFile())
-            mergePacks(playerPack, templatePack)
-            logSuccess("Added ${template.id}-template to pack")
+            // Filters out all forced files as they are already in defaultPack
+            // Filter all TemplatePacks that are not default or not in players enabledPackAddons
+            packy.templates.filterNot { it.forced }.filter { it in player.packyData.enabledPackAddons }.forEach { template ->
+                val templatePath = packy.plugin.dataFolder.toPath() / "templates" / template.id
+                val templatePack = MinecraftResourcePackReader.minecraft().readFromDirectory(templatePath.toFile())
+                mergePacks(playerPack, templatePack)
+                logSuccess("Added ${template.id}-template to pack")
+            }
+
+            val playerPacks = (packy.plugin.dataFolder.toPath() / "playerPacks" / player.uniqueId.toString()).toFile().apply { deleteRecursively() }
+            MinecraftResourcePackWriter.minecraft().writeToDirectory(playerPacks, playerPack)
+            player.playerPack = playerPack
         }
 
-        val playerPacks = (packy.plugin.dataFolder.toPath() / "playerPacks" / player.uniqueId.toString()).toFile().apply { deleteRecursively() }
-        MinecraftResourcePackWriter.minecraft().writeToDirectory(playerPacks, playerPack)
-        player.playerPack = playerPack
-        return playerPack
+        activeGeneratorJob[player.uniqueId] = job
+        job.start()
+        job.invokeOnCompletion {
+            activeGeneratorJob.remove(player.uniqueId)
+        }
     }
 
     private fun mergePacks(basePack: ResourcePack, mergePack: ResourcePack): ResourcePack {

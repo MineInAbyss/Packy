@@ -27,7 +27,6 @@ object PackPicker {
                 if (removedConflicting.isNotEmpty()) {
                     sender.warn("Removed conflicting pack-templates: ${removedConflicting.joinToString(", ")}")
                 }
-                PackyGenerator.createPlayerPack(player)
             } ?: when {
                 (sender as? Player)?.uniqueId != player.uniqueId ->
                     sender.error("The template could not be removed from ${player.name}'s addon-packs")
@@ -45,7 +44,6 @@ object PackPicker {
 
                 if ((sender as? Player)?.uniqueId != player.uniqueId) sender.success("TemplatePack ${template.id} was removed from ${player.name}'s addon-packs")
                 player.success("TemplatePack ${template.id} was removed from your addon-packs")
-                PackyGenerator.createPlayerPack(player)
             } ?: when {
                 (sender as? Player)?.uniqueId != player.uniqueId ->
                     sender.error("The template could not be removed from ${player.name}'s addon-packs")

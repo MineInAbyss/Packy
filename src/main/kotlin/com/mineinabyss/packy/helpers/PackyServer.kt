@@ -1,5 +1,8 @@
 package com.mineinabyss.packy.helpers
 
+import com.github.shynixn.mccoroutine.bukkit.asyncDispatcher
+import com.github.shynixn.mccoroutine.bukkit.launch
+import com.github.shynixn.mccoroutine.bukkit.ticks
 import com.mineinabyss.idofront.entities.toPlayer
 import com.mineinabyss.idofront.messaging.logError
 import com.mineinabyss.idofront.messaging.logSuccess
@@ -7,6 +10,7 @@ import com.mineinabyss.idofront.textcomponents.miniMsg
 import com.mineinabyss.packy.components.packyData
 import com.mineinabyss.packy.config.packy
 import com.sun.net.httpserver.HttpExchange
+import kotlinx.coroutines.delay
 import org.bukkit.entity.Player
 import team.unnamed.creative.BuiltResourcePack
 import team.unnamed.creative.ResourcePack
@@ -23,13 +27,23 @@ object PackyServer {
     lateinit var packServer: ResourcePackServer
     val playerPacks: MutableMap<UUID, ResourcePack> = mutableMapOf()
     var Player.playerPack
-        get() = playerPacks[uniqueId] ?: PackyGenerator.createPlayerPack(this)
-        set(value) { playerPacks[uniqueId] = value }
-    val Player.builtPlayerPack: BuiltResourcePack get() = MinecraftResourcePackWriter.minecraft().build(this.playerPack)
+        get(): ResourcePack? = playerPacks[uniqueId] ?: run { PackyGenerator.createPlayerPack(this); null }
+        set(value) {
+            value?.let {
+                playerPacks[uniqueId] = value
+            } ?: playerPacks.remove(uniqueId)
+        }
+    val Player.builtPlayerPack: BuiltResourcePack? get() = this.playerPack.let { MinecraftResourcePackWriter.minecraft().build(it) }
 
     fun sendPack(player: Player) {
-        val hash = player.builtPlayerPack.hash()
-        player.setResourcePack(packy.config.server.url(hash), hash, packy.config.force && !player.packyData.bypassForced, packy.config.prompt.miniMsg())
+        packy.plugin.launch {
+            if (player.uniqueId in PackyGenerator.activeGeneratorJob)
+                logError("Pack is still being generated, please wait...")
+            while (player.playerPack == null) delay(10.ticks)
+
+            val hash = player.builtPlayerPack!!.hash()
+            player.setResourcePack(packy.config.server.url(hash), hash, packy.config.force && !player.packyData.bypassForced, packy.config.prompt.miniMsg())
+        }
     }
 
     fun startServer() {

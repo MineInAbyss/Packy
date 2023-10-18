@@ -4,12 +4,15 @@ import com.mineinabyss.guiy.modifiers.Modifier
 import com.mineinabyss.guiy.modifiers.at
 import com.mineinabyss.guiy.modifiers.size
 import com.mineinabyss.idofront.serialization.SerializableItemStack
+import com.mineinabyss.idofront.serialization.toSerializable
 import com.mineinabyss.packy.helpers.PackyServer
 import kotlinx.serialization.EncodeDefault
 import kotlinx.serialization.EncodeDefault.Mode.ALWAYS
 import kotlinx.serialization.EncodeDefault.Mode.NEVER
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import org.bukkit.Material
+import org.bukkit.inventory.ItemStack
 import kotlin.io.path.div
 
 @Serializable
@@ -39,7 +42,7 @@ data class PackyConfig(
         MENU, CYCLING
     }
     @Serializable data class PackySubMenu(val title: String = "Packy SubMenu", val height: Int = 6, val button: SerializableItemStack, val modifiers: Modifiers = Modifiers(), val type: SubMenuType = SubMenuType.MENU, val packs: Map<String, PackyPack> = mapOf())
-    @Serializable data class PackyPack(val button: SerializableItemStack, val modifiers: Modifiers)
+    @Serializable data class PackyPack(val button: SerializableItemStack = ItemStack(Material.STONE).toSerializable(), val modifiers: Modifiers = Modifiers())
     @Serializable data class Modifiers(val offset: Offset = Offset(), val size: Size = Size()) {
         fun toModifier(): Modifier = Modifier.at(offset.x, offset.y).size(size.width, size.height)
     }
