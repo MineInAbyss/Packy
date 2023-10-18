@@ -19,6 +19,9 @@ data class PackyTemplate(
     @EncodeDefault(NEVER) val githubUrl: String? = null
 )
 
+@Serializable
+data class PackyAccessToken(internal val token: String = "")
+
 fun PackyTemplate.conflictsWith(template: PackyTemplate) =
     template.id in this.conflictsWith || this.id in template.conflictsWith
 
