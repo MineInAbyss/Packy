@@ -26,8 +26,11 @@ data class PackyConfig(
     @EncodeDefault(ALWAYS) val menu: PackyMenu = PackyMenu()
 ) {
     val zipDestination get() = packy.plugin.dataFolder.toPath() / _zipDestination
-    @Serializable data class PackyMcMeta(val format: Int = 15, val description: String = "Packy Resourcepack")
-    @Serializable data class PackyServer(val ip: String = "127.0.0.1", val port: Int = 8080) {
+
+    @Serializable
+    data class PackyMcMeta(val format: Int = 15, val description: String = "Packy Resourcepack")
+    @Serializable
+    data class PackyServer(val ip: String = "127.0.0.1", val port: Int = 8080) {
         fun url(hash: String) = "http://$ip:$port/$hash.zip"
     }
 
@@ -41,15 +44,35 @@ data class PackyConfig(
     enum class SubMenuType {
         MENU, CYCLING
     }
-    @Serializable data class PackySubMenu(val title: String = "Packy SubMenu", val height: Int = 6, val button: SerializableItemStack, val modifiers: Modifiers = Modifiers(), val type: SubMenuType = SubMenuType.MENU, val packs: Map<String, PackyPack> = mapOf())
-    @Serializable data class PackyPack(val button: SerializableItemStack = ItemStack(Material.STONE).toSerializable(), val modifiers: Modifiers = Modifiers())
-    @Serializable data class Modifiers(val offset: Offset = Offset(), val size: Size = Size()) {
+
+    @Serializable
+    data class PackySubMenu(
+        val title: String = "Packy SubMenu",
+        val height: Int = 6,
+        @EncodeDefault(NEVER) val button: SerializableItemStack = ItemStack(Material.STONE).toSerializable(),
+        val modifiers: Modifiers = Modifiers(),
+        val type: SubMenuType = SubMenuType.MENU,
+        val packs: Map<String, PackyPack> = mapOf()
+    )
+
+    @Serializable
+    data class PackyPack(
+        @EncodeDefault(NEVER) val button: SerializableItemStack? = null,
+        @EncodeDefault(NEVER) val modifiers: Modifiers = Modifiers()
+    )
+
+    @Serializable
+    data class Modifiers(val offset: Offset = Offset(), val size: Size = Size()) {
         fun toModifier(): Modifier = Modifier.at(offset.x, offset.y).size(size.width, size.height)
     }
-    @Serializable data class Offset(val x: Int = 0, val y: Int = 0) {
+
+    @Serializable
+    data class Offset(val x: Int = 0, val y: Int = 0) {
         fun toAtModifier(modifier: Modifier = Modifier): Modifier = modifier.at(x, y)
     }
-    @Serializable data class Size(val width: Int = 1, val height: Int = 1) {
+
+    @Serializable
+    data class Size(val width: Int = 1, val height: Int = 1) {
         fun toSizeModifier(modifier: Modifier = Modifier): Modifier = modifier.size(width, height)
     }
 }

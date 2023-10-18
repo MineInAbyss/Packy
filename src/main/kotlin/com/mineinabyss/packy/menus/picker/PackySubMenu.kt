@@ -11,8 +11,8 @@ import com.mineinabyss.packy.config.packy
 import com.mineinabyss.packy.menus.Button
 
 @Composable
-fun PackyUIScope.PackySubMenu(packyPacks: Map<String, PackyConfig.PackyPack>) {
-    packyPacks.forEach { (templateId, pack) ->
+fun PackyUIScope.PackySubMenu(subMenu: PackyConfig.PackySubMenu) {
+    subMenu.packs.forEach { (templateId, pack) ->
         val template = packy.templates.find { it.id == templateId } ?: return@forEach
         Button(pack.modifiers.offset.toAtModifier(),
             onClick = {
@@ -23,7 +23,7 @@ fun PackyUIScope.PackySubMenu(packyPacks: Map<String, PackyConfig.PackyPack>) {
                 hasChanged = true
                 nav.back()
             }
-        ) { Item(pack.button.toItemStack(), pack.modifiers.size.toSizeModifier()) }
+        ) { Item((pack.button ?: subMenu.button).toItemStack(), pack.modifiers.size.toSizeModifier()) }
     }
 
     BackButton(Modifier.at(4, 5))

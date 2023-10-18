@@ -66,7 +66,7 @@ fun PackyUIScope.PackyMenu() {
 @Composable
 fun ItemButton(subMenu: PackyConfig.PackySubMenu, pack: PackyConfig.PackyPack, onClick: () -> Unit) {
     Button(enabled = true, onClick = onClick) {
-        Item(pack.button.toItemStack(), subMenu.modifiers.toModifier())
+        Item((pack.button ?: subMenu.button).toItemStack(), subMenu.modifiers.toModifier())
     }
 }
 

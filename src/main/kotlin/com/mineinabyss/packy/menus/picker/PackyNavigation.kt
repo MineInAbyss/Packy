@@ -41,7 +41,7 @@ fun GuiyOwner.PackyMainMenu(player: Player) {
             }) {
                 when (screen) {
                     PackyScreen.Default -> PackyMenu()
-                    is PackySubScreen -> PackySubMenu(screen.subMenu.packs)
+                    is PackySubScreen -> PackySubMenu(screen.subMenu)
                 }
             }
         }
