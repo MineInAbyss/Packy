@@ -52,8 +52,8 @@ object PackyGenerator {
                 logSuccess("Added ${id}-template to pack")
             }
 
-            val playerPacks = (packy.plugin.dataFolder.toPath() / "playerPacks" / player.uniqueId.toString()).toFile().apply { deleteRecursively() }
-            MinecraftResourcePackWriter.minecraft().writeToDirectory(playerPacks, playerPack)
+            //val playerPacks = (packy.plugin.dataFolder.toPath() / "playerPacks" / player.uniqueId.toString()).toFile().apply { deleteRecursively() }
+            //MinecraftResourcePackWriter.minecraft().writeToDirectory(playerPacks, playerPack)
             player.playerPack = playerPack
         }
 

@@ -20,7 +20,7 @@ import org.bukkit.inventory.ItemStack
 @Composable
 fun PackyUIScope.PackyMenu() {
     val subPackList = packy.config.menu.subMenus.map { it.value to it.value.packs.toList() }.toMap()
-    packy.config.menu.subMenus.values.forEach { subMenu ->
+    packy.config.menu.subMenus.values.map { subMenu ->
         var packs by remember { mutableStateOf(subPackList[subMenu]!!.toMutableList()) }
 
         if (subMenu.packs.size == 1) {
