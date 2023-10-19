@@ -82,9 +82,8 @@ object PackyDownloader {
         runCatching {
             destinationFolder.toFile().deleteRecursively()
             val connection = URL(zipUrl).openConnection()
-            connection.setRequestProperty("Authorization", "token ${ packy.accessToken.token}")
+            connection.setRequestProperty("Authorization", "Bearer ${packy.accessToken.token}")
             val zipStream = ZipInputStream(connection.getInputStream())
-
             var entry = zipStream.nextEntry
             while (entry != null) {
                 if (entry.name.startsWith("$repository-$branch/$path", true) && !entry.isDirectory) {
