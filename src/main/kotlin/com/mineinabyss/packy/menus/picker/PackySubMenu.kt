@@ -13,7 +13,7 @@ import com.mineinabyss.packy.menus.Button
 @Composable
 fun PackyUIScope.PackySubMenu(subMenu: PackyConfig.PackySubMenu) {
     subMenu.packs.forEach { (templateId, pack) ->
-        val template = packy.templates.find { it.id == templateId } ?: return@forEach
+        val template = packy.templates.entries.find { it.key == templateId }?.value ?: return@forEach
         Button(pack.modifiers.offset.toAtModifier(),
             onClick = {
                 when {

@@ -28,11 +28,11 @@ object PackyGenerator {
             packy.defaultPack.packMeta(packy.config.mcmeta.format, packy.config.mcmeta.description)
 
             // Add all forced packs to defaultPack
-            packy.templates.filter { it.forced }.forEach { template ->
-                val templatePath = packy.plugin.dataFolder.toPath() / "templates" / template.id
+            packy.templates.filter { it.value.forced }.keys.forEach { id ->
+                val templatePath = packy.plugin.dataFolder.toPath() / "templates" / id
                 val templatePack = MinecraftResourcePackReader.minecraft().readFromDirectory(templatePath.toFile())
                 mergePacks(packy.defaultPack, templatePack)
-                logSuccess("Added ${template.id}-template to defaultPack")
+                logSuccess("Added ${id}-template to defaultPack")
             }
         }
     }
@@ -45,11 +45,11 @@ object PackyGenerator {
 
             // Filters out all forced files as they are already in defaultPack
             // Filter all TemplatePacks that are not default or not in players enabledPackAddons
-            packy.templates.filterNot { it.forced }.filter { it in player.packyData.enabledPackAddons }.forEach { template ->
-                val templatePath = packy.plugin.dataFolder.toPath() / "templates" / template.id
+            packy.templates.entries.filterNot { it.value.forced }.filter { it.value in player.packyData.enabledPackAddons }.forEach { (id, template) ->
+                val templatePath = packy.plugin.dataFolder.toPath() / "templates" / id
                 val templatePack = MinecraftResourcePackReader.minecraft().readFromDirectory(templatePath.toFile())
                 mergePacks(playerPack, templatePack)
-                logSuccess("Added ${template.id}-template to pack")
+                logSuccess("Added ${id}-template to pack")
             }
 
             val playerPacks = (packy.plugin.dataFolder.toPath() / "playerPacks" / player.uniqueId.toString()).toFile().apply { deleteRecursively() }

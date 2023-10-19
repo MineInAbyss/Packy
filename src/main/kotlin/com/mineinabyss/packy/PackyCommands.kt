@@ -27,7 +27,7 @@ class PackyCommands : IdofrontCommandExecutor(), TabCompleter {
     override val commands = commands(packy.plugin) {
         "packy" {
             "github" {
-                val id: String by optionArg(packy.templates.filter { it.githubUrl != null }.map { it.id }.apply { toMutableSet().add("ALL") })
+                val id: String by optionArg(packy.templates.entries.filter { it.value.githubUrl != null }.map { it.key }.apply { toMutableSet().add("ALL") })
                 "download" {
                     action {
                         packy.plugin.launch(packy.plugin.asyncDispatcher) {
@@ -38,7 +38,7 @@ class PackyCommands : IdofrontCommandExecutor(), TabCompleter {
                                     sender.success("Downloaded all templates!")
                                 }
                                 else -> {
-                                    val template = packy.templates.find { it.id == id } ?: return@launch sender.error("No template with given ID")
+                                    val template = packy.templates.entries.find { it.key == id }?.value ?: return@launch sender.error("No template with given ID")
                                     sender.warn("Downloading template $id...")
                                     PackyDownloader.downloadAndExtractTemplate(template)
                                     sender.success("Downloading template $id")
@@ -49,7 +49,7 @@ class PackyCommands : IdofrontCommandExecutor(), TabCompleter {
                     }
                 }
                 "update" {
-                    packy.templates.filter { it.githubUrl != null }.forEach(PackyDownloader::updateGithubTemplates)
+                    packy.templates.values.filter { it.githubUrl != null }.forEach(PackyDownloader::updateGithubTemplates)
                 }
             }
             "reload" {
@@ -72,7 +72,7 @@ class PackyCommands : IdofrontCommandExecutor(), TabCompleter {
             "picker" {
                 "add" {
                     val player: Player by playerArg()
-                    val pack by optionArg(packy.templates.filterNot { it.forced || it in player.packyData.enabledPackAddons }.map { it.id })
+                    val pack by optionArg(packy.templates.entries.filterNot { it.value.forced || it.value in player.packyData.enabledPackAddons }.map { it.key })
                     action {
                         PackPicker.addPack(player, pack, sender)
                     }
@@ -130,11 +130,11 @@ class PackyCommands : IdofrontCommandExecutor(), TabCompleter {
                 }.filter { it.startsWith(args[1]) }
                 3 -> when(args[0]) {
                     "picker" -> packy.plugin.server.onlinePlayers.map { it.name }
-                    "github" -> packy.templates.filter { it.githubUrl != null }.map { it.id }
+                    "github" -> packy.templates.entries.filter { it.value.githubUrl != null }.map { it.key }
                     else -> listOf()
                 }.filter { it.startsWith(args[2]) }
                 4 -> when(args[1]) {
-                    "add" -> packy.templates.filter { !it.forced && it !in Bukkit.getPlayer(args[2])!!.packyData.enabledPackAddons }.map { it.id }
+                    "add" -> packy.templates.entries.filter { !it.value.forced && it.value !in Bukkit.getPlayer(args[2])!!.packyData.enabledPackAddons }.map { it.key }
                     "remove" -> Bukkit.getPlayer(args[2])!!.packyData.enabledPackAddons.map { it.id }
                     else -> listOf()
                 }.filter { it.startsWith(args[3]) }

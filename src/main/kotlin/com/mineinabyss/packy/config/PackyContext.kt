@@ -10,6 +10,6 @@ interface PackyContext {
     val plugin: PackyPlugin
     val config: PackyConfig
     val defaultPack: ResourcePack
-    val templates: Set<PackyTemplate>
+    val templates: Map<String, PackyTemplate>
     val accessToken: PackyAccessToken
 }

@@ -61,11 +61,11 @@ object PackyDownloader {
 
     fun downloadTemplates() {
         runBlocking {
-            packy.templates.filter { it.githubUrl != null }.map {
+            packy.templates.entries.filter { it.value.githubUrl != null }.map { (id, template) ->
                 async {
-                    logWarn("Downloading ${it.id}-template from ${it.githubUrl}...")
-                    if (updateGithubTemplates(it))
-                        logSuccess("Successfully downloaded ${it.id}-template!")
+                    logWarn("Downloading ${id}-template from ${template.githubUrl}...")
+                    if (updateGithubTemplates(template))
+                        logSuccess("Successfully downloaded ${id}-template!")
                 }
             }.awaitAll()
         }

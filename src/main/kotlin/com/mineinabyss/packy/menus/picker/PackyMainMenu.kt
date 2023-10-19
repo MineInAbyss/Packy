@@ -25,7 +25,7 @@ fun PackyUIScope.PackyMenu() {
 
         if (subMenu.packs.size == 1) {
             val templateId = subMenu.packs.keys.first()
-            val template = packy.templates.find { it.id == templateId } ?: return
+            val template = packy.templates.entries.find { it.key == templateId }?.value ?: return
 
             Item(subMenu.button.toItemStack(), subMenu.modifiers.toModifier().clickable {
                 // Return if the task returns null, meaning button was spammed whilst a set was currently generating
@@ -34,7 +34,7 @@ fun PackyUIScope.PackyMenu() {
                     else -> PackPicker.removePack(player, templateId)
                 } ?: return@clickable
 
-                packs = packs.toMutableList().apply { add(removeFirst()) }
+                packs = packs.apply { add(removeFirst()) }
                 hasChanged = true
                 nav.refresh()
             })
@@ -47,14 +47,14 @@ fun PackyUIScope.PackyMenu() {
                 val (templateId, pack) = packs.first().first to packs[1].second
 
                 ItemButton(subMenu, pack) {
-                    val template = packy.templates.find { it.id == templateId }
+                    val template = packy.templates.entries.find { it.key == templateId }?.value ?: return@ItemButton
                     // Return if the task returns null, meaning button was spammed whilst a set was currently generating
                     when {
                         template !in player.packyData.enabledPackAddons -> PackPicker.addPack(player, templateId)
                         else -> PackPicker.removePack(player, templateId)
                     } ?: return@ItemButton
 
-                    packs = packs.toMutableList().apply { add(removeFirst()) }
+                    packs = packs.apply { add(removeFirst()) }
                     hasChanged = true
                     nav.refresh()
                 }

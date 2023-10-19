@@ -18,12 +18,12 @@ object PackPicker {
     fun addPack(player: Player, pack: String, sender: CommandSender = player): Unit? {
         if (currentJob != null) return null
         currentJob = packy.plugin.launch(packy.plugin.asyncDispatcher) {
-            packy.templates.find { it.id == pack }?.let { template ->
+            packy.templates.entries.find { it.key == pack }?.let { (id, template) ->
                 val removedConflicting = player.removeConflictingPacks(template).map { it.id }
                 player.packyData.enabledPackAddons += template
 
-                if ((sender as? Player)?.uniqueId != player.uniqueId) sender.success("TemplatePack ${template.id} was added to ${player.name}'s addon-packs")
-                player.success("The template ${template.id} was added to your addon-packs")
+                if ((sender as? Player)?.uniqueId != player.uniqueId) sender.success("TemplatePack $id was added to ${player.name}'s addon-packs")
+                player.success("The template $id was added to your addon-packs")
                 if (removedConflicting.isNotEmpty()) {
                     sender.warn("Removed conflicting pack-templates: ${removedConflicting.joinToString(", ")}")
                 }
@@ -39,11 +39,11 @@ object PackPicker {
     fun removePack(player: Player, pack: String, sender: CommandSender = player): Unit? {
         if (currentJob != null) return null
         currentJob = packy.plugin.launch(packy.plugin.asyncDispatcher) {
-            packy.templates.find { it.id == pack }?.let { template ->
+            packy.templates.entries.find { it.key == pack }?.let { (id, template) ->
                 player.packyData.enabledPackAddons -= template
 
-                if ((sender as? Player)?.uniqueId != player.uniqueId) sender.success("TemplatePack ${template.id} was removed from ${player.name}'s addon-packs")
-                player.success("TemplatePack ${template.id} was removed from your addon-packs")
+                if ((sender as? Player)?.uniqueId != player.uniqueId) sender.success("TemplatePack $id was removed from ${player.name}'s addon-packs")
+                player.success("TemplatePack $id was removed from your addon-packs")
             } ?: when {
                 (sender as? Player)?.uniqueId != player.uniqueId ->
                     sender.error("The template could not be removed from ${player.name}'s addon-packs")

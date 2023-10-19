@@ -9,10 +9,7 @@ import com.mineinabyss.idofront.config.config
 import com.mineinabyss.idofront.di.DI
 import com.mineinabyss.idofront.platforms.Platforms
 import com.mineinabyss.idofront.plugin.listeners
-import com.mineinabyss.packy.config.PackyAccessToken
-import com.mineinabyss.packy.config.PackyConfig
-import com.mineinabyss.packy.config.PackyContext
-import com.mineinabyss.packy.config.PackyTemplate
+import com.mineinabyss.packy.config.*
 import com.mineinabyss.packy.helpers.PackyDownloader
 import com.mineinabyss.packy.helpers.PackyGenerator
 import com.mineinabyss.packy.helpers.PackyServer
@@ -56,8 +53,7 @@ class PackyPlugin : JavaPlugin() {
             override val plugin = this@PackyPlugin
             override val config: PackyConfig by config("config", dataFolder.toPath(), PackyConfig())
             override val defaultPack: ResourcePack = ResourcePack.resourcePack()
-            override val templates: Set<PackyTemplate> =
-                config<Set<PackyTemplate>>("templates", dataFolder.toPath(), setOf()).getOrLoad()
+            override val templates: Map<String, PackyTemplate> = config<PackyTemplates>("templates", dataFolder.toPath(), PackyTemplates()).getOrLoad().templates
             override val accessToken: PackyAccessToken by config("accessToken", dataFolder.toPath(), PackyAccessToken())
         })
     }

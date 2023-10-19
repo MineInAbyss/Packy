@@ -10,14 +10,16 @@ import kotlinx.serialization.Serializable
 import kotlin.io.path.div
 import kotlin.io.path.pathString
 
+@Serializable data class PackyTemplates(val templates: Map<String, PackyTemplate> = mapOf())
 @Serializable
 data class PackyTemplate(
-    val id: String,
     val default: Boolean = false,
     val forced: Boolean,
     @EncodeDefault(NEVER) val conflictsWith: Set<String> = setOf(),
     @EncodeDefault(NEVER) val githubUrl: String? = null
-)
+) {
+    val id: String get() = packy.templates.entries.first { it.value == this }.key
+}
 
 @Serializable
 data class PackyAccessToken(internal val token: String = "")
