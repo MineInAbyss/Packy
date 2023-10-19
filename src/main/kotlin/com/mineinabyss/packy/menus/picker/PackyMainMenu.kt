@@ -44,7 +44,7 @@ fun PackyUIScope.PackyMenu() {
             )
 
             PackyConfig.SubMenuType.CYCLING -> {
-                val (templateId, pack) = packs.first().first to packs[1].second
+                val (templateId, pack) = packs.first().first to packs.last().second
 
                 CycleButton(subMenu, pack) {
                     val template = packy.templates.entries.find { it.key == templateId }?.value ?: return@CycleButton
@@ -68,7 +68,7 @@ fun CycleButton(subMenu: PackyConfig.PackySubMenu, pack: PackyConfig.PackyPack, 
     val modifier = subMenu.modifiers.offset.toAtModifier()
     Grid(subMenu.modifiers.size.toSizeModifier(modifier)) {
         Button(enabled = true, onClick = onClick) {
-            Item((pack.button ?: subMenu.button).toItemStack(), subMenu.modifiers.size.toSizeModifier())
+            Item((pack.button ?: subMenu.button).toItemStack(subMenu.button.toItemStack()), subMenu.modifiers.size.toSizeModifier())
         }
     }
 

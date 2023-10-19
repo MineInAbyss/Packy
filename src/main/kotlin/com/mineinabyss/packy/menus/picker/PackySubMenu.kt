@@ -22,7 +22,7 @@ fun PackyUIScope.PackySubMenu(subMenu: PackyConfig.PackySubMenu) {
             hasChanged = true
             nav.back()
         }
-        ) { Item((pack.button ?: subMenu.button).toItemStack(), pack.modifiers.toModifier()) }
+        ) { Item((pack.button ?: subMenu.button).toItemStack(subMenu.button.toItemStack()), pack.modifiers.toModifier()) }
     }
 
     BackButton(Modifier.at(4, 5))
