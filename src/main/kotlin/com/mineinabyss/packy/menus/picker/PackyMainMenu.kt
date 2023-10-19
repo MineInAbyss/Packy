@@ -1,14 +1,13 @@
 package com.mineinabyss.packy.menus.picker
 
 import androidx.compose.runtime.*
+import com.mineinabyss.guiy.components.Grid
 import com.mineinabyss.guiy.components.Item
 import com.mineinabyss.guiy.modifiers.Modifier
 import com.mineinabyss.guiy.modifiers.clickable
 import com.mineinabyss.idofront.items.editItemMeta
 import com.mineinabyss.idofront.messaging.broadcast
-import com.mineinabyss.idofront.messaging.logSuccess
 import com.mineinabyss.idofront.textcomponents.miniMsg
-import com.mineinabyss.idofront.textcomponents.serialize
 import com.mineinabyss.packy.components.packyData
 import com.mineinabyss.packy.config.PackyConfig
 import com.mineinabyss.packy.config.packy
@@ -34,7 +33,7 @@ fun PackyUIScope.PackyMenu() {
                     else -> PackPicker.removePack(player, templateId)
                 } ?: return@clickable
 
-                packs = packs.apply { add(removeFirst()) }
+                packs = packs.toMutableList().apply { add(removeFirst()) }
                 hasChanged = true
                 nav.refresh()
             })
@@ -47,15 +46,15 @@ fun PackyUIScope.PackyMenu() {
             PackyConfig.SubMenuType.CYCLING -> {
                 val (templateId, pack) = packs.first().first to packs[1].second
 
-                ItemButton(subMenu, pack) {
-                    val template = packy.templates.entries.find { it.key == templateId }?.value ?: return@ItemButton
+                CycleButton(subMenu, pack) {
+                    val template = packy.templates.entries.find { it.key == templateId }?.value ?: return@CycleButton
                     // Return if the task returns null, meaning button was spammed whilst a set was currently generating
                     when {
                         template !in player.packyData.enabledPackAddons -> PackPicker.addPack(player, templateId)
                         else -> PackPicker.removePack(player, templateId)
-                    } ?: return@ItemButton
+                    } ?: return@CycleButton
 
-                    packs = packs.apply { add(removeFirst()) }
+                    packs = packs.toMutableList().apply { add(removeFirst()) }
                     hasChanged = true
                     nav.refresh()
                 }
@@ -65,10 +64,14 @@ fun PackyUIScope.PackyMenu() {
 }
 
 @Composable
-fun ItemButton(subMenu: PackyConfig.PackySubMenu, pack: PackyConfig.PackyPack, onClick: () -> Unit) {
-    Button(enabled = true, onClick = onClick) {
-        Item((pack.button ?: subMenu.button).toItemStack(), subMenu.modifiers.toModifier())
+fun CycleButton(subMenu: PackyConfig.PackySubMenu, pack: PackyConfig.PackyPack, onClick: () -> Unit) {
+    val modifier = subMenu.modifiers.offset.toAtModifier()
+    Grid(subMenu.modifiers.size.toSizeModifier(modifier)) {
+        Button(enabled = true, onClick = onClick) {
+            Item((pack.button ?: subMenu.button).toItemStack(), subMenu.modifiers.size.toSizeModifier())
+        }
     }
+
 }
 
 

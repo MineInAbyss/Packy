@@ -46,8 +46,8 @@ class PackyPlugin : JavaPlugin() {
     }
 
     override fun onDisable() {
-        PackyGenerator.activeGeneratorJob.stopAll()
-        PackPicker.activePickerJob.stopAll()
+        //PackPicker.activePickerJob.stopAll()
+        //PackyGenerator.activeGeneratorJob.stopAll()
         PackyServer.playerPacks.clear()
         PackyServer.stopServer()
     }

@@ -14,7 +14,7 @@ import com.mineinabyss.packy.menus.Button
 fun PackyUIScope.PackySubMenu(subMenu: PackyConfig.PackySubMenu) {
     subMenu.packs.forEach { (templateId, pack) ->
         val template = packy.templates.entries.find { it.key == templateId }?.value ?: return@forEach
-        Button(onClick = {
+        Button(pack.modifiers.toModifier(), onClick = {
             when {
                 template !in player.packyData.enabledPackAddons -> PackPicker.addPack(player, templateId)
                 else -> PackPicker.removePack(player, templateId)
