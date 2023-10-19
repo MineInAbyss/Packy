@@ -20,13 +20,10 @@ data class PackyConfig(
     @EncodeDefault(ALWAYS) val mcmeta: PackyMcMeta = PackyMcMeta(),
     @EncodeDefault(ALWAYS) val icon: String = "pack.png",
     @EncodeDefault(ALWAYS) val server: PackyServer = PackyServer(),
-    @SerialName("zipDestination") @EncodeDefault(ALWAYS) val _zipDestination: String = "builtPacks/",
     @EncodeDefault(ALWAYS) val prompt: String = "",
     @EncodeDefault(ALWAYS) val force: Boolean = false,
     @EncodeDefault(ALWAYS) val menu: PackyMenu = PackyMenu()
 ) {
-    val zipDestination get() = packy.plugin.dataFolder.toPath() / _zipDestination
-
     @Serializable
     data class PackyMcMeta(val format: Int = 15, val description: String = "Packy Resourcepack")
     @Serializable

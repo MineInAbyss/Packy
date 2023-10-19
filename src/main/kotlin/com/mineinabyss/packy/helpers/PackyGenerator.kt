@@ -24,7 +24,6 @@ object PackyGenerator {
 
     fun setupForcedPackFiles() {
         packy.plugin.launch(packy.plugin.asyncDispatcher) {
-            packy.config.zipDestination.toFile().deleteRecursively()
             packy.defaultPack.icon(Writable.path(packy.plugin.dataFolder.toPath() / packy.config.icon))
             packy.defaultPack.packMeta(packy.config.mcmeta.format, packy.config.mcmeta.description)
 
