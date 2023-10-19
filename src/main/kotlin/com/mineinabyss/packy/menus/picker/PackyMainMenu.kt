@@ -6,7 +6,10 @@ import com.mineinabyss.guiy.components.Item
 import com.mineinabyss.guiy.modifiers.Modifier
 import com.mineinabyss.guiy.modifiers.clickable
 import com.mineinabyss.idofront.items.editItemMeta
-import com.mineinabyss.idofront.messaging.broadcast
+import com.mineinabyss.idofront.messaging.logError
+import com.mineinabyss.idofront.messaging.logInfo
+import com.mineinabyss.idofront.messaging.logSuccess
+import com.mineinabyss.idofront.messaging.logWarn
 import com.mineinabyss.idofront.textcomponents.miniMsg
 import com.mineinabyss.packy.components.packyData
 import com.mineinabyss.packy.config.PackyConfig
@@ -44,17 +47,18 @@ fun PackyUIScope.PackyMenu() {
             )
 
             PackyConfig.SubMenuType.CYCLING -> {
-                val (templateId, pack) = packs.first().first to packs.last().second
+                val templateId = player.packyData.enabledPackAddons.firstOrNull { it.id in subMenu.packs.keys }?.id ?: packs.first().first
+                val pack = subMenu.packs[templateId] ?: return
+                val currentTemplateIndex = packs.indexOf(templateId to pack)
+                val nextTemplateId = packs[(currentTemplateIndex + 1) % packs.size].first
 
                 CycleButton(subMenu, pack) {
-                    val template = packy.templates.entries.find { it.key == templateId }?.value ?: return@CycleButton
                     // Return if the task returns null, meaning button was spammed whilst a set was currently generating
-                    when {
-                        template !in player.packyData.enabledPackAddons -> PackPicker.addPack(player, templateId)
-                        else -> PackPicker.removePack(player, templateId)
-                    } ?: return@CycleButton
+                    PackPicker.addPack(player, nextTemplateId) ?: return@CycleButton
 
-                    packs = packs.toMutableList().apply { add(removeFirst()) }
+                    packs = packs.toMutableList().apply {
+                        add(removeAt(currentTemplateIndex))
+                    }
                     hasChanged = true
                     nav.refresh()
                 }

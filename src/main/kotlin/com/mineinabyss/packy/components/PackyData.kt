@@ -20,7 +20,7 @@ var Player.packyData
 fun Player.removeConflictingPacks(template: PackyTemplate) : Set<PackyTemplate> {
     return mutableSetOf<PackyTemplate>().apply {
         packyData.enabledPackAddons.removeIf { t ->
-            t.conflictsWith(template).run { if (this) add(t); this }
+            t.conflictsWith(template).let { if (it) this.add(t); it }
         }
     }.toSet()
 }
