@@ -39,6 +39,7 @@ object PackyGenerator {
 
     fun createPlayerPack(player: Player) {
         player.playerPack = null
+        if (activeGeneratorJob[player.uniqueId] != null) return
         val playerPack = ResourcePack.resourcePack()
         val job = packy.plugin.launch(packy.plugin.asyncDispatcher, CoroutineStart.LAZY) {
             mergePacks(playerPack, packy.defaultPack)
@@ -60,7 +61,7 @@ object PackyGenerator {
         activeGeneratorJob[player.uniqueId] = job
         job.start()
         job.invokeOnCompletion {
-            activeGeneratorJob.remove(player.uniqueId)
+            activeGeneratorJob -= player.uniqueId
         }
     }
 
