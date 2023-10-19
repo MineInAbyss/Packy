@@ -41,7 +41,8 @@ fun PackyUIScope.PackyMenu() {
         } else when (subMenu.type) {
             PackyConfig.SubMenuType.MENU -> Item(
                 subMenu.button.toItemStack(),
-                subMenu.modifiers.toModifier().clickable { nav.open(PackySubScreen(subMenu)) })
+                subMenu.modifiers.toModifier().clickable { nav.open(PackySubScreen(subMenu)) }
+            )
 
             PackyConfig.SubMenuType.CYCLING -> {
                 val (templateId, pack) = packs.first().first to packs[1].second

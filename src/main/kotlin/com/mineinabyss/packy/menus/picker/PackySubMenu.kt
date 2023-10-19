@@ -14,16 +14,15 @@ import com.mineinabyss.packy.menus.Button
 fun PackyUIScope.PackySubMenu(subMenu: PackyConfig.PackySubMenu) {
     subMenu.packs.forEach { (templateId, pack) ->
         val template = packy.templates.entries.find { it.key == templateId }?.value ?: return@forEach
-        Button(pack.modifiers.offset.toAtModifier(),
-            onClick = {
-                when {
-                    template !in player.packyData.enabledPackAddons -> PackPicker.addPack(player, templateId)
-                    else -> PackPicker.removePack(player, templateId)
-                }
-                hasChanged = true
-                nav.back()
+        Button(onClick = {
+            when {
+                template !in player.packyData.enabledPackAddons -> PackPicker.addPack(player, templateId)
+                else -> PackPicker.removePack(player, templateId)
             }
-        ) { Item((pack.button ?: subMenu.button).toItemStack(), pack.modifiers.size.toSizeModifier()) }
+            hasChanged = true
+            nav.back()
+        }
+        ) { Item((pack.button ?: subMenu.button).toItemStack(), pack.modifiers.toModifier()) }
     }
 
     BackButton(Modifier.at(4, 5))

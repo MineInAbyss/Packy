@@ -21,6 +21,9 @@ import kotlin.io.path.div
 object PackyGenerator {
 
     val activeGeneratorJob: MutableMap<UUID, Job?> = mutableMapOf()
+    fun MutableMap<UUID, Job?>.stopAll() = this.forEach {
+        it.value?.cancel()
+    }.run { this@stopAll.clear() }
 
     fun setupForcedPackFiles() {
         packy.plugin.launch(packy.plugin.asyncDispatcher) {

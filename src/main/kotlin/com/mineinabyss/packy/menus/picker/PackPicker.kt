@@ -12,12 +12,13 @@ import com.mineinabyss.packy.config.packy
 import kotlinx.coroutines.Job
 import org.bukkit.command.CommandSender
 import org.bukkit.entity.Player
+import java.util.*
 
 object PackPicker {
-    private var currentJob: Job? = null
+    val activePickerJob: MutableMap<UUID, Job?> = mutableMapOf()
     fun addPack(player: Player, pack: String, sender: CommandSender = player): Unit? {
-        if (currentJob != null) return null
-        currentJob = packy.plugin.launch(packy.plugin.asyncDispatcher) {
+        if (activePickerJob[player.uniqueId] != null) return null
+        activePickerJob[player.uniqueId] = packy.plugin.launch(packy.plugin.asyncDispatcher) {
             packy.templates.entries.find { it.key == pack }?.let { (id, template) ->
                 val removedConflicting = player.removeConflictingPacks(template).map { it.id }
                 player.packyData.enabledPackAddons += template
@@ -32,13 +33,13 @@ object PackPicker {
                     sender.error("The template could not be removed from ${player.name}'s addon-packs")
                 else -> sender.error("The template could not be removed from your addon-packs")
             }
-        }.apply { invokeOnCompletion { currentJob = null } }
+        }.apply { invokeOnCompletion { activePickerJob -= player.uniqueId } }
         return Unit
     }
 
     fun removePack(player: Player, pack: String, sender: CommandSender = player): Unit? {
-        if (currentJob != null) return null
-        currentJob = packy.plugin.launch(packy.plugin.asyncDispatcher) {
+        if (activePickerJob[player.uniqueId] != null) return null
+        activePickerJob[player.uniqueId] = packy.plugin.launch(packy.plugin.asyncDispatcher) {
             packy.templates.entries.find { it.key == pack }?.let { (id, template) ->
                 player.packyData.enabledPackAddons -= template
 
@@ -50,7 +51,7 @@ object PackPicker {
 
                 else -> sender.error("The template could not be removed from your addon-packs")
             }
-        }.apply { invokeOnCompletion { currentJob = null } }
+        }.apply { invokeOnCompletion { activePickerJob -= player.uniqueId } }
         return Unit
     }
 }

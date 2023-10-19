@@ -12,8 +12,10 @@ import com.mineinabyss.idofront.plugin.listeners
 import com.mineinabyss.packy.config.*
 import com.mineinabyss.packy.helpers.PackyDownloader
 import com.mineinabyss.packy.helpers.PackyGenerator
+import com.mineinabyss.packy.helpers.PackyGenerator.stopAll
 import com.mineinabyss.packy.helpers.PackyServer
 import com.mineinabyss.packy.listener.PlayerListener
+import com.mineinabyss.packy.menus.picker.PackPicker
 import kotlinx.serialization.StringFormat
 import kotlinx.serialization.modules.EmptySerializersModule
 import org.apache.maven.model.InputLocation.StringFormatter
@@ -44,6 +46,9 @@ class PackyPlugin : JavaPlugin() {
     }
 
     override fun onDisable() {
+        PackyGenerator.activeGeneratorJob.stopAll()
+        PackPicker.activePickerJob.stopAll()
+        PackyServer.playerPacks.clear()
         PackyServer.stopServer()
     }
 
