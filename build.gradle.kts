@@ -1,3 +1,5 @@
+import net.minecrell.pluginyml.paper.PaperPluginDescription
+
 @Suppress("DSL_SCOPE_VIOLATION")
 plugins {
     alias(libs.plugins.mia.kotlin.jvm)
@@ -8,6 +10,7 @@ plugins {
     alias(libs.plugins.mia.publication)
     alias(libs.plugins.mia.autoversion)
     alias(libs.plugins.compose)
+    id("net.minecrell.plugin-yml.paper") version "0.6.0"
 }
 
 repositories {
@@ -22,6 +25,7 @@ repositories {
 
 dependencies {
     // MineInAbyss platform
+    compileOnly(libs.bundles.idofront.core)
     compileOnly(libs.kotlinx.serialization.json)
     compileOnly(libs.kotlinx.serialization.kaml)
     compileOnly(libs.kotlinx.coroutines)
@@ -31,7 +35,6 @@ dependencies {
     compileOnly(packyLibs.geary.papermc)
     compileOnly(packyLibs.guiy)
 
-    implementation(libs.bundles.idofront.core)
     implementation(packyLibs.creative.api)
     implementation(packyLibs.creative.serializer.minecraft)
     implementation(packyLibs.creative.server)
@@ -48,5 +51,28 @@ tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
 tasks {
     shadowJar {
         relocate("team.unnamed", "com.mineinabyss.shaded.unnamed")
+    }
+}
+
+paper {
+    main = "com.mineinabyss.packy.PackyPlugin"
+    name = "Packy"
+    prefix = "Packy"
+    val version: String by project
+    this.version = version
+    authors = listOf("boy0000")
+    apiVersion = "1.20"
+
+    serverDependencies {
+        register("Geary") {
+            required = true
+            load = PaperPluginDescription.RelativeLoadOrder.BEFORE
+            joinClasspath = true
+        }
+        register("Guiy") {
+            required = true
+            load = PaperPluginDescription.RelativeLoadOrder.BEFORE
+            joinClasspath = true
+        }
     }
 }

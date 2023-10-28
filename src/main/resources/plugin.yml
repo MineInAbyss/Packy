@@ -1,9 +1,0 @@
-name: Packy
-version: ${plugin_version}
-main: com.mineinabyss.packy.PackyPlugin
-api-version: "1.20"
-authors: [ boy0000 ]
-depend: [ Geary, Guiy ]
-
-commands:
-  packy:

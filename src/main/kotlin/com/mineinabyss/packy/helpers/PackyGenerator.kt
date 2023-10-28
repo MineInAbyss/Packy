@@ -15,7 +15,7 @@ import team.unnamed.creative.base.Writable
 import team.unnamed.creative.serialize.minecraft.MinecraftResourcePackReader
 import team.unnamed.creative.serialize.minecraft.MinecraftResourcePackWriter
 import team.unnamed.creative.sound.SoundRegistry
-import java.util.UUID
+import java.util.*
 import kotlin.io.path.div
 
 object PackyGenerator {
