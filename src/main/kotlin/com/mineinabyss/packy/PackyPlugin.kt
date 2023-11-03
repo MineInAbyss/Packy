@@ -15,6 +15,14 @@ import team.unnamed.creative.ResourcePack
 
 class PackyPlugin : JavaPlugin() {
 
+    override fun onLoad() {
+        geary {
+            autoscan(classLoader, "com.mineinabyss.packy") {
+                all()
+            }
+        }
+    }
+
     override fun onEnable() {
         createPackyContext()
         PackyCommands()
@@ -23,12 +31,6 @@ class PackyPlugin : JavaPlugin() {
         PackyServer.startServer()
 
         listeners(PlayerListener())
-
-        geary {
-            autoscan(classLoader, "com.mineinabyss.packy") {
-                all()
-            }
-        }
     }
 
     override fun onDisable() {
