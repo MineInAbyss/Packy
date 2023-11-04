@@ -67,11 +67,12 @@ object PackyDownloader {
         packy.templates.entries.filter { it.value.githubUrl != null }.map { (id, template) ->
             packy.plugin.launch(packy.plugin.asyncDispatcher) {
                 logWarn("Downloading ${id}-template from ${template.githubUrl}...")
-                if (updateGithubTemplates(template))
+                if (updateGithubTemplates(template)) {
                     logSuccess("Successfully downloaded ${id}-template!")
-                packy.plugin.server.onlinePlayers.forEach { player ->
-                    if (template in player.packyData.enabledPackAddons)
-                        player.playerPack = null // Reset player-pack
+                    packy.plugin.server.onlinePlayers.forEach { player ->
+                        if (template in player.packyData.enabledPackAddons)
+                            player.playerPack = null // Reset player-pack if enabled template was updated
+                    }
                 }
             }
         }

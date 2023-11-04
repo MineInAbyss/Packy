@@ -27,8 +27,8 @@ class PackyCommands : IdofrontCommandExecutor(), TabCompleter {
     override val commands = commands(packy.plugin) {
         "packy" {
             "github" {
-                "download" {
-                    val id: String by optionArg(packy.templates.entries.filter { it.value.githubUrl != null }.map { it.key }.apply { toMutableSet().add("ALL") })
+                "fetch" {
+                    val id: String by optionArg(packy.templates.entries.filter { it.value.githubUrl != null }.map { it.key }.toMutableList().apply { add("ALL") }) { default = "ALL" }
                     action {
                         packy.plugin.launch(packy.plugin.asyncDispatcher) {
                             when (id) {
@@ -41,15 +41,12 @@ class PackyCommands : IdofrontCommandExecutor(), TabCompleter {
                                     val template = packy.templates.entries.find { it.key == id }?.value ?: return@launch sender.error("No template with given ID")
                                     sender.warn("Downloading template $id...")
                                     PackyDownloader.downloadAndExtractTemplate(template)
-                                    sender.success("Downloading template $id")
+                                    sender.success("Downloaded template $id!")
                                 }
                             }
 
                         }
                     }
-                }
-                "update" {
-                    packy.templates.values.filter { it.githubUrl != null }.forEach(PackyDownloader::updateGithubTemplates)
                 }
             }
             "reload" {
@@ -59,30 +56,16 @@ class PackyCommands : IdofrontCommandExecutor(), TabCompleter {
                 }
             }
             "send" {
-                playerAction {
+                val player: Player by playerArg { default = sender as? Player }
+                action {
                     PackyServer.sendPack(player)
                     sender.success("Sent pack to ${player.name}")
                 }
             }
             "gui" {
-                playerAction {
+                val player: Player by playerArg { default = sender as? Player }
+                action {
                     guiy { PackyMainMenu(player) }
-                }
-            }
-            "picker" {
-                "add" {
-                    val player: Player by playerArg()
-                    val pack by optionArg(packy.templates.entries.filterNot { it.value.forced || it.value in player.packyData.enabledPackAddons }.map { it.key })
-                    action {
-                        PackPicker.addPack(player, pack, sender)
-                    }
-                }
-                "remove" {
-                    val player: Player by playerArg()
-                    val pack by optionArg(player.packyData.enabledPackAddons.map { it.id })
-                    action {
-                        PackPicker.removePack(player, pack, sender)
-                    }
                 }
             }
             "server" {
@@ -101,7 +84,8 @@ class PackyCommands : IdofrontCommandExecutor(), TabCompleter {
                 }
             }
             "bypass" {
-                playerAction {
+                val player: Player by playerArg { default = sender as? Player }
+                action {
                     player.packyData.bypassForced = !player.packyData.bypassForced
                     when (player.packyData.bypassForced) {
                         true -> sender.success("Bypassing forced pack")
@@ -120,24 +104,17 @@ class PackyCommands : IdofrontCommandExecutor(), TabCompleter {
     ): List<String> {
         return if (command.name == "packy") {
             when (args.size) {
-                1 -> listOf("reload", "gui", "server", "send", "picker", "github").filter { it.startsWith(args[0]) }
+                1 -> listOf("reload", "gui", "server", "send", "github").filter { it.startsWith(args[0]) }
                 2 -> when(args[0]) {
                     "server" -> listOf("start", "stop")
-                    "picker" -> listOf("add", "remove")
-                    "send" -> packy.plugin.server.onlinePlayers.map { it.name }
-                    "github" -> listOf("download", "update")
+                    "send", "gui", "bypass" -> packy.plugin.server.onlinePlayers.map { it.name }
+                    "github" -> listOf("fetch")
                     else -> listOf()
                 }.filter { it.startsWith(args[1]) }
                 3 -> when(args[0]) {
-                    "picker" -> packy.plugin.server.onlinePlayers.map { it.name }
-                    "github" -> packy.templates.entries.filter { it.value.githubUrl != null }.map { it.key }
+                    "github" -> packy.templates.entries.filter { it.value.githubUrl != null }.map { it.key }.toMutableList().apply { add("ALL") }
                     else -> listOf()
                 }.filter { it.startsWith(args[2]) }
-                4 -> when(args[1]) {
-                    "add" -> packy.templates.entries.filter { !it.value.forced && it.value !in Bukkit.getPlayer(args[2])!!.packyData.enabledPackAddons }.map { it.key }
-                    "remove" -> Bukkit.getPlayer(args[2])!!.packyData.enabledPackAddons.map { it.id }
-                    else -> listOf()
-                }.filter { it.startsWith(args[3]) }
                 else -> listOf()
             }
         } else listOf()
