@@ -35,7 +35,6 @@ object PackyGenerator {
                 val templatePath = packy.plugin.dataFolder.toPath() / "templates" / id
                 val templatePack = MinecraftResourcePackReader.minecraft().readFromDirectory(templatePath.toFile())
                 mergePacks(packy.defaultPack, templatePack)
-                logSuccess("Added ${id}-template to defaultPack")
             }
         }
     }
@@ -53,7 +52,6 @@ object PackyGenerator {
                 val templatePath = packy.plugin.dataFolder.toPath() / "templates" / id
                 val templatePack = MinecraftResourcePackReader.minecraft().readFromDirectory(templatePath.toFile())
                 mergePacks(playerPack, templatePack)
-                logSuccess("Added ${id}-template to pack")
             }
 
             //val playerPacks = (packy.plugin.dataFolder.toPath() / "playerPacks" / player.uniqueId.toString()).toFile().apply { deleteRecursively() }

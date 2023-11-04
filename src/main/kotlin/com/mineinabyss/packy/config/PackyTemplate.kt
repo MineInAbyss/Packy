@@ -5,6 +5,7 @@ import com.github.shynixn.mccoroutine.bukkit.launch
 import com.mineinabyss.packy.helpers.PackyDownloader
 import kotlinx.serialization.EncodeDefault
 import kotlinx.serialization.EncodeDefault.Mode.NEVER
+import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlin.io.path.div
@@ -12,6 +13,7 @@ import kotlin.io.path.pathString
 
 @Serializable data class PackyTemplates(val templates: Map<String, PackyTemplate> = mapOf())
 @Serializable
+@OptIn(ExperimentalSerializationApi::class)
 data class PackyTemplate(
     val default: Boolean = false,
     val forced: Boolean,

@@ -9,12 +9,14 @@ import com.mineinabyss.packy.helpers.PackyServer
 import kotlinx.serialization.EncodeDefault
 import kotlinx.serialization.EncodeDefault.Mode.ALWAYS
 import kotlinx.serialization.EncodeDefault.Mode.NEVER
+import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import org.bukkit.Material
 import org.bukkit.inventory.ItemStack
 import kotlin.io.path.div
 
+@OptIn(ExperimentalSerializationApi::class)
 @Serializable
 data class PackyConfig(
     @EncodeDefault(ALWAYS) val mcmeta: PackyMcMeta = PackyMcMeta(),
