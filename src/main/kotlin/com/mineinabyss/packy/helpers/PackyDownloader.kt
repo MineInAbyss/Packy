@@ -1,5 +1,7 @@
 package com.mineinabyss.packy.helpers
 
+import com.github.shynixn.mccoroutine.bukkit.asyncDispatcher
+import com.github.shynixn.mccoroutine.bukkit.launch
 import com.google.gson.JsonParser
 import com.mineinabyss.idofront.messaging.*
 import com.mineinabyss.packy.components.packyData
@@ -62,18 +64,16 @@ object PackyDownloader {
     }
 
     fun downloadTemplates() {
-        runBlocking {
-            packy.templates.entries.filter { it.value.githubUrl != null }.map { (id, template) ->
-                async {
-                    logWarn("Downloading ${id}-template from ${template.githubUrl}...")
-                    if (updateGithubTemplates(template))
-                        logSuccess("Successfully downloaded ${id}-template!")
-                    packy.plugin.server.onlinePlayers.forEach { player ->
-                        if (template in player.packyData.enabledPackAddons)
-                            player.playerPack = null // Reset player-pack
-                    }
+        packy.templates.entries.filter { it.value.githubUrl != null }.map { (id, template) ->
+            packy.plugin.launch(packy.plugin.asyncDispatcher) {
+                logWarn("Downloading ${id}-template from ${template.githubUrl}...")
+                if (updateGithubTemplates(template))
+                    logSuccess("Successfully downloaded ${id}-template!")
+                packy.plugin.server.onlinePlayers.forEach { player ->
+                    if (template in player.packyData.enabledPackAddons)
+                        player.playerPack = null // Reset player-pack
                 }
-            }.awaitAll()
+            }
         }
     }
 

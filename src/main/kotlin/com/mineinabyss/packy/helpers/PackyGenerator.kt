@@ -36,6 +36,7 @@ object PackyGenerator {
                 val templatePack = MinecraftResourcePackReader.minecraft().readFromDirectory(templatePath.toFile())
                 mergePacks(packy.defaultPack, templatePack)
             }
+            logSuccess("Finished configuring defaultPack")
         }
     }
 
