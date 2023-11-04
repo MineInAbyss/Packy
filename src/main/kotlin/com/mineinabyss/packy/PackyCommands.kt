@@ -27,8 +27,8 @@ class PackyCommands : IdofrontCommandExecutor(), TabCompleter {
     override val commands = commands(packy.plugin) {
         "packy" {
             "github" {
-                val id: String by optionArg(packy.templates.entries.filter { it.value.githubUrl != null }.map { it.key }.apply { toMutableSet().add("ALL") })
                 "download" {
+                    val id: String by optionArg(packy.templates.entries.filter { it.value.githubUrl != null }.map { it.key }.apply { toMutableSet().add("ALL") })
                     action {
                         packy.plugin.launch(packy.plugin.asyncDispatcher) {
                             when (id) {

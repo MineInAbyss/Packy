@@ -26,8 +26,6 @@ class PackyPlugin : JavaPlugin() {
     override fun onEnable() {
         createPackyContext()
         PackyCommands()
-        PackyDownloader.downloadTemplates()
-        PackyGenerator.setupForcedPackFiles()
         PackyServer.startServer()
 
         listeners(PlayerListener())
@@ -39,6 +37,7 @@ class PackyPlugin : JavaPlugin() {
     }
 
     fun createPackyContext() {
+        PackyServer.playerPacks.clear()
         DI.remove<PackyContext>()
         DI.add<PackyContext>(object : PackyContext {
             override val plugin = this@PackyPlugin
@@ -47,5 +46,7 @@ class PackyPlugin : JavaPlugin() {
             override val templates: Map<String, PackyTemplate> = config<PackyTemplates>("templates", dataFolder.toPath(), PackyTemplates()).getOrLoad().templates
             override val accessToken: PackyAccessToken by config("accessToken", dataFolder.toPath(), PackyAccessToken())
         })
+        PackyDownloader.downloadTemplates()
+        PackyGenerator.setupForcedPackFiles()
     }
 }
