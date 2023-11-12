@@ -32,7 +32,7 @@ fun PackyUIScope.PackyMenu() {
             Item(subMenu.button.toItemStack(), subMenu.modifiers.toModifier().clickable {
                 // Return if the task returns null, meaning button was spammed whilst a set was currently generating
                 when {
-                    template !in player.packyData.enabledPackAddons -> PackPicker.addPack(player, templateId)
+                    templateId !in player.packyData.enabledPackIds -> PackPicker.addPack(player, templateId)
                     else -> PackPicker.removePack(player, templateId)
                 } ?: return@clickable
 

@@ -2,7 +2,9 @@ package com.mineinabyss.packy.helpers
 
 import com.github.shynixn.mccoroutine.bukkit.asyncDispatcher
 import com.github.shynixn.mccoroutine.bukkit.launch
+import com.mineinabyss.idofront.messaging.broadcast
 import com.mineinabyss.idofront.messaging.logSuccess
+import com.mineinabyss.idofront.messaging.logWarn
 import com.mineinabyss.idofront.textcomponents.miniMsg
 import com.mineinabyss.packy.components.packyData
 import com.mineinabyss.packy.config.packy
@@ -39,12 +41,15 @@ object PackyGenerator {
     }
 
     suspend fun getOrCreateCachedPack(player: Player): Deferred<BuiltResourcePack> = coroutineScope {
-        val templateIds = player.packyData.enabledPackAddons.map { it.id }.toSet()
+        broadcast("Creating cached pack for ${player.name}...")
+        val templateIds = player.packyData.enabledPackIds
         PackyServer.cachedPacks[templateIds]?.let {
+            broadcast("Found cached pack for ${player.name}")
             return@coroutineScope async { it }
         }
-
+        broadcast("Finding or starting cached pack job for ${player.name}")
         activeGeneratorJob.getOrPut(templateIds) {
+            broadcast("Creating & caching pack")
             async(Dispatchers.IO) {
                 val cachedPack = ResourcePack.resourcePack()
                 cachedPack.mergeWith(packy.defaultPack)
@@ -60,7 +65,8 @@ object PackyGenerator {
 
                 //val playerPacks = (packy.plugin.dataFolder.toPath() / "playerPacks" / player.uniqueId.toString()).toFile().apply { deleteRecursively() }
                 //MinecraftResourcePackWriter.minecraft().writeToDirectory(playerPacks, playerPack)
-                MinecraftResourcePackWriter.minecraft().build(cachedPack)
+                logSuccess("Finished creating and caching pack")
+                MinecraftResourcePackWriter.minecraft().build(cachedPack).apply { logWarn("Hash: ${hash()}") }
             }
         }
     }

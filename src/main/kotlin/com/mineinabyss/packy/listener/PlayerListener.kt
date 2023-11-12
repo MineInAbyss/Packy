@@ -16,7 +16,6 @@ class PlayerListener : Listener {
     @EventHandler(priority = EventPriority.HIGHEST)
     fun PlayerJoinEvent.sendPack() {
         if (PackyServer.packUploaded) packy.plugin.launch {
-            PackyGenerator.getOrCreateCachedPack(player)
             delay(1.seconds)
             PackyServer.sendPack(player, PackyGenerator.getOrCreateCachedPack(player).await())
         }

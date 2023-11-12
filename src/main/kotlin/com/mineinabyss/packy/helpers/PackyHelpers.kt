@@ -8,6 +8,7 @@ import kotlinx.serialization.json.decodeFromStream
 import team.unnamed.creative.metadata.pack.PackMeta
 import java.io.File
 import java.nio.charset.StandardCharsets
+import java.util.SortedSet
 import kotlin.io.path.Path
 
 fun File.toPackMeta() : PackMeta? {
@@ -17,4 +18,4 @@ fun File.toPackMeta() : PackMeta? {
     return PackMeta.of(format, description)
 }
 
-typealias TemplateIds = Set<String>
+typealias TemplateIds = SortedSet<String>
