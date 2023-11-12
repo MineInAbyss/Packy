@@ -7,6 +7,7 @@ import com.mineinabyss.idofront.messaging.*
 import com.mineinabyss.packy.config.PackyTemplate
 import com.mineinabyss.packy.config.packy
 import com.mineinabyss.packy.helpers.PackyServer.cachedPacks
+import com.mineinabyss.packy.helpers.PackyServer.cachedPacksByteArray
 import java.io.FileOutputStream
 import java.net.HttpURLConnection
 import java.net.URL
@@ -65,6 +66,7 @@ object PackyDownloader {
                 if (updateGithubTemplates(template)) {
                     logSuccess("Successfully downloaded ${id}-template!")
                     cachedPacks.keys.removeIf { id in it }
+                    cachedPacksByteArray.keys.removeIf { id in it }
                 }
             }
         }

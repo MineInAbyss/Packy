@@ -46,6 +46,7 @@ class PackyPlugin : JavaPlugin() {
         })
 
         PackyServer.cachedPacks.clear()
+        PackyServer.cachedPacksByteArray.clear()
         PackyDownloader.downloadTemplates()
         PackyGenerator.setupForcedPackFiles()
     }

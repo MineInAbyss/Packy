@@ -41,15 +41,10 @@ object PackyGenerator {
     }
 
     suspend fun getOrCreateCachedPack(player: Player): Deferred<BuiltResourcePack> = coroutineScope {
-        broadcast("Creating cached pack for ${player.name}...")
         val templateIds = player.packyData.enabledPackIds
-        PackyServer.cachedPacks[templateIds]?.let {
-            broadcast("Found cached pack for ${player.name}")
-            return@coroutineScope async { it }
-        }
-        broadcast("Finding or starting cached pack job for ${player.name}")
+        PackyServer.cachedPacks[templateIds]?.let { return@coroutineScope async { it } }
+
         activeGeneratorJob.getOrPut(templateIds) {
-            broadcast("Creating & caching pack")
             async(Dispatchers.IO) {
                 val cachedPack = ResourcePack.resourcePack()
                 cachedPack.mergeWith(packy.defaultPack)
@@ -65,8 +60,9 @@ object PackyGenerator {
 
                 //val playerPacks = (packy.plugin.dataFolder.toPath() / "playerPacks" / player.uniqueId.toString()).toFile().apply { deleteRecursively() }
                 //MinecraftResourcePackWriter.minecraft().writeToDirectory(playerPacks, playerPack)
-                logSuccess("Finished creating and caching pack")
-                MinecraftResourcePackWriter.minecraft().build(cachedPack).apply { logWarn("Hash: ${hash()}") }
+                MinecraftResourcePackWriter.minecraft().build(cachedPack).apply {
+                    PackyServer.cachedPacksByteArray[templateIds] = this.data().toByteArray()
+                }
             }
         }
     }
