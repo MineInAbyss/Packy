@@ -69,7 +69,7 @@ class PackyCommands : IdofrontCommandExecutor(), TabCompleter {
                 val state: String by optionArg(listOf("start", "stop"))
                 action {
                     when {
-                        state == "start" && !PackyServer.serverStarted -> {
+                        state == "start" && PackyServer.packServer != null -> {
                             PackyServer.startServer()
                             sender.success("PackyServer started on ${packy.config.server.ip}:${packy.config.server.port}...")
                         }

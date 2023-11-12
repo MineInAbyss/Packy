@@ -15,7 +15,7 @@ import kotlin.time.Duration.Companion.seconds
 class PlayerListener : Listener {
     @EventHandler(priority = EventPriority.HIGHEST)
     fun PlayerJoinEvent.sendPack() {
-        if (PackyServer.packUploaded) packy.plugin.launch {
+        if (PackyServer.packServer != null) packy.plugin.launch {
             delay(1.seconds)
             PackyServer.sendPack(player, PackyGenerator.getOrCreateCachedPack(player).await())
         }

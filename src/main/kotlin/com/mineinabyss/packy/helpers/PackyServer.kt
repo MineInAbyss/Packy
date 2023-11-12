@@ -18,9 +18,7 @@ import team.unnamed.creative.server.ResourcePackServer
 
 
 object PackyServer {
-    var packUploaded: Boolean = false
-    var serverStarted: Boolean = false
-    lateinit var packServer: ResourcePackServer
+    var packServer: ResourcePackServer? = null
     val cachedPacks: CacheMap<TemplateIds, BuiltResourcePack> = CacheMap(packy.config.cachedPackAmount)
 
     fun sendPack(player: Player, resourcePack: BuiltResourcePack) {
@@ -33,17 +31,12 @@ object PackyServer {
         logSuccess("Started Packy-Server...")
         val (ip, port) = packy.config.server.let { it.ip to it.port }
         packServer = ResourcePackServer.server().address(ip, port).handler(handler).build()
-        packServer.start()
-        serverStarted = true
-        packUploaded = true
+        packServer?.start()
     }
 
     fun stopServer() {
-        if (!serverStarted) return
         logError("Stopping Packy-Server...")
-        packServer.stop(0)
-        serverStarted = false
-        packUploaded = false
+        packServer?.stop(0)
     }
 
     private var handler = ResourcePackRequestHandler { request, exchange ->
