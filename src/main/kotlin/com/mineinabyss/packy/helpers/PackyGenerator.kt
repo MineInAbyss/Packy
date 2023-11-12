@@ -17,6 +17,8 @@ import team.unnamed.creative.serialize.minecraft.MinecraftResourcePackWriter
 import team.unnamed.creative.sound.SoundRegistry
 import java.util.*
 import kotlin.io.path.div
+import kotlin.io.path.isDirectory
+import kotlin.io.path.listDirectoryEntries
 
 object PackyGenerator {
 
@@ -51,6 +53,7 @@ object PackyGenerator {
             // Filter all TemplatePacks that are not default or not in players enabledPackAddons
             packy.templates.entries.filterNot { it.value.forced }.filter { it.value in player.packyData.enabledPackAddons }.forEach { (id, template) ->
                 val templatePath = packy.plugin.dataFolder.toPath() / "templates" / id
+                if (!templatePath.isDirectory() || templatePath.listDirectoryEntries().isEmpty()) return@forEach
                 val templatePack = MinecraftResourcePackReader.minecraft().readFromDirectory(templatePath.toFile())
                 mergePacks(playerPack, templatePack)
             }
