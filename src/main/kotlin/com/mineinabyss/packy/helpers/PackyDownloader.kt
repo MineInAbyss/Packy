@@ -4,19 +4,14 @@ import com.github.shynixn.mccoroutine.bukkit.asyncDispatcher
 import com.github.shynixn.mccoroutine.bukkit.launch
 import com.google.gson.JsonParser
 import com.mineinabyss.idofront.messaging.*
-import com.mineinabyss.packy.components.packyData
 import com.mineinabyss.packy.config.PackyTemplate
 import com.mineinabyss.packy.config.packy
-import com.mineinabyss.packy.helpers.PackyServer.playerPack
-import kotlinx.coroutines.async
-import kotlinx.coroutines.awaitAll
-import kotlinx.coroutines.runBlocking
+import com.mineinabyss.packy.helpers.PackyServer.cachedPacks
 import java.io.FileOutputStream
 import java.net.HttpURLConnection
 import java.net.URL
 import java.nio.file.Files
 import java.nio.file.Paths
-import java.util.zip.ZipEntry
 import java.util.zip.ZipInputStream
 import kotlin.io.path.*
 
@@ -69,10 +64,7 @@ object PackyDownloader {
                 logWarn("Downloading ${id}-template from ${template.githubUrl}...")
                 if (updateGithubTemplates(template)) {
                     logSuccess("Successfully downloaded ${id}-template!")
-                    packy.plugin.server.onlinePlayers.forEach { player ->
-                        if (template in player.packyData.enabledPackAddons)
-                            player.playerPack = null // Reset player-pack if enabled template was updated
-                    }
+                    cachedPacks.keys.removeIf { id in it }
                 }
             }
         }

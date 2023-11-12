@@ -2,6 +2,7 @@ package com.mineinabyss.packy.menus.picker
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
+import com.github.shynixn.mccoroutine.bukkit.launch
 import com.mineinabyss.guiy.components.canvases.Chest
 import com.mineinabyss.guiy.inventory.GuiyOwner
 import com.mineinabyss.guiy.modifiers.Modifier
@@ -34,9 +35,8 @@ fun GuiyOwner.PackyMainMenu(player: Player) {
         nav.withScreen(setOf(player), onEmpty = ::exit) { screen ->
             Chest(setOf(player), screen.title, Modifier.height(screen.height), onClose = {
                 player.closeInventory()
-                if (hasChanged) {
-                    PackyGenerator.createPlayerPack(player)
-                    PackyServer.sendPack(player)
+                if (hasChanged) packy.plugin.launch {
+                    PackyServer.sendPack(player, PackyGenerator.getOrCreateCachedPack(player).await())
                 }
             }) {
                 when (screen) {

@@ -5,19 +5,14 @@ import com.github.shynixn.mccoroutine.bukkit.launch
 import com.mineinabyss.guiy.inventory.guiy
 import com.mineinabyss.idofront.commands.arguments.optionArg
 import com.mineinabyss.idofront.commands.arguments.playerArg
-import com.mineinabyss.idofront.commands.arguments.stringArg
 import com.mineinabyss.idofront.commands.execution.IdofrontCommandExecutor
-import com.mineinabyss.idofront.commands.extensions.actions.playerAction
 import com.mineinabyss.idofront.messaging.*
 import com.mineinabyss.packy.components.packyData
-import com.mineinabyss.packy.config.PackyTemplate
 import com.mineinabyss.packy.config.packy
 import com.mineinabyss.packy.helpers.PackyDownloader
+import com.mineinabyss.packy.helpers.PackyGenerator
 import com.mineinabyss.packy.helpers.PackyServer
-import com.mineinabyss.packy.menus.picker.PackPicker
 import com.mineinabyss.packy.menus.picker.PackyMainMenu
-import com.sun.jna.platform.unix.solaris.LibKstat.KstatNamed.UNION.STR
-import org.bukkit.Bukkit
 import org.bukkit.command.Command
 import org.bukkit.command.CommandSender
 import org.bukkit.command.TabCompleter
@@ -58,8 +53,10 @@ class PackyCommands : IdofrontCommandExecutor(), TabCompleter {
             "send" {
                 val player: Player by playerArg { default = sender as? Player }
                 action {
-                    PackyServer.sendPack(player)
-                    sender.success("Sent pack to ${player.name}")
+                    packy.plugin.launch {
+                        PackyServer.sendPack(player, PackyGenerator.getOrCreateCachedPack(player).await())
+                        sender.success("Sent pack to ${player.name}")
+                    }
                 }
             }
             "gui" {

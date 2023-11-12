@@ -9,7 +9,6 @@ import com.mineinabyss.packy.helpers.PackyGenerator
 import com.mineinabyss.packy.components.packyData
 import com.mineinabyss.packy.components.removeConflictingPacks
 import com.mineinabyss.packy.config.packy
-import com.mineinabyss.packy.helpers.PackyServer.playerPack
 import kotlinx.coroutines.Job
 import org.bukkit.command.CommandSender
 import org.bukkit.entity.Player
@@ -27,7 +26,6 @@ object PackPicker {
             if (removedConflicting.isNotEmpty()) {
                 sender.warn("Removed conflicting pack-templates: ${removedConflicting.joinToString(", ")}")
             }
-            player.playerPack = null // Reset playerPack
         } ?: when {
             (sender as? Player)?.uniqueId != player.uniqueId ->
                 sender.error("The template could not be removed from ${player.name}'s addon-packs")
@@ -42,7 +40,6 @@ object PackPicker {
 
             if ((sender as? Player)?.uniqueId != player.uniqueId) sender.success("TemplatePack $id was removed from ${player.name}'s addon-packs")
             player.success("TemplatePack $id was removed from your addon-packs")
-            player.playerPack = null // Reset playerPack
         } ?: when {
             (sender as? Player)?.uniqueId != player.uniqueId ->
                 sender.error("The template could not be removed from ${player.name}'s addon-packs")

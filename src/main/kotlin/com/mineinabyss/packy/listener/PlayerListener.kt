@@ -3,6 +3,7 @@ package com.mineinabyss.packy.listener
 import com.github.shynixn.mccoroutine.bukkit.launch
 import com.mineinabyss.packy.components.packyData
 import com.mineinabyss.packy.config.packy
+import com.mineinabyss.packy.helpers.PackyGenerator
 import com.mineinabyss.packy.helpers.PackyServer
 import kotlinx.coroutines.delay
 import org.bukkit.event.EventHandler
@@ -15,8 +16,9 @@ class PlayerListener : Listener {
     @EventHandler(priority = EventPriority.HIGHEST)
     fun PlayerJoinEvent.sendPack() {
         if (PackyServer.packUploaded) packy.plugin.launch {
+            PackyGenerator.getOrCreateCachedPack(player)
             delay(1.seconds)
-            PackyServer.sendPack(player)
+            PackyServer.sendPack(player, PackyGenerator.getOrCreateCachedPack(player).await())
         }
     }
 

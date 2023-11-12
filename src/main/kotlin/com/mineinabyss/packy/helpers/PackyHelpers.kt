@@ -16,3 +16,5 @@ fun File.toPackMeta() : PackMeta? {
     val description = json.getAsJsonPrimitive("description").asString ?: return null
     return PackMeta.of(format, description)
 }
+
+typealias TemplateIds = Set<String>

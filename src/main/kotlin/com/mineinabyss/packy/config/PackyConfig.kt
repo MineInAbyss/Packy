@@ -21,6 +21,7 @@ data class PackyConfig(
     @EncodeDefault(ALWAYS) val server: PackyServer = PackyServer(),
     @EncodeDefault(ALWAYS) val prompt: String = "",
     @EncodeDefault(ALWAYS) val force: Boolean = false,
+    @EncodeDefault(ALWAYS) val cachedPackAmount: Int = 18,
     @EncodeDefault(ALWAYS) val menu: PackyMenu = PackyMenu()
 ) {
     @Serializable
