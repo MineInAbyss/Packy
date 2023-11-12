@@ -3,6 +3,8 @@ package com.mineinabyss.packy.helpers
 import com.github.shynixn.mccoroutine.bukkit.launch
 import com.github.shynixn.mccoroutine.bukkit.ticks
 import com.mineinabyss.idofront.entities.toPlayer
+import com.mineinabyss.idofront.messaging.broadcast
+import com.mineinabyss.idofront.messaging.broadcastVal
 import com.mineinabyss.idofront.messaging.logError
 import com.mineinabyss.idofront.messaging.logSuccess
 import com.mineinabyss.idofront.textcomponents.miniMsg
@@ -41,7 +43,7 @@ object PackyServer {
             while (player.playerPack == null) delay(10.ticks)
 
             val hash = player.builtPlayerPack!!.hash()
-            player.setResourcePack(packy.config.server.url(hash), hash, packy.config.force && !player.packyData.bypassForced, packy.config.prompt.miniMsg())
+            player.setResourcePack(packy.config.server.publicAddress, hash, packy.config.force && !player.packyData.bypassForced, packy.config.prompt.miniMsg())
         }
     }
 

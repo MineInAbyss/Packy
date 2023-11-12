@@ -5,16 +5,13 @@ import com.mineinabyss.guiy.modifiers.at
 import com.mineinabyss.guiy.modifiers.size
 import com.mineinabyss.idofront.serialization.SerializableItemStack
 import com.mineinabyss.idofront.serialization.toSerializable
-import com.mineinabyss.packy.helpers.PackyServer
 import kotlinx.serialization.EncodeDefault
 import kotlinx.serialization.EncodeDefault.Mode.ALWAYS
 import kotlinx.serialization.EncodeDefault.Mode.NEVER
 import kotlinx.serialization.ExperimentalSerializationApi
-import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import org.bukkit.Material
 import org.bukkit.inventory.ItemStack
-import kotlin.io.path.div
 
 @OptIn(ExperimentalSerializationApi::class)
 @Serializable
@@ -29,9 +26,7 @@ data class PackyConfig(
     @Serializable
     data class PackyMcMeta(val format: Int = 15, val description: String = "Packy Resourcepack")
     @Serializable
-    data class PackyServer(val ip: String = "127.0.0.1", val port: Int = 8080) {
-        fun url(hash: String) = "http://$ip:$port/$hash.zip"
-    }
+    data class PackyServer(val ip: String = "127.0.0.1", val port: Int = 8080, val publicAddress: String = "http://$ip:$port")
 
     @Serializable
     data class PackyMenu(
