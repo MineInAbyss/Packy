@@ -22,8 +22,9 @@ object PackyServer {
     val cachedPacks: CacheMap<TemplateIds, BuiltResourcePack> = CacheMap(packy.config.cachedPackAmount)
 
     fun sendPack(player: Player, resourcePack: BuiltResourcePack) {
-        logSuccess("Sending pack with hash ${resourcePack.hash()}")
-        player.setResourcePack(packy.config.server.publicAddress, resourcePack.hash(), packy.config.force && !player.packyData.bypassForced, packy.config.prompt.miniMsg())
+        val hash = resourcePack.hash()
+        logSuccess("Sending pack with hash $hash")
+        player.setResourcePack(packy.config.server.publicUrl(hash), hash, packy.config.force && !player.packyData.bypassForced, packy.config.prompt.miniMsg())
 
     }
 
