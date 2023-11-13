@@ -34,6 +34,7 @@ dependencies {
     // Geary platform
     compileOnly(packyLibs.geary.papermc)
     compileOnly(packyLibs.guiy)
+    compileOnly(libs.minecraft.plugin.modelengine)
 
     implementation(packyLibs.creative.api)
     implementation(packyLibs.creative.serializer.minecraft)
@@ -71,6 +72,11 @@ paper {
         }
         register("Guiy") {
             required = true
+            load = PaperPluginDescription.RelativeLoadOrder.BEFORE
+            joinClasspath = true
+        }
+        register("ModelEngine") {
+            required = false
             load = PaperPluginDescription.RelativeLoadOrder.BEFORE
             joinClasspath = true
         }

@@ -3,11 +3,14 @@ package com.mineinabyss.packy.helpers
 import com.github.shynixn.mccoroutine.bukkit.asyncDispatcher
 import com.github.shynixn.mccoroutine.bukkit.launch
 import com.mineinabyss.idofront.messaging.broadcast
+import com.mineinabyss.idofront.messaging.logInfo
 import com.mineinabyss.idofront.messaging.logSuccess
 import com.mineinabyss.idofront.messaging.logWarn
+import com.mineinabyss.idofront.plugin.Plugins
 import com.mineinabyss.idofront.textcomponents.miniMsg
 import com.mineinabyss.packy.components.packyData
 import com.mineinabyss.packy.config.packy
+import com.ticxo.modelengine.api.ModelEngineAPI
 import kotlinx.coroutines.*
 import org.bukkit.entity.Player
 import team.unnamed.creative.BuiltResourcePack
@@ -19,6 +22,7 @@ import team.unnamed.creative.sound.SoundRegistry
 import kotlin.io.path.div
 import kotlin.io.path.isDirectory
 import kotlin.io.path.listDirectoryEntries
+import kotlin.io.path.notExists
 
 object PackyGenerator {
 
@@ -33,9 +37,17 @@ object PackyGenerator {
             packy.templates.filter { it.value.forced }.keys.forEach { id ->
                 val templatePath = packy.plugin.dataFolder.toPath() / "templates" / id
                 if (!templatePath.isDirectory() || templatePath.listDirectoryEntries().isEmpty()) return@forEach
-                val templatePack = MinecraftResourcePackReader.minecraft().readFromDirectory(templatePath.toFile())
-                packy.defaultPack.mergeWith(templatePack)
+                packy.defaultPack.mergeWith(MinecraftResourcePackReader.minecraft().readFromDirectory(templatePath.toFile()))
             }
+
+            if (packy.config.autoImportModelEngine && Plugins.isEnabled("ModelEngine")) {
+                val modelEnginePack = ModelEngineAPI.getAPI().dataFolder.resolve("resource pack.zip")
+                if (modelEnginePack.exists()) {
+                    packy.defaultPack.mergeWith(MinecraftResourcePackReader.minecraft().readFromZipFile(modelEnginePack))
+                    logSuccess("Automatically merged ModelEngine-Resourcepack into defaultPack")
+                }
+            }
+
             logSuccess("Finished configuring defaultPack")
         }
     }
@@ -58,8 +70,7 @@ object PackyGenerator {
                     cachedPack.mergeWith(templatePack)
                 }
 
-                //val playerPacks = (packy.plugin.dataFolder.toPath() / "playerPacks" / player.uniqueId.toString()).toFile().apply { deleteRecursively() }
-                //MinecraftResourcePackWriter.minecraft().writeToDirectory(playerPacks, playerPack)
+                MinecraftResourcePackWriter.minecraft().writeToDirectory((packy.plugin.dataFolder.toPath() / "playerPacks" / player.uniqueId.toString()).toFile(), cachedPack)
                 MinecraftResourcePackWriter.minecraft().build(cachedPack).apply {
                     PackyServer.cachedPacksByteArray[templateIds] = this.data().toByteArray()
                 }
