@@ -3,11 +3,13 @@ package com.mineinabyss.packy
 import com.github.shynixn.mccoroutine.bukkit.asyncDispatcher
 import com.github.shynixn.mccoroutine.bukkit.launch
 import com.mineinabyss.guiy.inventory.guiy
+import com.mineinabyss.idofront.commands.arguments.genericArg
 import com.mineinabyss.idofront.commands.arguments.optionArg
 import com.mineinabyss.idofront.commands.arguments.playerArg
 import com.mineinabyss.idofront.commands.execution.IdofrontCommandExecutor
 import com.mineinabyss.idofront.messaging.*
 import com.mineinabyss.packy.components.packyData
+import com.mineinabyss.packy.config.PackyTemplate
 import com.mineinabyss.packy.config.packy
 import com.mineinabyss.packy.helpers.PackyDownloader
 import com.mineinabyss.packy.helpers.PackyGenerator
@@ -23,23 +25,14 @@ class PackyCommands : IdofrontCommandExecutor(), TabCompleter {
         "packy" {
             "github" {
                 "fetch" {
-                    val id: String by optionArg(packy.templates.entries.filter { it.value.githubUrl != null }.map { it.key }.toMutableList().apply { add("ALL") }) { default = "ALL" }
+                    val template: PackyTemplate by genericArg(parseFunction = { passed ->
+                        packy.templates.filter { it.value.githubDownload != null }[passed]!!
+                    })
                     action {
                         packy.plugin.launch(packy.plugin.asyncDispatcher) {
-                            when (id) {
-                                "ALL" -> {
-                                    sender.warn("Downloading all templates...")
-                                    PackyDownloader.downloadTemplates()
-                                    sender.success("Downloaded all templates!")
-                                }
-                                else -> {
-                                    val template = packy.templates.entries.find { it.key == id }?.value ?: return@launch sender.error("No template with given ID")
-                                    sender.warn("Downloading template $id...")
-                                    PackyDownloader.downloadAndExtractTemplate(template)
-                                    sender.success("Downloaded template $id!")
-                                }
-                            }
-
+                            sender.warn("Downloading template ${template.id}...")
+                            PackyDownloader.updateGithubTemplate(template)
+                            sender.success("Downloaded template ${template.id}!")
                         }
                     }
                 }
@@ -109,7 +102,7 @@ class PackyCommands : IdofrontCommandExecutor(), TabCompleter {
                     else -> listOf()
                 }.filter { it.startsWith(args[1]) }
                 3 -> when(args[0]) {
-                    "github" -> packy.templates.entries.filter { it.value.githubUrl != null }.map { it.key }.toMutableList().apply { add("ALL") }
+                    "github" -> packy.templates.entries.filter { it.value.githubDownload != null }.map { it.key }
                     else -> listOf()
                 }.filter { it.startsWith(args[2]) }
                 else -> listOf()

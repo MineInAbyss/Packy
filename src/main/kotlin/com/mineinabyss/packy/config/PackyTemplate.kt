@@ -18,9 +18,12 @@ data class PackyTemplate(
     val default: Boolean = false,
     val forced: Boolean,
     @EncodeDefault(NEVER) val conflictsWith: Set<String> = setOf(),
-    @EncodeDefault(NEVER) val githubUrl: String? = null
+    @EncodeDefault(NEVER) val githubDownload: GithubDownload? = null
 ) {
     val id: String get() = packy.templates.entries.first { it.value == this }.key
+
+    @Serializable
+    data class GithubDownload(val org: String, val repo: String, val branch: String, @EncodeDefault(NEVER) val subFolder: String? = null)
 }
 
 @Serializable

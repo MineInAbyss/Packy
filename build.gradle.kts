@@ -39,6 +39,7 @@ dependencies {
     implementation(packyLibs.creative.api)
     implementation(packyLibs.creative.serializer.minecraft)
     implementation(packyLibs.creative.server)
+    implementation("com.squareup.okhttp3:okhttp:4.12.0")
 }
 
 tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {

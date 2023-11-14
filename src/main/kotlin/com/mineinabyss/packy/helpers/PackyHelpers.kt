@@ -1,21 +1,60 @@
 package com.mineinabyss.packy.helpers
 
-import com.google.gson.JsonParser
-import com.mineinabyss.packy.config.PackyConfig
-import kotlinx.serialization.json.Json
-import kotlinx.serialization.json.JsonObject
-import kotlinx.serialization.json.decodeFromStream
-import team.unnamed.creative.metadata.pack.PackMeta
+import com.mineinabyss.idofront.messaging.broadcast
+import com.mineinabyss.idofront.messaging.logError
+import com.mineinabyss.packy.config.PackyTemplate
+import com.mineinabyss.packy.config.packy
+import okhttp3.Response
+import team.unnamed.creative.ResourcePack
+import team.unnamed.creative.serialize.minecraft.MinecraftResourcePackReader
 import java.io.File
-import java.nio.charset.StandardCharsets
-import java.util.SortedSet
-import kotlin.io.path.Path
+import java.io.FileInputStream
+import java.io.FileOutputStream
+import java.util.*
+import java.util.zip.ZipEntry
+import java.util.zip.ZipInputStream
+import java.util.zip.ZipOutputStream
+import kotlin.io.path.deleteIfExists
+import kotlin.io.path.div
 
-fun File.toPackMeta() : PackMeta? {
-    val json = JsonParser.parseString(this.readText(StandardCharsets.UTF_8)).asJsonObject.getAsJsonObject("pack") ?: return null
-    val format = json.getAsJsonPrimitive("pack_format").asNumber?.toInt() ?: return null
-    val description = json.getAsJsonPrimitive("description").asString ?: return null
-    return PackMeta.of(format, description)
+fun File.readPack(): ResourcePack? {
+    return when {
+        !exists() -> null
+        isDirectory && !listFiles().isNullOrEmpty() -> MinecraftResourcePackReader.minecraft().readFromDirectory(this)
+        extension == ".zip" -> MinecraftResourcePackReader.minecraft().readFromZipFile(this)
+        else -> null
+    }
+}
+
+fun Response.downloadZipFromGithubResponse(template: PackyTemplate) {
+    val (owner, repo, _, subPath) = template.githubDownload ?: return logError("${template.id} has no githubDownload, skipping...")
+    val zipStream = ZipInputStream(body!!.byteStream())
+    val zipFile = packy.plugin.dataFolder.toPath() / "templates" / "${template.id}.zip"
+
+    runCatching {
+        zipFile.deleteIfExists()
+
+        ZipOutputStream(FileOutputStream(zipFile.toFile())).use { zipOutputStream ->
+            var entry = zipStream.nextEntry
+
+            while (entry != null) {
+                if ( entry.name.startsWith("$owner-$repo", true) && !entry.isDirectory) {
+                    entry.name.substringAfter("/${subPath?.let { "$it/" } ?: ""}").takeIf { it != entry!!.name }?.let { fileName ->
+                        zipOutputStream.putNextEntry(ZipEntry(fileName))
+
+                        val buffer = ByteArray(1024)
+                        var len: Int
+                        while (zipStream.read(buffer).also { len = it } > 0)
+                            zipOutputStream.write(buffer, 0, len)
+
+                        zipOutputStream.closeEntry()
+                    }
+                }
+                zipStream.closeEntry()
+                entry = zipStream.nextEntry
+            }
+        }
+    }.onFailure { it.printStackTrace() }.also { zipStream.close() }
 }
 
 typealias TemplateIds = SortedSet<String>

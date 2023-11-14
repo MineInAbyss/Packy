@@ -36,16 +36,15 @@ object PackyGenerator {
             // Add all forced packs to defaultPack
             packy.templates.filter { it.value.forced }.keys.forEach { id ->
                 val templatePath = packy.plugin.dataFolder.toPath() / "templates" / id
-                if (!templatePath.isDirectory() || templatePath.listDirectoryEntries().isEmpty()) return@forEach
-                packy.defaultPack.mergeWith(MinecraftResourcePackReader.minecraft().readFromDirectory(templatePath.toFile()))
+                templatePath.toFile().readPack()?.let { packy.defaultPack.mergeWith(it) }
             }
 
             if (packy.config.autoImportModelEngine && Plugins.isEnabled("ModelEngine")) {
                 val modelEnginePack = ModelEngineAPI.getAPI().dataFolder.resolve("resource pack.zip")
-                if (modelEnginePack.exists()) {
-                    packy.defaultPack.mergeWith(MinecraftResourcePackReader.minecraft().readFromZipFile(modelEnginePack))
+                modelEnginePack.readPack()?.let {
+                    packy.defaultPack.mergeWith(it)
                     logSuccess("Automatically merged ModelEngine-Resourcepack into defaultPack")
-                }
+                } ?: logWarn("Failed to import ModelEngine-Resourcepack into defaultPack")
             }
 
             logSuccess("Finished configuring defaultPack")
