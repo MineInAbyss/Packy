@@ -21,7 +21,7 @@ fun File.readPack(): ResourcePack? {
     return when {
         !exists() -> null
         isDirectory && !listFiles().isNullOrEmpty() -> MinecraftResourcePackReader.minecraft().readFromDirectory(this)
-        extension == ".zip" -> MinecraftResourcePackReader.minecraft().readFromZipFile(this)
+        extension == "zip" -> MinecraftResourcePackReader.minecraft().readFromZipFile(this)
         else -> null
     }
 }

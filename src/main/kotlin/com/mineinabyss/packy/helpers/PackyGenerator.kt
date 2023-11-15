@@ -61,10 +61,8 @@ object PackyGenerator {
 
                 // Filters out all forced files as they are already in defaultPack
                 // Filter all TemplatePacks that are not default or not in players enabledPackAddons
-                packy.templates.values.filter { !it.forced && it in player.packyData.enabledPackAddons }.map { it.path }.forEach { path ->
-                    if (!path.isDirectory() || path.listDirectoryEntries().isEmpty()) return@forEach
-                    val templatePack = MinecraftResourcePackReader.minecraft().readFromDirectory(path.toFile())
-                    cachedPack.mergeWith(templatePack)
+                packy.templates.values.filter { !it.forced && it in player.packyData.enabledPackAddons }.forEach { template ->
+                    template.path.toFile().readPack()?.let { cachedPack.mergeWith(it) }
                 }
 
                 //MinecraftResourcePackWriter.minecraft().writeToDirectory((packy.plugin.dataFolder.toPath() / "playerPacks" / player.uniqueId.toString()).toFile(), cachedPack)

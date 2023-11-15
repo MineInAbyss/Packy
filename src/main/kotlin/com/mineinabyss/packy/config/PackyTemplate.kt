@@ -1,5 +1,6 @@
 package com.mineinabyss.packy.config
 
+import com.charleskorn.kaml.YamlComment
 import com.github.shynixn.mccoroutine.bukkit.asyncDispatcher
 import com.github.shynixn.mccoroutine.bukkit.launch
 import com.mineinabyss.packy.helpers.PackyDownloader
@@ -8,25 +9,36 @@ import kotlinx.serialization.EncodeDefault.Mode.NEVER
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import okio.Path.Companion.toPath
 import java.io.File
 import java.nio.file.Path
-import kotlin.io.path.div
-import kotlin.io.path.pathString
+import kotlin.io.path.*
 
-@Serializable data class PackyTemplates(val templates: Map<String, PackyTemplate> = mapOf())
+@Serializable
+data class PackyTemplates(val templates: Map<String, PackyTemplate> = mapOf())
+
 @Serializable
 @OptIn(ExperimentalSerializationApi::class)
 data class PackyTemplate(
     val default: Boolean = false,
-    val forced: Boolean,
+    val forced: Boolean = false,
     @EncodeDefault(NEVER) val conflictsWith: Set<String> = setOf(),
-    @EncodeDefault(NEVER) val githubDownload: GithubDownload? = null
+    @EncodeDefault(NEVER) val githubDownload: GithubDownload? = null,
+    @EncodeDefault(NEVER) private val filePath: String? = null
 ) {
     val id: String get() = packy.templates.entries.first { it.value == this }.key
-    val path: Path get() = packy.plugin.dataFolder.toPath() / "templates" / "$id.zip"
+    val path: Path
+        get() = filePath?.let { packy.plugin.dataFolder.parentFile.toPath() / it }
+            ?: (packy.plugin.dataFolder.toPath() / "templates" / id)
+                .let { if (it.exists() && it.isDirectory()) it else Path(it.pathString + ".zip") }
 
     @Serializable
-    data class GithubDownload(val org: String, val repo: String, val branch: String, @EncodeDefault(NEVER) val subFolder: String? = null)
+    data class GithubDownload(
+        val org: String,
+        val repo: String,
+        val branch: String,
+        @EncodeDefault(NEVER) val subFolder: String? = null
+    )
 }
 
 @Serializable
