@@ -10,35 +10,31 @@ import com.mineinabyss.packy.helpers.PackyServer.cachedPacks
 import com.mineinabyss.packy.helpers.PackyServer.cachedPacksByteArray
 import okhttp3.OkHttpClient
 import okhttp3.Request
-import java.io.FileOutputStream
-import java.net.URL
-import java.nio.file.Files
-import java.nio.file.Paths
-import java.util.zip.ZipEntry
-import java.util.zip.ZipInputStream
-import java.util.zip.ZipOutputStream
+import java.nio.file.StandardOpenOption
 import kotlin.io.path.*
 
 object PackyDownloader {
 
     fun updateGithubTemplate(template: PackyTemplate): Boolean {
-        val hashFile = packy.plugin.dataFolder.toPath() / "templates/${template.id}_hash.txt"
+        val hashFile = packy.plugin.dataFolder.toPath() / "templates" / "localHashes.txt"
         hashFile.createParentDirectories()
         if (hashFile.notExists()) hashFile.createFile()
 
         val latestHash = latestCommitHash(template.githubDownload ?: return false) ?: return false
-        val localHast = hashFile.readLines().find { it.matches("hash=.*".toRegex()) }?.substringAfter("=")
+        val localHash = hashFile.readLines().find { it.matches("${template.id}=.*".toRegex()) }?.substringAfter("=")
 
         when {
-            localHast == null || localHast != latestHash -> {
+            localHash == null || localHash != latestHash -> {
                 downloadAndExtractGithub(template)
-                hashFile.writeLines("hash=$latestHash".lineSequence())
+                val lines = hashFile.readLines().toMutableSet().apply { removeIf { it.startsWith(template.id) } }
+                lines += "${template.id}=$latestHash"
+                hashFile.writeLines(lines)
                 logInfo("Updated hash for ${template.id}")
             }
 
             else -> logSuccess("Skipping download for ${template.id}, no changes applied to remote")
         }
-        return localHast == null || localHast != latestHash
+        return localHash == null || localHash != latestHash
     }
 
     private fun latestCommitHash(githubDownload: PackyTemplate.GithubDownload): String? {
