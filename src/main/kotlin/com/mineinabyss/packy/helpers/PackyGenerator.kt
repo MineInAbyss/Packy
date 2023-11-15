@@ -38,14 +38,6 @@ object PackyGenerator {
                 template.path.toFile().readPack()?.let { packy.defaultPack.mergeWith(it) }
             }
 
-            if (packy.config.autoImportModelEngine && Plugins.isEnabled("ModelEngine")) {
-                val modelEnginePack = ModelEngineAPI.getAPI().dataFolder.resolve("resource pack.zip")
-                modelEnginePack.readPack()?.let {
-                    packy.defaultPack.mergeWith(it)
-                    logSuccess("Automatically merged ModelEngine-Resourcepack into defaultPack")
-                } ?: logWarn("Failed to import ModelEngine-Resourcepack into defaultPack")
-            }
-
             logSuccess("Finished configuring defaultPack")
         }
     }
