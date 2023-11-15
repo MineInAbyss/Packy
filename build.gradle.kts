@@ -76,10 +76,5 @@ paper {
             load = PaperPluginDescription.RelativeLoadOrder.BEFORE
             joinClasspath = true
         }
-        register("ModelEngine") {
-            required = false
-            load = PaperPluginDescription.RelativeLoadOrder.BEFORE
-            joinClasspath = true
-        }
     }
 }
