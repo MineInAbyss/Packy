@@ -34,9 +34,8 @@ object PackyGenerator {
             packy.defaultPack.packMeta(packy.config.mcmeta.format, packy.config.mcmeta.description)
 
             // Add all forced packs to defaultPack
-            packy.templates.filter { it.value.forced }.keys.forEach { id ->
-                val templatePath = packy.plugin.dataFolder.toPath() / "templates" / id
-                templatePath.toFile().readPack()?.let { packy.defaultPack.mergeWith(it) }
+            packy.templates.filter { it.value.forced }.values.forEach { template ->
+                template.path.toFile().readPack()?.let { packy.defaultPack.mergeWith(it) }
             }
 
             if (packy.config.autoImportModelEngine && Plugins.isEnabled("ModelEngine")) {
@@ -62,14 +61,13 @@ object PackyGenerator {
 
                 // Filters out all forced files as they are already in defaultPack
                 // Filter all TemplatePacks that are not default or not in players enabledPackAddons
-                packy.templates.entries.filterNot { it.value.forced }.filter { it.value in player.packyData.enabledPackAddons }.forEach { (id, template) ->
-                    val templatePath = packy.plugin.dataFolder.toPath() / "templates" / id
-                    if (!templatePath.isDirectory() || templatePath.listDirectoryEntries().isEmpty()) return@forEach
-                    val templatePack = MinecraftResourcePackReader.minecraft().readFromDirectory(templatePath.toFile())
+                packy.templates.values.filter { !it.forced && it in player.packyData.enabledPackAddons }.map { it.path }.forEach { path ->
+                    if (!path.isDirectory() || path.listDirectoryEntries().isEmpty()) return@forEach
+                    val templatePack = MinecraftResourcePackReader.minecraft().readFromDirectory(path.toFile())
                     cachedPack.mergeWith(templatePack)
                 }
 
-                MinecraftResourcePackWriter.minecraft().writeToDirectory((packy.plugin.dataFolder.toPath() / "playerPacks" / player.uniqueId.toString()).toFile(), cachedPack)
+                //MinecraftResourcePackWriter.minecraft().writeToDirectory((packy.plugin.dataFolder.toPath() / "playerPacks" / player.uniqueId.toString()).toFile(), cachedPack)
                 MinecraftResourcePackWriter.minecraft().build(cachedPack).apply {
                     PackyServer.cachedPacksByteArray[templateIds] = this.data().toByteArray()
                 }

@@ -29,12 +29,11 @@ fun File.readPack(): ResourcePack? {
 fun Response.downloadZipFromGithubResponse(template: PackyTemplate) {
     val (owner, repo, _, subPath) = template.githubDownload ?: return logError("${template.id} has no githubDownload, skipping...")
     val zipStream = ZipInputStream(body!!.byteStream())
-    val zipFile = packy.plugin.dataFolder.toPath() / "templates" / "${template.id}.zip"
 
     runCatching {
-        zipFile.deleteIfExists()
+        template.path.deleteIfExists()
 
-        ZipOutputStream(FileOutputStream(zipFile.toFile())).use { zipOutputStream ->
+        ZipOutputStream(FileOutputStream(template.path.toFile())).use { zipOutputStream ->
             var entry = zipStream.nextEntry
 
             while (entry != null) {

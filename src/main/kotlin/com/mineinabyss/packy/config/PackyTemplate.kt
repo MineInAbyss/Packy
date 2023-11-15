@@ -8,6 +8,8 @@ import kotlinx.serialization.EncodeDefault.Mode.NEVER
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import java.io.File
+import java.nio.file.Path
 import kotlin.io.path.div
 import kotlin.io.path.pathString
 
@@ -21,6 +23,7 @@ data class PackyTemplate(
     @EncodeDefault(NEVER) val githubDownload: GithubDownload? = null
 ) {
     val id: String get() = packy.templates.entries.first { it.value == this }.key
+    val path: Path get() = packy.plugin.dataFolder.toPath() / "templates" / "$id.zip"
 
     @Serializable
     data class GithubDownload(val org: String, val repo: String, val branch: String, @EncodeDefault(NEVER) val subFolder: String? = null)
