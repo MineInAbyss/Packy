@@ -1,4 +1,4 @@
-rootProject.name = "Packy"
+rootProject.name = "packy"
 
 pluginManagement {
     repositories {
