@@ -18,7 +18,7 @@ object PackyDownloader {
     fun updateGithubTemplate(template: PackyTemplate): Boolean {
         val hashFile = packy.plugin.dataFolder.toPath() / "templates" / "localHashes.txt"
         hashFile.createParentDirectories()
-        if (hashFile.notExists()) hashFile.createFile()
+        hashFile.toFile().createNewFile()
 
         val latestHash = latestCommitHash(template.githubDownload ?: return false) ?: return false
         val localHash = hashFile.readLines().find { it.matches("${template.id}=.*".toRegex()) }?.substringAfter("=")
