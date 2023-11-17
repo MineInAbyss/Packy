@@ -15,19 +15,24 @@ import com.mineinabyss.packy.components.packyData
 import com.mineinabyss.packy.config.PackyConfig
 import com.mineinabyss.packy.config.packy
 import com.mineinabyss.packy.menus.Button
+import korlibs.datastructure.rotateLeft
+import korlibs.datastructure.rotatedLeft
+import korlibs.datastructure.swap
+import korlibs.datastructure.toLinkedMap
 import org.bukkit.Material
 import org.bukkit.inventory.ItemStack
+import java.util.LinkedList
 
 
 @Composable
 fun PackyUIScope.PackyMenu() {
     val subPackList = packy.config.menu.subMenus.map { it.value to it.value.packs.toList() }.toMap()
     packy.config.menu.subMenus.values.map { subMenu ->
-        var packs by remember { mutableStateOf(subPackList[subMenu]!!.toMutableList()) }
+        var packs by remember { mutableStateOf(subPackList[subMenu]!!) }
 
         if (subMenu.packs.size == 1) {
-            val templateId = subMenu.packs.keys.first()
-            val template = packy.templates.entries.find { it.key == templateId }?.value ?: return
+            val templateId = subMenu.packs.keys.firstOrNull() ?: return@map
+            packy.templates.entries.find { it.key == templateId }?.value ?: return@map
 
             Item(subMenu.button.toItemStack(), subMenu.modifiers.toModifier().clickable {
                 // Return if the task returns null, meaning button was spammed whilst a set was currently generating
@@ -36,7 +41,6 @@ fun PackyUIScope.PackyMenu() {
                     else -> PackPicker.removePack(player, templateId)
                 } ?: return@clickable
 
-                packs = packs.toMutableList().apply { add(removeFirst()) }
                 hasChanged = true
                 nav.refresh()
             })
@@ -56,9 +60,7 @@ fun PackyUIScope.PackyMenu() {
                     // Return if the task returns null, meaning button was spammed whilst a set was currently generating
                     PackPicker.addPack(player, nextTemplateId) ?: return@CycleButton
 
-                    packs = packs.toMutableList().apply {
-                        add(removeAt(currentTemplateIndex))
-                    }
+                    packs = packs.rotatedLeft()
                     hasChanged = true
                     nav.refresh()
                 }
