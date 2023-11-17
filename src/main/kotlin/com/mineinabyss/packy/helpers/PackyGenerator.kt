@@ -7,11 +7,13 @@ import com.mineinabyss.idofront.messaging.logInfo
 import com.mineinabyss.idofront.messaging.logSuccess
 import com.mineinabyss.idofront.messaging.logWarn
 import com.mineinabyss.idofront.plugin.Plugins
+import com.mineinabyss.idofront.serialization.MiniMessageSerializer
 import com.mineinabyss.idofront.textcomponents.miniMsg
 import com.mineinabyss.packy.components.packyData
 import com.mineinabyss.packy.config.packy
 import com.ticxo.modelengine.api.ModelEngineAPI
 import kotlinx.coroutines.*
+import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer
 import org.bukkit.entity.Player
 import team.unnamed.creative.BuiltResourcePack
 import team.unnamed.creative.ResourcePack
@@ -69,7 +71,7 @@ object PackyGenerator {
         mergePack.textures().forEach(this::texture)
         mergePack.sounds().forEach(this::sound)
         mergePack.unknownFiles().forEach(this::unknownFile)
-        mergePack.packMeta()?.let { packMeta(it.formats(), it.description().ifEmpty { description() ?: "" }.miniMsg()) }
+        mergePack.packMeta()?.let { packMeta(it.formats(), parseStringToComponent(it.description().ifEmpty { description() ?: "" })) }
         mergePack.icon()?.let { icon(it) }
 
         mergePack.models().forEach { model ->

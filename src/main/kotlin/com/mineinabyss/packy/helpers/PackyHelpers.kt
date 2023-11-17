@@ -2,8 +2,12 @@ package com.mineinabyss.packy.helpers
 
 import com.mineinabyss.idofront.messaging.broadcast
 import com.mineinabyss.idofront.messaging.logError
+import com.mineinabyss.idofront.textcomponents.miniMsg
+import com.mineinabyss.idofront.textcomponents.serialize
 import com.mineinabyss.packy.config.PackyTemplate
 import com.mineinabyss.packy.config.packy
+import net.kyori.adventure.text.Component
+import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer
 import okhttp3.Response
 import team.unnamed.creative.ResourcePack
 import team.unnamed.creative.serialize.minecraft.MinecraftResourcePackReader
@@ -55,5 +59,8 @@ fun Response.downloadZipFromGithubResponse(template: PackyTemplate) {
         }
     }.onFailure { it.printStackTrace() }.also { zipStream.close() }
 }
+
+internal fun parseStringToComponent(string: String) =
+    LegacyComponentSerializer.legacyAmpersand().deserialize(string).serialize().miniMsg()
 
 typealias TemplateIds = SortedSet<String>
