@@ -71,8 +71,6 @@ object PackyGenerator {
         mergePack.textures().forEach(this::texture)
         mergePack.sounds().forEach(this::sound)
         mergePack.unknownFiles().forEach(this::unknownFile)
-        mergePack.packMeta()?.let { packMeta(it.formats(), parseStringToComponent(it.description().ifEmpty { description() ?: "" })) }
-        mergePack.icon()?.let { icon(it) }
 
         mergePack.models().forEach { model ->
             val baseModel = model(model.key()) ?: return@forEach model(model)
@@ -100,5 +98,8 @@ object PackyGenerator {
             val baseBlockState = blockState(blockState.key()) ?: return@forEach blockState(blockState)
             blockState(baseBlockState.apply { variants().putAll(blockState.variants()) })
         }
+
+        if (packMeta()?.description().isNullOrEmpty()) mergePack.packMeta()?.let { packMeta(it) }
+        if (icon() == null) mergePack.icon()?.let { icon(it) }
     }
 }
