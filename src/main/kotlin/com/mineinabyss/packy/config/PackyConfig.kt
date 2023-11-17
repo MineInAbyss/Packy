@@ -28,7 +28,7 @@ data class PackyConfig(
     data class PackyMcMeta(val format: Int = 15, val description: String = "Packy Resourcepack")
     @Serializable
     data class PackyServer(val ip: String = "127.0.0.1", val port: Int = 8080, val publicAddress: String = "http://$ip:$port") {
-        fun publicUrl(hash: String) = "$publicAddress#$hash.zip"
+        fun publicUrl(hash: String) = "$publicAddress/$hash.zip"
     }
 
     @Serializable

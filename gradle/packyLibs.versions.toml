@@ -1,11 +1,7 @@
 [versions]
 gearyPaper = "0.27.0"
 guiy="0.9.2"
-creative-version="1.2.2-SNAPSHOT"
 
 [libraries]
 geary-papermc = { module = "com.mineinabyss:geary-papermc", version.ref = "gearyPaper" }
 guiy = { module = "com.mineinabyss:guiy-compose", version.ref = "guiy" }
-creative-api = { module = "team.unnamed:creative-api", version.ref = "creative-version" }
-creative-serializer-minecraft = { module = "team.unnamed:creative-serializer-minecraft", version.ref = "creative-version" }
-creative-server = { module = "team.unnamed:creative-server", version.ref = "creative-version" }

@@ -36,9 +36,10 @@ dependencies {
     compileOnly(packyLibs.guiy)
     compileOnly(libs.minecraft.plugin.modelengine)
 
-    implementation(packyLibs.creative.api)
-    implementation(packyLibs.creative.serializer.minecraft)
-    implementation(packyLibs.creative.server)
+    compileOnly(libs.creative.api)
+    compileOnly(libs.creative.serializer.minecraft)
+    compileOnly(libs.creative.server)
+
     implementation("com.squareup.okhttp3:okhttp:4.12.0")
 }
 
@@ -47,12 +48,6 @@ tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
         freeCompilerArgs = listOf(
             "-Xcontext-receivers",
         )
-    }
-}
-
-tasks {
-    shadowJar {
-        relocate("team.unnamed", "com.mineinabyss.shaded.unnamed")
     }
 }
 
