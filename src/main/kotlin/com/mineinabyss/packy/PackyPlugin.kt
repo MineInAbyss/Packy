@@ -4,12 +4,14 @@ import com.mineinabyss.geary.autoscan.autoscan
 import com.mineinabyss.geary.modules.geary
 import com.mineinabyss.idofront.config.config
 import com.mineinabyss.idofront.di.DI
+import com.mineinabyss.idofront.messaging.logVal
 import com.mineinabyss.idofront.plugin.listeners
 import com.mineinabyss.packy.config.*
 import com.mineinabyss.packy.helpers.PackyDownloader
 import com.mineinabyss.packy.helpers.PackyGenerator
 import com.mineinabyss.packy.helpers.PackyServer
 import com.mineinabyss.packy.listener.PlayerListener
+import kotlinx.coroutines.Job
 import org.bukkit.plugin.java.JavaPlugin
 import team.unnamed.creative.ResourcePack
 
@@ -45,6 +47,7 @@ class PackyPlugin : JavaPlugin() {
             override val defaultPack: ResourcePack = ResourcePack.resourcePack()
         })
 
+        PackyGenerator.activeGeneratorJob.clear()
         PackyServer.cachedPacks.clear()
         PackyServer.cachedPacksByteArray.clear()
         PackyDownloader.downloadTemplates()

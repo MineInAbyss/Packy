@@ -3,28 +3,17 @@ package com.mineinabyss.packy.helpers
 import com.github.shynixn.mccoroutine.bukkit.asyncDispatcher
 import com.github.shynixn.mccoroutine.bukkit.launch
 import com.mineinabyss.idofront.messaging.broadcast
-import com.mineinabyss.idofront.messaging.logInfo
 import com.mineinabyss.idofront.messaging.logSuccess
-import com.mineinabyss.idofront.messaging.logWarn
-import com.mineinabyss.idofront.plugin.Plugins
-import com.mineinabyss.idofront.serialization.MiniMessageSerializer
-import com.mineinabyss.idofront.textcomponents.miniMsg
 import com.mineinabyss.packy.components.packyData
 import com.mineinabyss.packy.config.packy
-import com.ticxo.modelengine.api.ModelEngineAPI
 import kotlinx.coroutines.*
-import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer
 import org.bukkit.entity.Player
 import team.unnamed.creative.BuiltResourcePack
 import team.unnamed.creative.ResourcePack
 import team.unnamed.creative.base.Writable
-import team.unnamed.creative.serialize.minecraft.MinecraftResourcePackReader
 import team.unnamed.creative.serialize.minecraft.MinecraftResourcePackWriter
 import team.unnamed.creative.sound.SoundRegistry
 import kotlin.io.path.div
-import kotlin.io.path.isDirectory
-import kotlin.io.path.listDirectoryEntries
-import kotlin.io.path.notExists
 
 object PackyGenerator {
 
@@ -44,8 +33,8 @@ object PackyGenerator {
         }
     }
 
-    suspend fun getOrCreateCachedPack(player: Player): Deferred<BuiltResourcePack> = coroutineScope {
-        val templateIds = player.packyData.enabledPackIds
+    suspend fun getOrCreateCachedPack(player: Player) = getOrCreateCachedPack(player.packyData.enabledPackIds)
+    suspend fun getOrCreateCachedPack(templateIds: TemplateIds): Deferred<BuiltResourcePack> = coroutineScope {
         PackyServer.cachedPacks[templateIds]?.let { return@coroutineScope async { it } }
 
         activeGeneratorJob.getOrPut(templateIds) {
@@ -55,12 +44,15 @@ object PackyGenerator {
 
                 // Filters out all forced files as they are already in defaultPack
                 // Filter all TemplatePacks that are not default or not in players enabledPackAddons
-                packy.templates.values.filter { !it.forced && it in player.packyData.enabledPackAddons }.forEach { template ->
+                packy.templates.values.filter { !it.forced && it.id in templateIds }.forEach { template ->
                     template.path.toFile().readPack()?.let { cachedPack.mergeWith(it) }
                 }
 
                 //MinecraftResourcePackWriter.minecraft().writeToDirectory((packy.plugin.dataFolder.toPath() / "playerPacks" / player.uniqueId.toString()).toFile(), cachedPack)
+                if (packy.config.obfuscate) PackObfuscator.obfuscatePack(cachedPack)
+                else MinecraftResourcePackWriter.minecraft().writeToZipFile(packy.plugin.dataFolder.resolve("pack.zip"), cachedPack)
                 MinecraftResourcePackWriter.minecraft().build(cachedPack).apply {
+                    PackyServer.cachedPacks[templateIds] = this
                     PackyServer.cachedPacksByteArray[templateIds] = this.data().toByteArray()
                 }
             }
@@ -85,10 +77,9 @@ object PackyGenerator {
             soundRegistry(SoundRegistry.soundRegistry(soundRegistry.namespace(), baseRegistry.sounds().toMutableSet().apply { addAll(soundRegistry.sounds()) }))
         }
         mergePack.atlases().forEach { atlas ->
-            val baseAtlas = atlas(atlas.key()) ?: return@forEach atlas(atlas)
-            atlas.sources().forEach {
-                baseAtlas.toBuilder().addSource(it)
-            }
+            val baseAtlas = atlas(atlas.key())?.toBuilder() ?: return@forEach atlas(atlas)
+            atlas.sources().forEach(baseAtlas::addSource)
+            atlas(baseAtlas.build())
         }
         mergePack.languages().forEach { language ->
             val baseLanguage = language(language.key()) ?: return@forEach language(language)
