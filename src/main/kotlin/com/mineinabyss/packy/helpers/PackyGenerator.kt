@@ -33,8 +33,8 @@ object PackyGenerator {
         }
     }
 
-    suspend fun getOrCreateCachedPack(player: Player) = getOrCreateCachedPack(player.packyData.enabledPackIds)
-    suspend fun getOrCreateCachedPack(templateIds: TemplateIds): Deferred<BuiltResourcePack> = coroutineScope {
+    suspend fun getOrCreateCachedPack(player: Player): Deferred<BuiltResourcePack> = coroutineScope {
+        val templateIds = player.packyData.enabledPackIds
         PackyServer.cachedPacks[templateIds]?.let { return@coroutineScope async { it } }
 
         activeGeneratorJob.getOrPut(templateIds) {
@@ -47,7 +47,7 @@ object PackyGenerator {
                 packy.templates.values.filter { !it.forced && it.id in templateIds }.forEach { template ->
                     template.path.toFile().readPack()?.let { cachedPack.mergeWith(it) }
                 }
-
+                MinecraftResourcePackWriter.minecraft().writeToZipFile(packy.plugin.dataFolder.resolve("pack.zip"), cachedPack)
                 if (packy.config.obfuscate) PackObfuscator.obfuscatePack(cachedPack)
                 MinecraftResourcePackWriter.minecraft().build(cachedPack).apply {
                     PackyServer.cachedPacks[templateIds] = this
