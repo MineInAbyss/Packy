@@ -48,9 +48,7 @@ object PackyGenerator {
                     template.path.toFile().readPack()?.let { cachedPack.mergeWith(it) }
                 }
 
-                //MinecraftResourcePackWriter.minecraft().writeToDirectory((packy.plugin.dataFolder.toPath() / "playerPacks" / player.uniqueId.toString()).toFile(), cachedPack)
                 if (packy.config.obfuscate) PackObfuscator.obfuscatePack(cachedPack)
-                else MinecraftResourcePackWriter.minecraft().writeToZipFile(packy.plugin.dataFolder.resolve("pack.zip"), cachedPack)
                 MinecraftResourcePackWriter.minecraft().build(cachedPack).apply {
                     PackyServer.cachedPacks[templateIds] = this
                     PackyServer.cachedPacksByteArray[templateIds] = this.data().toByteArray()
