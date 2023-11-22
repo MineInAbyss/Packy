@@ -49,9 +49,7 @@ object PackObfuscator {
     }
 
     private fun obfuscateModels() {
-        resourcePack.models().filterNotNull().map { it }.forEach models@{ model ->
-            obfuscateModel(model)
-        }
+        resourcePack.models().mapNotNull { it }.forEach { obfuscateModel(it) }
 
         obfuscatedModels.map { it.originalModel.key() }.forEach(resourcePack::removeModel)
         obfuscatedModels.map { it.obfuscatedModel }.toSet().forEach(resourcePack::model)
@@ -61,13 +59,12 @@ object PackObfuscator {
     private fun obfuscateModel(model: Model): Model {
         return when {
             model.key() in VanillaPackKeys.defaultModels -> model.obfuscateOverrides()
-            model.key() in obfuscatedModels.map { it.obfuscatedModel.key() } -> model.obfuscateOverrides()
             else -> model.obfuscateModelTextures().obfuscate()
         }
     }
 
     private fun Model.obfuscateModelTextures(): Model {
-        val layers = textures().layers().filter { it?.key() != null }.map { modelTexture ->
+        val layers = textures().layers().filterNotNull().filter { it.key() != null }.map { modelTexture ->
             obfuscateItemTexture(modelTexture)?.keyNoPng?.let { ModelTexture.ofKey(it) } ?: modelTexture
         }
         val variables = textures().variables().map { variable ->
@@ -75,9 +72,8 @@ object PackObfuscator {
         }.toMap()
 
         val particle = textures().particle()?.let { p -> obfuscateItemTexture(p)?.keyNoPng?.let { ModelTexture.ofKey(it) } ?: p }
-
-        return this.toBuilder()
-            .textures(ModelTextures.builder().layers(layers).variables(variables).particle(particle).build()).build()
+        val modelTextures = ModelTextures.builder().layers(layers).variables(variables).particle(particle).build()
+        return this.toBuilder().textures(modelTextures).build()
     }
 
     private fun obfuscateFonts() {
