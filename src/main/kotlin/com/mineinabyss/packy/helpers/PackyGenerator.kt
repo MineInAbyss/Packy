@@ -64,11 +64,11 @@ object PackyGenerator {
 
         mergePack.models().forEach { model ->
             val baseModel = model(model.key()) ?: return@forEach model(model)
-            model(model.apply { overrides().addAll(baseModel.overrides()) })
+            model(baseModel.apply { overrides().addAll(model.overrides()) })
         }
         mergePack.fonts().forEach { font ->
             val baseFont = font(font.key()) ?: return@forEach font(font)
-            font(font.key(), baseFont.providers().apply { addAll(font.providers()) })
+            font(baseFont.apply { providers().addAll(font.providers()) })
         }
         mergePack.soundRegistries().forEach { soundRegistry ->
             val baseRegistry = soundRegistry(soundRegistry.namespace()) ?: return@forEach soundRegistry(soundRegistry)
