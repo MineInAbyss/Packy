@@ -4,6 +4,7 @@ import com.github.shynixn.mccoroutine.bukkit.asyncDispatcher
 import com.github.shynixn.mccoroutine.bukkit.launch
 import com.mineinabyss.idofront.messaging.broadcast
 import com.mineinabyss.idofront.messaging.logSuccess
+import com.mineinabyss.idofront.textcomponents.miniMsg
 import com.mineinabyss.packy.components.packyData
 import com.mineinabyss.packy.config.packy
 import kotlinx.coroutines.*
@@ -14,6 +15,7 @@ import team.unnamed.creative.base.Writable
 import team.unnamed.creative.serialize.minecraft.MinecraftResourcePackWriter
 import team.unnamed.creative.sound.SoundRegistry
 import kotlin.io.path.div
+import kotlin.io.path.exists
 
 object PackyGenerator {
 
@@ -21,12 +23,12 @@ object PackyGenerator {
 
     fun setupForcedPackFiles() {
         packy.plugin.launch(packy.plugin.asyncDispatcher) {
-            packy.defaultPack.icon(Writable.path(packy.plugin.dataFolder.toPath() / packy.config.icon))
-            packy.defaultPack.packMeta(packy.config.mcmeta.format, packy.config.mcmeta.description)
+            (packy.plugin.dataFolder.toPath() / packy.config.icon).takeIf { it.exists() }?.let { packy.defaultPack.icon(Writable.path(it)) }
+            packy.config.mcmeta.description.takeIf { it.isNotEmpty() }?.let { packy.defaultPack.packMeta(packy.config.mcmeta.format, it.miniMsg()) }
 
             // Add all forced packs to defaultPack
-            packy.templates.filter { it.value.forced }.values.forEach { template ->
-                template.path.toFile().readPack()?.let { packy.defaultPack.mergeWith(it) }
+            packy.templates.filter { it.value.forced }.values.mapNotNull { it.path.toFile().readPack() }.forEach {
+                packy.defaultPack.mergeWith(it)
             }
 
             logSuccess("Finished configuring defaultPack")
@@ -44,9 +46,9 @@ object PackyGenerator {
 
                 // Filters out all forced files as they are already in defaultPack
                 // Filter all TemplatePacks that are not default or not in players enabledPackAddons
-                packy.templates.values.filter { !it.forced && it.id in templateIds }.forEach { template ->
-                    template.path.toFile().readPack()?.let { cachedPack.mergeWith(it) }
-                }
+                packy.templates.values.filter { !it.forced && it.id in templateIds }
+                    .mapNotNull { it.path.toFile().readPack() }.forEach { cachedPack.mergeWith(it) }
+
                 MinecraftResourcePackWriter.minecraft().writeToZipFile(packy.plugin.dataFolder.resolve("pack.zip"), cachedPack)
                 if (packy.config.obfuscate) PackObfuscator.obfuscatePack(cachedPack)
                 MinecraftResourcePackWriter.minecraft().build(cachedPack).apply {
