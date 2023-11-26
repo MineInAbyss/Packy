@@ -7,6 +7,7 @@ import com.mineinabyss.idofront.commands.arguments.genericArg
 import com.mineinabyss.idofront.commands.arguments.optionArg
 import com.mineinabyss.idofront.commands.arguments.playerArg
 import com.mineinabyss.idofront.commands.execution.IdofrontCommandExecutor
+import com.mineinabyss.idofront.commands.extensions.actions.ensureSenderIsPlayer
 import com.mineinabyss.idofront.commands.extensions.actions.playerAction
 import com.mineinabyss.idofront.messaging.*
 import com.mineinabyss.packy.components.packyData
@@ -46,8 +47,7 @@ class PackyCommands : IdofrontCommandExecutor(), TabCompleter {
                 }
             }
             "send" {
-                val player: Player by playerArg { default = sender as? Player }
-                action {
+                playerAction {
                     packy.plugin.launch {
                         PackyServer.sendPack(player, PackyGenerator.getOrCreateCachedPack(player).await())
                         sender.success("Sent pack to ${player.name}")
@@ -76,8 +76,9 @@ class PackyCommands : IdofrontCommandExecutor(), TabCompleter {
                 }
             }
             "bypass" {
-                val player: Player by playerArg { default = sender as? Player }
+                ensureSenderIsPlayer()
                 action {
+                    val player = sender as Player
                     player.packyData.bypassForced = !player.packyData.bypassForced
                     when (player.packyData.bypassForced) {
                         true -> sender.success("Bypassing forced pack")
