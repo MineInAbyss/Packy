@@ -49,13 +49,24 @@ object PackyGenerator {
                 packy.templates.values.filter { !it.forced && it.id in templateIds }
                     .mapNotNull { it.path.toFile().readPack() }.forEach { cachedPack.mergeWith(it) }
 
-                MinecraftResourcePackWriter.minecraft().writeToZipFile(packy.plugin.dataFolder.resolve("pack.zip"), cachedPack)
+                cachedPack.sortItemOverrides()
                 if (packy.config.obfuscate) PackObfuscator.obfuscatePack(cachedPack)
+                MinecraftResourcePackWriter.minecraft().writeToZipFile(packy.plugin.dataFolder.resolve("pack.zip"), cachedPack)
                 MinecraftResourcePackWriter.minecraft().build(cachedPack).apply {
                     PackyServer.cachedPacks[templateIds] = this
                     PackyServer.cachedPacksByteArray[templateIds] = this.data().toByteArray()
                 }
             }
+        }
+    }
+
+    /**
+     * Ensures the ItemOverrides of a model are in numerical order for their CustomModelData
+     */
+    private fun ResourcePack.sortItemOverrides() {
+        this.models().forEach { model ->
+            val sortedOverrides = model.overrides().sortedBy { it.predicate().customModelData() }
+            this.model(model.toBuilder().overrides(sortedOverrides).build())
         }
     }
 

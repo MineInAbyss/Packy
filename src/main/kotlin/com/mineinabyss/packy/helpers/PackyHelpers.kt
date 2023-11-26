@@ -10,6 +10,7 @@ import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer
 import okhttp3.Response
 import team.unnamed.creative.ResourcePack
+import team.unnamed.creative.model.ItemPredicate
 import team.unnamed.creative.serialize.minecraft.MinecraftResourcePackReader
 import java.io.File
 import java.io.FileInputStream
@@ -64,3 +65,5 @@ internal fun parseStringToComponent(string: String) =
     LegacyComponentSerializer.legacyAmpersand().deserialize(string).serialize().miniMsg()
 
 typealias TemplateIds = SortedSet<String>
+
+fun List<ItemPredicate>.customModelData(): Int = this.firstOrNull { it.name() == "custom_model_data" }?.value()?.toString()?.let { Integer.parseInt(it) } ?: 0
