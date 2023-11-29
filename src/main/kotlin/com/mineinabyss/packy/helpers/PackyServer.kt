@@ -9,6 +9,7 @@ import com.mineinabyss.packy.components.packyData
 import com.mineinabyss.packy.config.packy
 import korlibs.datastructure.ByteArray2
 import korlibs.datastructure.CacheMap
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import org.bukkit.entity.Player
 import team.unnamed.creative.BuiltResourcePack
@@ -38,10 +39,12 @@ object PackyServer {
         packServer?.stop(0)
     }
 
-    private var handler = ResourcePackRequestHandler { request, exchange ->
-        val data = request?.uuid()?.toPlayer()?.packyData?.enabledPackIds?.let { cachedPacksByteArray[it] } ?: MinecraftResourcePackWriter.minecraft().build(packy.defaultPack).data().toByteArray()
-        exchange.responseHeaders["Content-Type"] = "application/zip"
-        exchange.sendResponseHeaders(200, data.size.toLong())
-        exchange.responseBody.use { responseStream -> responseStream.write(data) }
+    private val handler = ResourcePackRequestHandler { request, exchange ->
+        packy.plugin.launch(Dispatchers.IO) {
+            val data = request?.uuid()?.toPlayer()?.packyData?.enabledPackIds?.let { cachedPacksByteArray[it] } ?: MinecraftResourcePackWriter.minecraft().build(packy.defaultPack).data().toByteArray()
+            exchange.responseHeaders["Content-Type"] = "application/zip"
+            exchange.sendResponseHeaders(200, data.size.toLong())
+            exchange.responseBody.use { responseStream -> responseStream.write(data) }
+        }
     }
 }
