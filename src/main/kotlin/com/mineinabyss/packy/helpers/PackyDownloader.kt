@@ -3,17 +3,25 @@ package com.mineinabyss.packy.helpers
 import com.github.shynixn.mccoroutine.bukkit.asyncDispatcher
 import com.github.shynixn.mccoroutine.bukkit.launch
 import com.google.gson.JsonParser
-import com.mineinabyss.idofront.messaging.*
+import com.mineinabyss.idofront.messaging.logError
+import com.mineinabyss.idofront.messaging.logInfo
+import com.mineinabyss.idofront.messaging.logSuccess
+import com.mineinabyss.idofront.messaging.logWarn
 import com.mineinabyss.packy.config.PackyTemplate
 import com.mineinabyss.packy.config.packy
 import com.mineinabyss.packy.helpers.PackyServer.cachedPacks
 import com.mineinabyss.packy.helpers.PackyServer.cachedPacksByteArray
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
 import okhttp3.OkHttpClient
 import okhttp3.Request
-import java.nio.file.StandardOpenOption
-import kotlin.io.path.*
+import kotlin.io.path.createParentDirectories
+import kotlin.io.path.div
+import kotlin.io.path.readLines
+import kotlin.io.path.writeLines
 
 object PackyDownloader {
+    var startupJob: Job? = null
 
     fun updateGithubTemplate(template: PackyTemplate): Boolean {
         val hashFile = packy.plugin.dataFolder.toPath() / "templates" / "localHashes.txt"
@@ -58,20 +66,23 @@ object PackyDownloader {
     }
 
     fun downloadTemplates() {
-        packy.templates.entries.filter { it.value.githubDownload != null }.map { (id, template) ->
-            packy.plugin.launch(packy.plugin.asyncDispatcher) {
-                logWarn("Downloading ${id}-template from GitHub...")
-                if (updateGithubTemplate(template)) {
-                    logSuccess("Successfully downloaded ${id}-template!")
-                    cachedPacks.keys.removeIf { id in it }
-                    cachedPacksByteArray.keys.removeIf { id in it }
+        startupJob = packy.plugin.launch(packy.plugin.asyncDispatcher) {
+            packy.templates.entries.filter { it.value.githubDownload != null }.map { (id, template) ->
+                launch {
+                    logWarn("Downloading ${id}-template from GitHub...")
+                    if (updateGithubTemplate(template)) {
+                        logSuccess("Successfully downloaded ${id}-template!")
+                        cachedPacks.keys.removeIf { id in it }
+                        cachedPacksByteArray.keys.removeIf { id in it }
+                    }
                 }
             }
         }
     }
 
     fun downloadAndExtractGithub(template: PackyTemplate) {
-        val (owner, repo, branch, _) = template.githubDownload ?: return logError("${template.id} has no githubDownload, skipping...")
+        val (owner, repo, branch, _) = template.githubDownload
+            ?: return logError("${template.id} has no githubDownload, skipping...")
         val url = "https://api.github.com/repos/${owner}/${repo}/zipball/${branch}"
 
 

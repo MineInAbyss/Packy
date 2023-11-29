@@ -42,7 +42,7 @@ class PackyPlugin : JavaPlugin() {
         DI.add<PackyContext>(object : PackyContext {
             override val plugin = this@PackyPlugin
             override val config: PackyConfig by config("config", dataFolder.toPath(), PackyConfig())
-            override val templates: Map<String, PackyTemplate> = config<PackyTemplates>("templates", dataFolder.toPath(), PackyTemplates()).getOrLoad().templates
+            override val templates: Map<String, PackyTemplate> = config<PackyTemplates>("templates", dataFolder.toPath(), PackyTemplates()).getOrLoad().templateMap
             override val accessToken: PackyAccessToken by config("accessToken", dataFolder.toPath(), PackyAccessToken())
             override val defaultPack: ResourcePack = ResourcePack.resourcePack()
         })
