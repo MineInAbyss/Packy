@@ -17,6 +17,7 @@ import team.unnamed.creative.ResourcePack
 import team.unnamed.creative.serialize.minecraft.MinecraftResourcePackWriter
 import team.unnamed.creative.server.handler.ResourcePackRequestHandler
 import team.unnamed.creative.server.ResourcePackServer
+import java.util.concurrent.Executors
 
 
 object PackyServer {
@@ -31,6 +32,7 @@ object PackyServer {
         logSuccess("Started Packy-Server...")
         val (ip, port) = packy.config.server.let { it.ip to it.port }
         packServer = ResourcePackServer.server().address(ip, port).handler(handler).build()
+        packServer?.httpServer()?.executor = Executors.newFixedThreadPool(20)
         packServer?.start()
     }
 
@@ -40,11 +42,9 @@ object PackyServer {
     }
 
     private val handler = ResourcePackRequestHandler { request, exchange ->
-        packy.plugin.launch(Dispatchers.IO) {
-            val data = request?.uuid()?.toPlayer()?.packyData?.enabledPackIds?.let { cachedPacksByteArray[it] } ?: MinecraftResourcePackWriter.minecraft().build(packy.defaultPack).data().toByteArray()
-            exchange.responseHeaders["Content-Type"] = "application/zip"
-            exchange.sendResponseHeaders(200, data.size.toLong())
-            exchange.responseBody.use { responseStream -> responseStream.write(data) }
-        }
+        val data = request?.uuid()?.toPlayer()?.packyData?.enabledPackIds?.let { cachedPacksByteArray[it] } ?: MinecraftResourcePackWriter.minecraft().build(packy.defaultPack).data().toByteArray()
+        exchange.responseHeaders["Content-Type"] = "application/zip"
+        exchange.sendResponseHeaders(200, data.size.toLong())
+        exchange.responseBody.use { responseStream -> responseStream.write(data) }
     }
 }
