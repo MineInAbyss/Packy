@@ -37,10 +37,9 @@ object PackyGenerator {
 
     suspend fun getOrCreateCachedPack(player: Player): Deferred<BuiltResourcePack> = coroutineScope {
         val templateIds = player.packyData.enabledPackIds
-        PackyDownloader.startupJob?.join()
+        PackyDownloader.startupJob?.join() // Ensure templates are downloaded
         PackyServer.cachedPacks[templateIds]?.let { return@coroutineScope async { it } }
 
-        // Ensure templates are downloaded
 
         activeGeneratorJob.getOrPut(templateIds) {
             async(Dispatchers.IO) {
