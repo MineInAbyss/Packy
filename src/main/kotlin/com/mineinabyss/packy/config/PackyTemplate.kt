@@ -17,7 +17,7 @@ import kotlin.io.path.*
 
 @Serializable
 data class PackyTemplates(val templates: List<PackyTemplate> = listOf()) {
-    val templateMap: Map<String, PackyTemplate> = templates.associateBy { it.name }
+    @EncodeDefault(NEVER) val templateMap: Map<String, PackyTemplate> = templates.associateBy { it.name }
 }
 
 @Serializable
