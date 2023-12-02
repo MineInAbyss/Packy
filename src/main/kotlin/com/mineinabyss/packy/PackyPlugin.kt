@@ -7,6 +7,7 @@ import com.mineinabyss.idofront.di.DI
 import com.mineinabyss.idofront.messaging.logVal
 import com.mineinabyss.idofront.plugin.listeners
 import com.mineinabyss.packy.config.*
+import com.mineinabyss.packy.helpers.PackyAddDataTracker
 import com.mineinabyss.packy.helpers.PackyDownloader
 import com.mineinabyss.packy.helpers.PackyGenerator
 import com.mineinabyss.packy.helpers.PackyServer
@@ -23,6 +24,8 @@ class PackyPlugin : JavaPlugin() {
                 all()
             }
         }
+
+        geary.pipeline.addSystem(PackyAddDataTracker())
     }
 
     override fun onEnable() {
