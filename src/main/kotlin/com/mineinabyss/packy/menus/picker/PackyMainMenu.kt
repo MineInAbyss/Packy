@@ -81,7 +81,7 @@ fun CycleButton(subMenu: PackyConfig.PackySubMenu, pack: PackyConfig.PackyPack, 
     val modifier = subMenu.modifiers.offset.toAtModifier()
     Grid(subMenu.modifiers.size.toSizeModifier(modifier)) {
         Button(enabled = true, onClick = onClick) {
-            Item((pack.button ?: subMenu.button).toItemStack(subMenu.button.toItemStack()), subMenu.modifiers.size.toSizeModifier())
+            Item(subMenu.button.toItemStack(pack.button?.toItemStackOrNull() ?: ItemStack.empty()), subMenu.modifiers.size.toSizeModifier())
         }
     }
 
