@@ -11,16 +11,19 @@ import com.mineinabyss.packy.config.packy
 import com.mineinabyss.packy.menus.Button
 
 @Composable
-fun PackyUIScope.PackySubMenu(subMenu: PackyConfig.PackySubMenu) {
+fun PackySubMenu(subMenu: PackyConfig.PackySubMenu) {
+    val packyData = PackyDataProvider.current
+    val scope = PackyScopeProvider.current
+    val player = scope.player
     subMenu.packs.forEach { (templateId, pack) ->
         val template = packy.templates.entries.find { it.key == templateId }?.value ?: return@forEach
         Button(pack.modifiers.toModifier(), onClick = {
             when {
-                template !in player.packyData.enabledPackAddons -> PackPicker.addPack(player, templateId)
-                else -> PackPicker.removePack(player, templateId)
+                template !in player.packyData.enabledPackAddons -> PackPicker.addPack(player, templateId, packyData)
+                else -> PackPicker.removePack(player, templateId, packyData)
             }
-            hasChanged = true
-            nav.back()
+            scope.hasChanged = true
+            scope.nav.back()
         }
         ) { Item((pack.button ?: subMenu.button).toItemStack(subMenu.button.toItemStack()), pack.modifiers.toModifier()) }
     }

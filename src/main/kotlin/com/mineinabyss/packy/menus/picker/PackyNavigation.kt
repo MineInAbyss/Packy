@@ -1,17 +1,19 @@
 package com.mineinabyss.packy.menus.picker
 
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.*
 import com.github.shynixn.mccoroutine.bukkit.launch
+import com.github.shynixn.mccoroutine.bukkit.minecraftDispatcher
 import com.mineinabyss.guiy.components.canvases.Chest
 import com.mineinabyss.guiy.inventory.GuiyOwner
 import com.mineinabyss.guiy.modifiers.Modifier
 import com.mineinabyss.guiy.modifiers.height
 import com.mineinabyss.guiy.navigation.Navigator
+import com.mineinabyss.packy.components.PackyData
+import com.mineinabyss.packy.components.packyData
 import com.mineinabyss.packy.config.PackyConfig
 import com.mineinabyss.packy.config.packy
-import com.mineinabyss.packy.helpers.PackyGenerator
 import com.mineinabyss.packy.helpers.PackyServer
+import kotlinx.coroutines.withContext
 import org.bukkit.entity.Player
 
 sealed class PackyScreen(val title: String, val height: Int) {
@@ -31,12 +33,18 @@ class PackyUIScope(val player: Player) {
 @Composable
 fun GuiyOwner.PackyMainMenu(player: Player) {
     val scope = remember { PackyUIScope(player) }
-    scope.apply {
-        nav.withScreen(setOf(player), onEmpty = ::exit) { screen ->
+    var packyData: PackyData by remember { mutableStateOf(PackyData(mutableSetOf())) }
+    LaunchedEffect(Unit) {
+        withContext(packy.plugin.minecraftDispatcher) {
+            packyData = player.packyData
+        }
+    }
+    CompositionLocalProvider(PackyScopeProvider provides scope, PackyDataProvider provides packyData) {
+        scope.nav.withScreen(setOf(player), onEmpty = ::exit) { screen ->
             Chest(setOf(player), screen.title, Modifier.height(screen.height), onClose = {
                 player.closeInventory()
-                if (hasChanged) packy.plugin.launch {
-                    PackyServer.sendPack(player, PackyGenerator.getOrCreateCachedPack(player).await())
+                if (scope.hasChanged) packy.plugin.launch {
+                    PackyServer.sendPack(player)
                 }
             }) {
                 when (screen) {
@@ -47,3 +55,6 @@ fun GuiyOwner.PackyMainMenu(player: Player) {
         }
     }
 }
+
+val PackyScopeProvider = compositionLocalOf<PackyUIScope> { error("No packy scope provided") }
+val PackyDataProvider = compositionLocalOf<PackyData> { error("No packy data provided") }

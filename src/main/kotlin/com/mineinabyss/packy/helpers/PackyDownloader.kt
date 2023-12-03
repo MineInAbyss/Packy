@@ -9,8 +9,6 @@ import com.mineinabyss.idofront.messaging.logSuccess
 import com.mineinabyss.idofront.messaging.logWarn
 import com.mineinabyss.packy.config.PackyTemplate
 import com.mineinabyss.packy.config.packy
-import com.mineinabyss.packy.helpers.PackyServer.cachedPacks
-import com.mineinabyss.packy.helpers.PackyServer.cachedPacksByteArray
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import okhttp3.OkHttpClient
@@ -72,8 +70,8 @@ object PackyDownloader {
                     logWarn("Downloading ${id}-template from GitHub...")
                     if (updateGithubTemplate(template)) {
                         logSuccess("Successfully downloaded ${id}-template!")
-                        cachedPacks.keys.removeIf { id in it }
-                        cachedPacksByteArray.keys.removeIf { id in it }
+                        PackyGenerator.cachedPacks.keys.removeIf { id in it }
+                        PackyGenerator.cachedPacksByteArray.keys.removeIf { id in it }
                     }
                 }
             }

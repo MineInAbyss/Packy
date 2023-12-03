@@ -1,32 +1,31 @@
 package com.mineinabyss.packy.helpers
 
-import com.mineinabyss.idofront.entities.toPlayer
-import com.mineinabyss.idofront.messaging.*
+import com.mineinabyss.idofront.messaging.logError
+import com.mineinabyss.idofront.messaging.logSuccess
 import com.mineinabyss.idofront.textcomponents.miniMsg
-import com.mineinabyss.packy.components.PackyData
 import com.mineinabyss.packy.components.packyData
 import com.mineinabyss.packy.config.packy
-import korlibs.datastructure.CacheMap
 import org.bukkit.entity.Player
-import team.unnamed.creative.BuiltResourcePack
 import team.unnamed.creative.serialize.minecraft.MinecraftResourcePackWriter
-import team.unnamed.creative.server.handler.ResourcePackRequestHandler
 import team.unnamed.creative.server.ResourcePackServer
+import team.unnamed.creative.server.handler.ResourcePackRequestHandler
+import java.net.URI
 import java.util.concurrent.Executors
 
 
 object PackyServer {
     var packServer: ResourcePackServer? = null
-    val cachedPacks: CacheMap<TemplateIds, BuiltResourcePack> = CacheMap(packy.config.cachedPackAmount)
-    val cachedPacksByteArray: CacheMap<TemplateIds, ByteArray> = CacheMap(packy.config.cachedPackAmount)
 
-    fun sendPack(player: Player, resourcePack: BuiltResourcePack) =
+    suspend fun sendPack(player: Player) {
+        val templateIds = player.packyData.enabledPackIds
+        val resourcePack = PackyGenerator.getOrCreateCachedPack(templateIds).await()
         player.setResourcePack(
-            packy.config.server.publicUrl(resourcePack.hash()),
+            packy.config.server.publicUrl(resourcePack.hash(), templateIds),
             resourcePack.hash(),
             packy.config.force && !player.packyData.bypassForced,
             packy.config.prompt.miniMsg()
         )
+    }
 
     fun startServer() {
         logSuccess("Started Packy-Server...")
@@ -41,11 +40,17 @@ object PackyServer {
         packServer?.stop(0)
     }
 
-    val playerToDataMap = mutableMapOf<Player, PackyData>()
+    fun URI.parseTemplateIds(): TemplateIds? {
+        // split query string into map
+        val queryMap = query.split('&').mapNotNull {
+            it.split('=', limit = 2).takeIf { it.size == 2 }?.let { it.first() to it.last() }
+        }.toMap()
+        return queryMap["packs"]?.split(",")?.toSortedSet()
+    }
 
     private val handler = ResourcePackRequestHandler { request, exchange ->
-        val player = request?.uuid()?.toPlayer()
-        val data = player?.let { playerToDataMap[it]?.enabledPackIds?.let { cachedPacksByteArray[it] } }
+        val data = exchange.requestURI.parseTemplateIds()
+            ?.let { templateIds -> PackyGenerator.cachedPacksByteArray[templateIds] }
             ?: MinecraftResourcePackWriter.minecraft().build(packy.defaultPack).data().toByteArray()
         exchange.responseHeaders["Content-Type"] = "application/zip"
         exchange.sendResponseHeaders(200, data.size.toLong())

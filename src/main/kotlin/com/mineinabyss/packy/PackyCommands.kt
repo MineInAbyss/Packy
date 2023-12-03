@@ -49,7 +49,7 @@ class PackyCommands : IdofrontCommandExecutor(), TabCompleter {
             "send" {
                 playerAction {
                     packy.plugin.launch {
-                        PackyServer.sendPack(player, PackyGenerator.getOrCreateCachedPack(player).await())
+                        PackyServer.sendPack(player)
                         sender.success("Sent pack to ${player.name}")
                     }
                 }

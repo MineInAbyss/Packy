@@ -5,6 +5,7 @@ import com.github.shynixn.mccoroutine.bukkit.launch
 import com.mineinabyss.idofront.messaging.error
 import com.mineinabyss.idofront.messaging.success
 import com.mineinabyss.idofront.messaging.warn
+import com.mineinabyss.packy.components.PackyData
 import com.mineinabyss.packy.helpers.PackyGenerator
 import com.mineinabyss.packy.components.packyData
 import com.mineinabyss.packy.components.removeConflictingPacks
@@ -15,11 +16,11 @@ import org.bukkit.entity.Player
 import java.util.*
 
 object PackPicker {
-    fun addPack(player: Player, pack: String, sender: CommandSender = player): Unit? {
+    fun addPack(player: Player, pack: String, packyData: PackyData, sender: CommandSender = player): Unit? {
         if (pack !in packy.templates.keys) return null
         return packy.templates.entries.find { it.key == pack }?.let { (id, template) ->
             val removedConflicting = player.removeConflictingPacks(template).map { it.id }
-            player.packyData.enabledPackAddons += template
+            packyData.enabledPackAddons += template
 
             if ((sender as? Player)?.uniqueId != player.uniqueId) sender.success("TemplatePack $id was added to ${player.name}'s addon-packs")
             player.success("The template $id was added to your addon-packs")
@@ -33,10 +34,10 @@ object PackPicker {
         }
     }
 
-    fun removePack(player: Player, pack: String, sender: CommandSender = player): Unit? {
+    fun removePack(player: Player, pack: String, packyData: PackyData, sender: CommandSender = player): Unit? {
         if (pack !in packy.templates.keys) return null
         return packy.templates.entries.find { it.key == pack }?.let { (id, template) ->
-            player.packyData.enabledPackAddons -= template
+            packyData.enabledPackAddons -= template
 
             if ((sender as? Player)?.uniqueId != player.uniqueId) sender.success("TemplatePack $id was removed from ${player.name}'s addon-packs")
             player.success("TemplatePack $id was removed from your addon-packs")

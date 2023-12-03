@@ -6,6 +6,7 @@ import com.mineinabyss.guiy.modifiers.size
 import com.mineinabyss.idofront.serialization.DurationSerializer
 import com.mineinabyss.idofront.serialization.SerializableItemStack
 import com.mineinabyss.idofront.serialization.toSerializable
+import com.mineinabyss.packy.helpers.TemplateIds
 import kotlinx.serialization.EncodeDefault
 import kotlinx.serialization.EncodeDefault.Mode.ALWAYS
 import kotlinx.serialization.EncodeDefault.Mode.NEVER
@@ -39,7 +40,7 @@ data class PackyConfig(
         val port: Int = 8080,
         val publicAddress: String = "http://$ip:$port"
     ) {
-        fun publicUrl(hash: String) = "$publicAddress/$hash.zip"
+        fun publicUrl(hash: String, ids: TemplateIds) = "$publicAddress/$hash.zip?packs=${ids.joinToString(",")}"
     }
 
     @Serializable

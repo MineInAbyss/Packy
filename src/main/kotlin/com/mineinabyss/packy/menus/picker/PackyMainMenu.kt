@@ -1,6 +1,7 @@
 package com.mineinabyss.packy.menus.picker
 
 import androidx.compose.runtime.*
+import com.github.shynixn.mccoroutine.bukkit.minecraftDispatcher
 import com.mineinabyss.guiy.components.Grid
 import com.mineinabyss.guiy.components.Item
 import com.mineinabyss.guiy.modifiers.Modifier
@@ -11,6 +12,7 @@ import com.mineinabyss.idofront.messaging.logInfo
 import com.mineinabyss.idofront.messaging.logSuccess
 import com.mineinabyss.idofront.messaging.logWarn
 import com.mineinabyss.idofront.textcomponents.miniMsg
+import com.mineinabyss.packy.components.PackyData
 import com.mineinabyss.packy.components.packyData
 import com.mineinabyss.packy.config.PackyConfig
 import com.mineinabyss.packy.config.packy
@@ -19,13 +21,18 @@ import korlibs.datastructure.rotateLeft
 import korlibs.datastructure.rotatedLeft
 import korlibs.datastructure.swap
 import korlibs.datastructure.toLinkedMap
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.bukkit.Material
 import org.bukkit.inventory.ItemStack
 import java.util.LinkedList
 
 
 @Composable
-fun PackyUIScope.PackyMenu() {
+fun PackyMenu() {
+    val packyData = PackyDataProvider.current
+    val scope = PackyScopeProvider.current
+    val player = scope.player
     val subPackList = packy.config.menu.subMenus.map { it.value to it.value.packs.toList() }.toMap()
     packy.config.menu.subMenus.values.map { subMenu ->
         var packs by remember { mutableStateOf(subPackList[subMenu]!!) }
@@ -37,32 +44,32 @@ fun PackyUIScope.PackyMenu() {
             Item(subMenu.button.toItemStack(), subMenu.modifiers.toModifier().clickable {
                 // Return if the task returns null, meaning button was spammed whilst a set was currently generating
                 when {
-                    templateId !in player.packyData.enabledPackIds -> PackPicker.addPack(player, templateId)
-                    else -> PackPicker.removePack(player, templateId)
+                    templateId !in packyData.enabledPackIds -> PackPicker.addPack(player, templateId, packyData)
+                    else -> PackPicker.removePack(player, templateId, packyData)
                 } ?: return@clickable
 
-                hasChanged = true
-                nav.refresh()
+                scope.hasChanged = true
+                scope.nav.refresh()
             })
         } else when (subMenu.type) {
             PackyConfig.SubMenuType.MENU -> Item(
                 subMenu.button.toItemStack(),
-                subMenu.modifiers.toModifier().clickable { nav.open(PackySubScreen(subMenu)) }
+                subMenu.modifiers.toModifier().clickable { scope.nav.open(PackySubScreen(subMenu)) }
             )
 
             PackyConfig.SubMenuType.CYCLING -> {
-                val templateId = player.packyData.enabledPackAddons.firstOrNull { it.id in subMenu.packs.keys }?.id ?: packs.first().first
+                val templateId = packyData.enabledPackAddons.firstOrNull { it.id in subMenu.packs.keys }?.id ?: packs.first().first
                 val pack = subMenu.packs[templateId] ?: return
                 val currentTemplateIndex = packs.indexOf(templateId to pack)
                 val nextTemplateId = packs[(currentTemplateIndex + 1) % packs.size].first
 
                 CycleButton(subMenu, pack) {
                     // Return if the task returns null, meaning button was spammed whilst a set was currently generating
-                    PackPicker.addPack(player, nextTemplateId) ?: return@CycleButton
+                    PackPicker.addPack(player, nextTemplateId, packyData) ?: return@CycleButton
 
                     packs = packs.rotatedLeft()
-                    hasChanged = true
-                    nav.refresh()
+                    scope.hasChanged = true
+                    scope.nav.refresh()
                 }
             }
         }
@@ -82,8 +89,9 @@ fun CycleButton(subMenu: PackyConfig.PackySubMenu, pack: PackyConfig.PackyPack, 
 
 
 @Composable
-fun PackyUIScope.BackButton(modifier: Modifier = Modifier) {
-    Button(onClick = { nav.back() }, modifier = modifier) {
+fun BackButton(modifier: Modifier = Modifier) {
+    val scope = PackyScopeProvider.current
+    Button(onClick = { scope.nav.back() }, modifier = modifier) {
         Item(ItemStack(Material.PAPER).editItemMeta {
             displayName("<red><b>Back".miniMsg())
             setCustomModelData(1)

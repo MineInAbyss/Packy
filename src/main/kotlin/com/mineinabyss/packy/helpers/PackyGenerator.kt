@@ -2,11 +2,12 @@ package com.mineinabyss.packy.helpers
 
 import com.github.shynixn.mccoroutine.bukkit.asyncDispatcher
 import com.github.shynixn.mccoroutine.bukkit.launch
-import com.mineinabyss.idofront.messaging.broadcast
+import com.github.shynixn.mccoroutine.bukkit.minecraftDispatcher
 import com.mineinabyss.idofront.messaging.logSuccess
 import com.mineinabyss.idofront.textcomponents.miniMsg
 import com.mineinabyss.packy.components.packyData
 import com.mineinabyss.packy.config.packy
+import korlibs.datastructure.CacheMap
 import kotlinx.coroutines.*
 import org.bukkit.entity.Player
 import team.unnamed.creative.BuiltResourcePack
@@ -18,13 +19,17 @@ import kotlin.io.path.div
 import kotlin.io.path.exists
 
 object PackyGenerator {
-
+    private val generatorDispatcher = Dispatchers.IO.limitedParallelism(1)
     val activeGeneratorJob: MutableMap<TemplateIds, Deferred<BuiltResourcePack>> = mutableMapOf()
+    val cachedPacks: CacheMap<TemplateIds, BuiltResourcePack> = CacheMap(packy.config.cachedPackAmount)
+    val cachedPacksByteArray: CacheMap<TemplateIds, ByteArray> = CacheMap(packy.config.cachedPackAmount)
 
     fun setupForcedPackFiles() {
         packy.plugin.launch(packy.plugin.asyncDispatcher) {
-            (packy.plugin.dataFolder.toPath() / packy.config.icon).takeIf { it.exists() }?.let { packy.defaultPack.icon(Writable.path(it)) }
-            packy.config.mcmeta.description.takeIf { it.isNotEmpty() }?.let { packy.defaultPack.packMeta(packy.config.mcmeta.format, it.miniMsg()) }
+            (packy.plugin.dataFolder.toPath() / packy.config.icon).takeIf { it.exists() }
+                ?.let { packy.defaultPack.icon(Writable.path(it)) }
+            packy.config.mcmeta.description.takeIf { it.isNotEmpty() }
+                ?.let { packy.defaultPack.packMeta(packy.config.mcmeta.format, it.miniMsg()) }
 
             // Add all forced packs to defaultPack
             packy.templates.filter { it.value.forced }.values.mapNotNull { it.path.toFile().readPack() }.forEach {
@@ -35,28 +40,38 @@ object PackyGenerator {
         }
     }
 
-    suspend fun getOrCreateCachedPack(player: Player): Deferred<BuiltResourcePack> = coroutineScope {
-        val templateIds = player.packyData.enabledPackIds
+    suspend fun getOrCreateCachedPack(templateIds: TemplateIds): Deferred<BuiltResourcePack> = coroutineScope {
         PackyDownloader.startupJob?.join() // Ensure templates are downloaded
-        PackyServer.cachedPacks[templateIds]?.let { return@coroutineScope async { it } }
 
+        // Make sure we read data on sync thread
 
-        activeGeneratorJob.getOrPut(templateIds) {
-            async(Dispatchers.IO) {
-                val cachedPack = ResourcePack.resourcePack()
-                cachedPack.mergeWith(packy.defaultPack)
+        // Get cached pack or create an active job, we swap to one thread for safe hashmap access but run the generators async
+        withContext(generatorDispatcher) {
+            cachedPacks[templateIds]?.let { return@withContext async { it } }
 
-                // Filters out all forced files as they are already in defaultPack
-                // Filter all TemplatePacks that are not default or not in players enabledPackAddons
-                packy.templates.values.filter { !it.forced && it.id in templateIds }
-                    .mapNotNull { it.path.toFile().readPack() }.forEach { cachedPack.mergeWith(it) }
+            activeGeneratorJob.getOrPut(templateIds) {
+                async(Dispatchers.IO) {
+                    val cachedPack = ResourcePack.resourcePack()
+                    cachedPack.mergeWith(packy.defaultPack)
 
-                cachedPack.sortItemOverrides()
-                if (packy.config.obfuscate) PackObfuscator.obfuscatePack(cachedPack)
-                MinecraftResourcePackWriter.minecraft().writeToZipFile(packy.plugin.dataFolder.resolve("pack.zip"), cachedPack)
-                MinecraftResourcePackWriter.minecraft().build(cachedPack).apply {
-                    PackyServer.cachedPacks[templateIds] = this
-                    PackyServer.cachedPacksByteArray[templateIds] = this.data().toByteArray()
+                    // Filters out all forced files as they are already in defaultPack
+                    // Filter all TemplatePacks that are not default or not in players enabledPackAddons
+                    packy.templates.values.filter { !it.forced && it.id in templateIds }
+                        .mapNotNull { it.path.toFile().readPack() }.forEach { cachedPack.mergeWith(it) }
+
+                    cachedPack.sortItemOverrides()
+                    if (packy.config.obfuscate) PackObfuscator.obfuscatePack(cachedPack)
+                    MinecraftResourcePackWriter.minecraft()
+                        .writeToZipFile(packy.plugin.dataFolder.resolve("pack.zip"), cachedPack)
+                    MinecraftResourcePackWriter.minecraft().build(cachedPack).apply {
+                        cachedPacks[templateIds] = this
+                        cachedPacksByteArray[templateIds] = this.data().toByteArray()
+                    }
+                }.also {
+                    launch(generatorDispatcher) {
+                        it.join()
+                        activeGeneratorJob.remove(templateIds)
+                    }
                 }
             }
         }
@@ -87,7 +102,11 @@ object PackyGenerator {
         }
         mergePack.soundRegistries().forEach { soundRegistry ->
             val baseRegistry = soundRegistry(soundRegistry.namespace()) ?: return@forEach soundRegistry(soundRegistry)
-            soundRegistry(SoundRegistry.soundRegistry(soundRegistry.namespace(), baseRegistry.sounds().toMutableSet().apply { addAll(soundRegistry.sounds()) }))
+            soundRegistry(
+                SoundRegistry.soundRegistry(
+                    soundRegistry.namespace(),
+                    baseRegistry.sounds().toMutableSet().apply { addAll(soundRegistry.sounds()) })
+            )
         }
         mergePack.atlases().forEach { atlas ->
             val baseAtlas = atlas(atlas.key())?.toBuilder() ?: return@forEach atlas(atlas)
