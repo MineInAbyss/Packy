@@ -10,6 +10,7 @@ import com.mineinabyss.packy.helpers.PackyDownloader
 import com.mineinabyss.packy.helpers.PackyGenerator
 import com.mineinabyss.packy.helpers.PackyServer
 import com.mineinabyss.packy.listener.PlayerListener
+import kotlinx.coroutines.Job
 import org.bukkit.plugin.java.JavaPlugin
 import team.unnamed.creative.ResourcePack
 
@@ -45,7 +46,7 @@ class PackyPlugin : JavaPlugin() {
             override val defaultPack: ResourcePack = ResourcePack.resourcePack()
         })
 
-        PackyGenerator.activeGeneratorJob.clear()
+        PackyGenerator.activeGeneratorJob.apply { values.forEach(Job::cancel) }.clear()
         PackyGenerator.cachedPacks.clear()
         PackyGenerator.cachedPacksByteArray.clear()
         PackyDownloader.downloadTemplates()
