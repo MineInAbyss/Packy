@@ -94,7 +94,7 @@ object PackyGenerator {
 
         mergePack.models().forEach { model ->
             val baseModel = model(model.key()) ?: return@forEach model(model)
-            model(baseModel.apply { overrides().addAll(model.overrides()) })
+            model(model.apply { overrides().addAll(baseModel.overrides()) })
         }
         mergePack.fonts().forEach { font ->
             val baseFont = font(font.key()) ?: return@forEach font(font)
