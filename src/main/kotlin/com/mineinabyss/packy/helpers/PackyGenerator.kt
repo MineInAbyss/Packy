@@ -61,8 +61,6 @@ object PackyGenerator {
 
                     cachedPack.sortItemOverrides()
                     if (packy.config.obfuscate) PackObfuscator.obfuscatePack(cachedPack)
-                    MinecraftResourcePackWriter.minecraft()
-                        .writeToZipFile(packy.plugin.dataFolder.resolve("pack.zip"), cachedPack)
                     MinecraftResourcePackWriter.minecraft().build(cachedPack).apply {
                         cachedPacks[templateIds] = this
                         cachedPacksByteArray[templateIds] = this.data().toByteArray()
