@@ -61,9 +61,4 @@ fun Response.downloadZipFromGithubResponse(template: PackyTemplate) {
     }.onFailure { it.printStackTrace() }.also { zipStream.close() }
 }
 
-internal fun parseStringToComponent(string: String) =
-    LegacyComponentSerializer.legacyAmpersand().deserialize(string).serialize().miniMsg()
-
 typealias TemplateIds = SortedSet<String>
-
-fun List<ItemPredicate>.customModelData(): Int = this.firstOrNull { it.name() == "custom_model_data" }?.value()?.toString()?.let { Integer.parseInt(it) } ?: 0

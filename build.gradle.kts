@@ -34,7 +34,6 @@ dependencies {
     // Geary platform
     compileOnly(packyLibs.geary.papermc)
     compileOnly(packyLibs.guiy)
-    compileOnly(libs.minecraft.plugin.modelengine)
 
     compileOnly(libs.creative.api)
     compileOnly(libs.creative.serializer.minecraft)

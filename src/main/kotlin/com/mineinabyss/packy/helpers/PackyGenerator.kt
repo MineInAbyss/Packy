@@ -2,14 +2,10 @@ package com.mineinabyss.packy.helpers
 
 import com.github.shynixn.mccoroutine.bukkit.asyncDispatcher
 import com.github.shynixn.mccoroutine.bukkit.launch
-import com.github.shynixn.mccoroutine.bukkit.minecraftDispatcher
 import com.mineinabyss.idofront.messaging.logSuccess
 import com.mineinabyss.idofront.textcomponents.miniMsg
-import com.mineinabyss.packy.components.packyData
 import com.mineinabyss.packy.config.packy
-import korlibs.datastructure.CacheMap
 import kotlinx.coroutines.*
-import org.bukkit.entity.Player
 import team.unnamed.creative.BuiltResourcePack
 import team.unnamed.creative.ResourcePack
 import team.unnamed.creative.base.Writable
@@ -18,6 +14,7 @@ import team.unnamed.creative.sound.SoundRegistry
 import kotlin.io.path.div
 import kotlin.io.path.exists
 
+@OptIn(ExperimentalCoroutinesApi::class)
 object PackyGenerator {
     private val generatorDispatcher = Dispatchers.IO.limitedParallelism(1)
     val activeGeneratorJob: MutableMap<TemplateIds, Deferred<BuiltResourcePack>> = mutableMapOf()
@@ -62,8 +59,9 @@ object PackyGenerator {
                     cachedPack.sortItemOverrides()
                     if (packy.config.obfuscate) PackObfuscator.obfuscatePack(cachedPack)
                     MinecraftResourcePackWriter.minecraft().build(cachedPack).apply {
-                        cachedPacks[templateIds] = this
-                        cachedPacksByteArray[templateIds] = this.data().toByteArray()
+                        cachedPacks.put(templateIds, this)
+
+                        cachedPacksByteArray.put(templateIds, this.data().toByteArray())
                     }
                 }.also {
                     launch(generatorDispatcher) {
@@ -80,7 +78,7 @@ object PackyGenerator {
      */
     private fun ResourcePack.sortItemOverrides() {
         this.models().forEach { model ->
-            val sortedOverrides = model.overrides().sortedBy { it.predicate().customModelData() }
+            val sortedOverrides = model.overrides().sortedBy { it.predicate().find { it.name() == "custom_model_data" && it.value() is Int }?.value() as? Int ?: 0 }
             this.model(model.toBuilder().overrides(sortedOverrides).build())
         }
     }

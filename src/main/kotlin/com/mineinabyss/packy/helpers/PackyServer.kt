@@ -30,8 +30,7 @@ object PackyServer {
     fun startServer() {
         logSuccess("Started Packy-Server...")
         val (ip, port) = packy.config.server.let { it.ip to it.port }
-        packServer = ResourcePackServer.server().address(ip, port).handler(handler).build()
-        packServer?.httpServer()?.executor = Executors.newFixedThreadPool(20)
+        packServer = ResourcePackServer.server().address(ip, port).handler(handler).executor(Executors.newFixedThreadPool(20)).build()
         packServer?.start()
     }
 
@@ -48,7 +47,7 @@ object PackyServer {
         return queryMap["packs"]?.split(",")?.toSortedSet()
     }
 
-    private val handler = ResourcePackRequestHandler { request, exchange ->
+    private val handler = ResourcePackRequestHandler { _, exchange ->
         val data = exchange.requestURI.parseTemplateIds()
             ?.let { templateIds -> PackyGenerator.cachedPacksByteArray[templateIds] }
             ?: MinecraftResourcePackWriter.minecraft().build(packy.defaultPack).data().toByteArray()

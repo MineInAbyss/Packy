@@ -1,31 +1,18 @@
 package com.mineinabyss.packy.menus.picker
 
 import androidx.compose.runtime.*
-import com.github.shynixn.mccoroutine.bukkit.minecraftDispatcher
 import com.mineinabyss.guiy.components.Grid
 import com.mineinabyss.guiy.components.Item
 import com.mineinabyss.guiy.modifiers.Modifier
 import com.mineinabyss.guiy.modifiers.clickable
 import com.mineinabyss.idofront.items.editItemMeta
-import com.mineinabyss.idofront.messaging.logError
-import com.mineinabyss.idofront.messaging.logInfo
-import com.mineinabyss.idofront.messaging.logSuccess
-import com.mineinabyss.idofront.messaging.logWarn
 import com.mineinabyss.idofront.textcomponents.miniMsg
-import com.mineinabyss.packy.components.PackyData
-import com.mineinabyss.packy.components.packyData
 import com.mineinabyss.packy.config.PackyConfig
 import com.mineinabyss.packy.config.packy
+import com.mineinabyss.packy.helpers.rotatedLeft
 import com.mineinabyss.packy.menus.Button
-import korlibs.datastructure.rotateLeft
-import korlibs.datastructure.rotatedLeft
-import korlibs.datastructure.swap
-import korlibs.datastructure.toLinkedMap
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import org.bukkit.Material
 import org.bukkit.inventory.ItemStack
-import java.util.LinkedList
 
 
 @Composable

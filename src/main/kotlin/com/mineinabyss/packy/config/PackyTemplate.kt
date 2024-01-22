@@ -15,6 +15,7 @@ import java.io.File
 import java.nio.file.Path
 import kotlin.io.path.*
 
+@OptIn(ExperimentalSerializationApi::class)
 @Serializable
 data class PackyTemplates(val templates: List<PackyTemplate> = listOf()) {
     @EncodeDefault(NEVER) val templateMap: Map<String, PackyTemplate> = templates.associateBy { it.name }
