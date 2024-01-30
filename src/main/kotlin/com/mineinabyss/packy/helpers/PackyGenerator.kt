@@ -2,6 +2,7 @@ package com.mineinabyss.packy.helpers
 
 import com.github.shynixn.mccoroutine.bukkit.asyncDispatcher
 import com.github.shynixn.mccoroutine.bukkit.launch
+import com.google.gson.internal.LazilyParsedNumber
 import com.mineinabyss.idofront.messaging.logSuccess
 import com.mineinabyss.idofront.textcomponents.miniMsg
 import com.mineinabyss.packy.config.packy
@@ -78,7 +79,10 @@ object PackyGenerator {
      */
     private fun ResourcePack.sortItemOverrides() {
         this.models().forEach { model ->
-            val sortedOverrides = model.overrides().sortedBy { it.predicate().find { it.name() == "custom_model_data" && it.value() is Int }?.value() as? Int ?: 0 }
+            val sortedOverrides = model.overrides().sortedBy { override ->
+                // value() is a LazilyParsedNumber so convert it to an Int
+                override.predicate().find { it.name() == "custom_model_data" }?.value()?.toString()?.toIntOrNull() ?: 0
+            }
             this.model(model.toBuilder().overrides(sortedOverrides).build())
         }
     }
