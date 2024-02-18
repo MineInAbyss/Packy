@@ -1,5 +1,6 @@
 package com.mineinabyss.packy.config
 
+import com.charleskorn.kaml.YamlComment
 import com.mineinabyss.guiy.modifiers.Modifier
 import com.mineinabyss.guiy.modifiers.at
 import com.mineinabyss.guiy.modifiers.size
@@ -12,6 +13,7 @@ import kotlinx.serialization.EncodeDefault.Mode.ALWAYS
 import kotlinx.serialization.EncodeDefault.Mode.NEVER
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.Serializable
+import org.bukkit.Bukkit
 import org.bukkit.Material
 import org.bukkit.inventory.ItemStack
 import kotlin.time.Duration
@@ -26,11 +28,21 @@ data class PackyConfig(
     @EncodeDefault(ALWAYS) val prompt: String = "",
     @EncodeDefault(ALWAYS) val force: Boolean = false,
     @EncodeDefault(ALWAYS) val obfuscate: Boolean = false,
+    @YamlComment("This will use PackSquash to automatically squash all templates")
+    @EncodeDefault(ALWAYS) val packSquash: PackSquash = PackSquash(),
     @EncodeDefault(ALWAYS) val cachedPackAmount: Int = 18,
     @Serializable(with = DurationSerializer::class)
     @EncodeDefault(ALWAYS) val packSendDelay: Duration = 1.seconds,
     @EncodeDefault(ALWAYS) val menu: PackyMenu = PackyMenu()
 ) {
+    @Serializable
+    data class PackSquash(
+        val enabled: Boolean = false,
+        @YamlComment("Path to the PackSquash executable")
+        val exePath: String = Bukkit.getServer().pluginsFolder.resolve("Packy/packsquash").absolutePath.replace("\\", "/"),
+        @YamlComment("Path to the settings file for PackSquash")
+        val settingsPath: String = "packsquash.toml"
+    )
     @Serializable
     data class PackyMcMeta(val format: Int = 15, val description: String = "Packy Resourcepack")
 

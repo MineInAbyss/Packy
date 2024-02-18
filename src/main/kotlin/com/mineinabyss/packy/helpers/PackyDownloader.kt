@@ -73,6 +73,11 @@ object PackyDownloader {
                         PackyGenerator.cachedPacks.keys.removeIf { id in it }
                         PackyGenerator.cachedPacksByteArray.keys.removeIf { id in it }
                     }
+                    if (packy.config.packSquash.enabled) {
+                        logInfo("Starting PackSquash process for $id-template...")
+                        PackySquash.squashPackyTemplate(template, id)
+                        logSuccess("Finished PackSquash process for $id-template")
+                    }
                 }
             }
         }

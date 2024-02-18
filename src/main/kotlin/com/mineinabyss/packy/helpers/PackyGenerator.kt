@@ -58,11 +58,11 @@ object PackyGenerator {
                         .mapNotNull { it.path.toFile().readPack() }.forEach { cachedPack.mergeWith(it) }
 
                     cachedPack.sortItemOverrides()
+                    //if (packy.config.packSquash.enabled) PackySquash.squashPack(cachedPack)
                     if (packy.config.obfuscate) PackObfuscator.obfuscatePack(cachedPack)
                     MinecraftResourcePackWriter.minecraft().build(cachedPack).apply {
-                        cachedPacks.put(templateIds, this)
-
-                        cachedPacksByteArray.put(templateIds, this.data().toByteArray())
+                        cachedPacks[templateIds] = this
+                        cachedPacksByteArray[templateIds] = this.data().toByteArray()
                     }
                 }.also {
                     launch(generatorDispatcher) {
