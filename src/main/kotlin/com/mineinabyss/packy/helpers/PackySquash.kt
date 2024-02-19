@@ -11,7 +11,7 @@ import team.unnamed.creative.serialize.minecraft.MinecraftResourcePackWriter
 import java.io.BufferedReader
 import java.io.File
 import java.io.InputStreamReader
-import java.util.UUID
+import java.util.*
 import kotlin.io.path.absolutePathString
 import kotlin.io.path.extension
 

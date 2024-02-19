@@ -3,14 +3,12 @@ package com.mineinabyss.packy.listener
 import com.github.shynixn.mccoroutine.bukkit.launch
 import com.mineinabyss.packy.components.packyData
 import com.mineinabyss.packy.config.packy
-import com.mineinabyss.packy.helpers.PackyGenerator
 import com.mineinabyss.packy.helpers.PackyServer
 import kotlinx.coroutines.delay
 import org.bukkit.event.EventHandler
 import org.bukkit.event.EventPriority
 import org.bukkit.event.Listener
 import org.bukkit.event.player.PlayerJoinEvent
-import kotlin.time.Duration.Companion.seconds
 
 class PlayerListener : Listener {
     @EventHandler(priority = EventPriority.HIGHEST)

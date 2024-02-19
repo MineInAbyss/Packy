@@ -1,7 +1,6 @@
 package com.mineinabyss.packy.components
 
 import com.mineinabyss.geary.papermc.tracking.entities.toGeary
-import com.mineinabyss.geary.papermc.tracking.entities.toGearyOrNull
 import com.mineinabyss.packy.config.PackyTemplate
 import com.mineinabyss.packy.config.conflictsWith
 import com.mineinabyss.packy.config.packy

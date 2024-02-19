@@ -1,18 +1,15 @@
 package com.mineinabyss.packy.helpers
 
-import com.mineinabyss.idofront.messaging.*
+import com.mineinabyss.idofront.messaging.logSuccess
+import com.mineinabyss.idofront.messaging.logWarn
 import com.mineinabyss.packy.config.packy
-import com.mineinabyss.packy.helpers.PackObfuscator.obfuscate
-import com.mineinabyss.packy.helpers.PackObfuscator.obfuscateOverrides
 import net.kyori.adventure.key.Key
 import team.unnamed.creative.ResourcePack
 import team.unnamed.creative.atlas.AtlasSource
-import team.unnamed.creative.atlas.SingleAtlasSource
 import team.unnamed.creative.blockstate.MultiVariant
 import team.unnamed.creative.blockstate.Selector
 import team.unnamed.creative.blockstate.Variant
 import team.unnamed.creative.font.BitMapFontProvider
-import team.unnamed.creative.font.FontProvider
 import team.unnamed.creative.model.ItemOverride
 import team.unnamed.creative.model.Model
 import team.unnamed.creative.model.ModelTexture

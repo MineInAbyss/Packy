@@ -2,7 +2,6 @@ package com.mineinabyss.packy.menus.picker
 
 import androidx.compose.runtime.Composable
 import com.mineinabyss.guiy.components.Item
-import com.mineinabyss.guiy.inventory.guiy
 import com.mineinabyss.guiy.modifiers.Modifier
 import com.mineinabyss.guiy.modifiers.at
 import com.mineinabyss.packy.components.packyData

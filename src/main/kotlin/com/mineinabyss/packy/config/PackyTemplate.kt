@@ -1,24 +1,17 @@
 package com.mineinabyss.packy.config
 
-import com.charleskorn.kaml.YamlComment
-import com.github.shynixn.mccoroutine.bukkit.asyncDispatcher
-import com.github.shynixn.mccoroutine.bukkit.launch
-import com.mineinabyss.idofront.messaging.logError
-import com.mineinabyss.packy.helpers.PackyDownloader
 import kotlinx.serialization.EncodeDefault
 import kotlinx.serialization.EncodeDefault.Mode.NEVER
 import kotlinx.serialization.ExperimentalSerializationApi
-import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import okio.Path.Companion.toPath
-import java.io.File
 import java.nio.file.Path
 import kotlin.io.path.*
 
 @OptIn(ExperimentalSerializationApi::class)
 @Serializable
 data class PackyTemplates(val templates: List<PackyTemplate> = listOf()) {
-    @EncodeDefault(NEVER) val templateMap: Map<String, PackyTemplate> = templates.associateBy { it.name }
+    @EncodeDefault(NEVER)
+    val templateMap: Map<String, PackyTemplate> = templates.associateBy { it.name }
 }
 
 @Serializable

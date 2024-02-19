@@ -2,7 +2,6 @@ package com.mineinabyss.packy.helpers
 
 import com.github.shynixn.mccoroutine.bukkit.asyncDispatcher
 import com.github.shynixn.mccoroutine.bukkit.launch
-import com.google.gson.internal.LazilyParsedNumber
 import com.mineinabyss.idofront.messaging.logSuccess
 import com.mineinabyss.idofront.textcomponents.miniMsg
 import com.mineinabyss.packy.config.packy
@@ -12,6 +11,7 @@ import team.unnamed.creative.ResourcePack
 import team.unnamed.creative.base.Writable
 import team.unnamed.creative.serialize.minecraft.MinecraftResourcePackWriter
 import team.unnamed.creative.sound.SoundRegistry
+import java.util.*
 import kotlin.io.path.div
 import kotlin.io.path.exists
 
@@ -60,6 +60,7 @@ object PackyGenerator {
                     cachedPack.sortItemOverrides()
                     //if (packy.config.packSquash.enabled) PackySquash.squashPack(cachedPack)
                     if (packy.config.obfuscate) PackObfuscator.obfuscatePack(cachedPack)
+                    MinecraftResourcePackWriter.minecraft().writeToZipFile(packy.plugin.dataFolder.resolve(UUID.randomUUID().toString() + ".zip"), cachedPack)
                     MinecraftResourcePackWriter.minecraft().build(cachedPack).apply {
                         cachedPacks[templateIds] = this
                         cachedPacksByteArray[templateIds] = this.data().toByteArray()
