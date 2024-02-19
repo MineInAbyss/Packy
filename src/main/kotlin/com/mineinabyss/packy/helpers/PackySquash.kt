@@ -3,21 +3,15 @@ package com.mineinabyss.packy.helpers
 import com.mineinabyss.idofront.messaging.logError
 import com.mineinabyss.idofront.messaging.logInfo
 import com.mineinabyss.idofront.messaging.logWarn
-import com.mineinabyss.packy.config.PackyConfig
 import com.mineinabyss.packy.config.PackyTemplate
 import com.mineinabyss.packy.config.packy
-import kotlinx.serialization.json.Json
-import kotlinx.serialization.json.JsonObject
-import kotlinx.serialization.json.internal.writeJson
 import okio.Path.Companion.toPath
 import team.unnamed.creative.ResourcePack
-import team.unnamed.creative.metadata.pack.PackMeta
 import team.unnamed.creative.serialize.minecraft.MinecraftResourcePackWriter
 import java.io.BufferedReader
 import java.io.File
 import java.io.InputStreamReader
 import java.util.UUID
-import kotlin.io.path.absolute
 import kotlin.io.path.absolutePathString
 import kotlin.io.path.extension
 
@@ -69,7 +63,7 @@ object PackySquash {
         packDir.deleteRecursively()
     }
 
-    fun squashPackyTemplate(template: PackyTemplate, templateID: String) {
+    fun squashPackyTemplate(template: PackyTemplate) {
         val packSquash = packy.config.packSquash
         if (!packSquash.enabled) return
         if (packSquash.exePath.isEmpty()) return
@@ -103,7 +97,7 @@ object PackySquash {
             val reader = BufferedReader(InputStreamReader(process.inputStream))
             var currentLine: String?
             while (reader.readLine().also { currentLine = it } != null) {
-                val line = currentLine.takeUnless { it.isNullOrEmpty() } ?: continue
+                val line = template.id + ": " + (currentLine.takeUnless { it.isNullOrEmpty() } ?: continue)
                 when {
                     line.startsWith("!") -> logError(line)
                     line.startsWith("*") -> logWarn(line)

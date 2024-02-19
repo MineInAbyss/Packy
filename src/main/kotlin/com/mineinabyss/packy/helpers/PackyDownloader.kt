@@ -13,10 +13,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import okhttp3.OkHttpClient
 import okhttp3.Request
-import kotlin.io.path.createParentDirectories
-import kotlin.io.path.div
-import kotlin.io.path.readLines
-import kotlin.io.path.writeLines
+import kotlin.io.path.*
 
 object PackyDownloader {
     var startupJob: Job? = null
@@ -26,21 +23,22 @@ object PackyDownloader {
         hashFile.createParentDirectories()
         hashFile.toFile().createNewFile()
 
+        val templateExists = template.path.exists()
         val latestHash = latestCommitHash(template.githubDownload ?: return false) ?: return false
         val localHash = hashFile.readLines().find { it.matches("${template.id}=.*".toRegex()) }?.substringAfter("=")
 
         when {
-            localHash == null || localHash != latestHash -> {
+            !templateExists || localHash == null || localHash != latestHash -> {
                 downloadAndExtractGithub(template)
                 val lines = hashFile.readLines().toMutableSet().apply { removeIf { it.startsWith(template.id) } }
                 lines += "${template.id}=$latestHash"
                 hashFile.writeLines(lines)
-                logInfo("Updated hash for ${template.id}")
+                if (templateExists) logSuccess("Updated hash for ${template.id}")
             }
 
             else -> logSuccess("Skipping download for ${template.id}, no changes applied to remote")
         }
-        return localHash == null || localHash != latestHash
+        return !templateExists || localHash == null || localHash != latestHash
     }
 
     private fun latestCommitHash(githubDownload: PackyTemplate.GithubDownload): String? {
@@ -75,7 +73,7 @@ object PackyDownloader {
                     }
                     if (packy.config.packSquash.enabled) {
                         logInfo("Starting PackSquash process for $id-template...")
-                        PackySquash.squashPackyTemplate(template, id)
+                        PackySquash.squashPackyTemplate(template)
                         logSuccess("Finished PackSquash process for $id-template")
                     }
                 }
