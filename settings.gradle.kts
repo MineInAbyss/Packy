@@ -24,8 +24,8 @@ dependencyResolutionManagement {
     }
 
     versionCatalogs {
-        create("libs").from("com.mineinabyss:catalog:$idofrontVersion")
-        create("packyLibs").from(files("gradle/packyLibs.versions.toml"))
+        create("idofrontLibs").from("com.mineinabyss:catalog:$idofrontVersion")
+        create("libs").from(files("gradle/libs.versions.toml"))
     }
 }
 

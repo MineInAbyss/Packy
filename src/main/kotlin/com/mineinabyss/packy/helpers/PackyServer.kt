@@ -27,9 +27,8 @@ object PackyServer {
         val templateIds = player.packyData.enabledPackIds
 
         val actionBarJob = packy.plugin.launch { while (isActive) player.sendPackGeneratingActionBar() }
-        val resourcePack = PackyGenerator.getOrCreateCachedPack(templateIds).await()
-        actionBarJob.cancel()
-        player.sendActionBar(Component.empty())
+        val resourcePack = PackyGenerator.getOrCreateCachedPack(templateIds).apply { invokeOnCompletion { actionBarJob.cancel() } }.await()
+
         player.setResourcePack(
             packy.config.server.publicUrl(resourcePack.hash(), templateIds),
             resourcePack.hash(),

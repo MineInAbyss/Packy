@@ -2,14 +2,14 @@ import net.minecrell.pluginyml.paper.PaperPluginDescription
 
 @Suppress("DSL_SCOPE_VIOLATION")
 plugins {
-    alias(libs.plugins.mia.kotlin.jvm)
-    alias(libs.plugins.kotlinx.serialization)
-    alias(libs.plugins.mia.papermc)
-    alias(libs.plugins.mia.nms)
-    alias(libs.plugins.mia.copyjar)
-    alias(libs.plugins.mia.publication)
-    alias(libs.plugins.mia.autoversion)
-    alias(libs.plugins.compose)
+    alias(idofrontLibs.plugins.mia.kotlin.jvm)
+    alias(idofrontLibs.plugins.kotlinx.serialization)
+    alias(idofrontLibs.plugins.mia.papermc)
+    alias(idofrontLibs.plugins.mia.nms)
+    alias(idofrontLibs.plugins.mia.copyjar)
+    alias(idofrontLibs.plugins.mia.publication)
+    alias(idofrontLibs.plugins.mia.autoversion)
+    alias(idofrontLibs.plugins.compose)
     id("net.minecrell.plugin-yml.paper") version "0.6.0"
 }
 
@@ -25,19 +25,19 @@ repositories {
 
 dependencies {
     // MineInAbyss platform
-    compileOnly(libs.bundles.idofront.core)
-    compileOnly(libs.kotlinx.serialization.json)
-    compileOnly(libs.kotlinx.serialization.kaml)
-    compileOnly(libs.kotlinx.coroutines)
-    compileOnly(libs.minecraft.mccoroutine)
+    compileOnly(idofrontLibs.bundles.idofront.core)
+    compileOnly(idofrontLibs.kotlinx.serialization.json)
+    compileOnly(idofrontLibs.kotlinx.serialization.kaml)
+    compileOnly(idofrontLibs.kotlinx.coroutines)
+    compileOnly(idofrontLibs.minecraft.mccoroutine)
 
     // Geary platform
     compileOnly(packyLibs.geary.papermc)
     compileOnly(packyLibs.guiy)
 
-    compileOnly(libs.creative.api)
-    compileOnly(libs.creative.serializer.minecraft)
-    compileOnly(libs.creative.server)
+    compileOnly(idofrontLibs.creative.api)
+    compileOnly(idofrontLibs.creative.serializer.minecraft)
+    compileOnly(idofrontLibs.creative.server)
 
     implementation("com.squareup.okhttp3:okhttp:4.12.0")
 }
