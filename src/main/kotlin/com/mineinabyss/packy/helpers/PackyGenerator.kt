@@ -58,9 +58,7 @@ object PackyGenerator {
                         .mapNotNull { it.path.toFile().readPack() }.forEach { cachedPack.mergeWith(it) }
 
                     cachedPack.sortItemOverrides()
-                    //if (packy.config.packSquash.enabled) PackySquash.squashPack(cachedPack)
                     if (packy.config.obfuscate) PackObfuscator.obfuscatePack(cachedPack)
-                    MinecraftResourcePackWriter.minecraft().writeToZipFile(packy.plugin.dataFolder.resolve(UUID.randomUUID().toString() + ".zip"), cachedPack)
                     MinecraftResourcePackWriter.minecraft().build(cachedPack).apply {
                         cachedPacks[templateIds] = this
                         cachedPacksByteArray[templateIds] = this.data().toByteArray()
