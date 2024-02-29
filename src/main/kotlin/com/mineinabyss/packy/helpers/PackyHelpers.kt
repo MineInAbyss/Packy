@@ -12,7 +12,9 @@ import java.util.*
 import java.util.zip.ZipEntry
 import java.util.zip.ZipInputStream
 import java.util.zip.ZipOutputStream
+import kotlin.io.path.ExperimentalPathApi
 import kotlin.io.path.deleteIfExists
+import kotlin.io.path.deleteRecursively
 
 fun File.readPack(): ResourcePack? {
     val reader = MinecraftResourcePackReader.minecraft()
@@ -24,12 +26,13 @@ fun File.readPack(): ResourcePack? {
     }
 }
 
+@OptIn(ExperimentalPathApi::class)
 fun Response.downloadZipFromGithubResponse(template: PackyTemplate) {
     val (owner, repo, _, subPath) = template.githubDownload ?: return logError("${template.id} has no githubDownload, skipping...")
     val zipStream = ZipInputStream(body!!.byteStream())
 
     runCatching {
-        template.path.deleteIfExists()
+        template.path.deleteRecursively()
 
         ZipOutputStream(FileOutputStream(template.path.toFile())).use { zipOutputStream ->
             var entry = zipStream.nextEntry
