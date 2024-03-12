@@ -10,6 +10,7 @@ import com.mineinabyss.packy.helpers.PackyGenerator
 import com.mineinabyss.packy.helpers.PackySquash
 import com.ticxo.modelengine.api.events.ModelRegistrationEvent
 import com.ticxo.modelengine.api.generator.ModelGenerator
+import io.th0rgal.oraxen.OraxenPlugin
 import io.th0rgal.oraxen.api.events.OraxenPackPreUploadEvent
 import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
@@ -28,19 +29,20 @@ object TemplateLoadTriggers {
     }
 
     enum class LoadTrigger {
-        MODELENGINE, HAPPY_HUD, ORAXEN;
+        MODELENGINE, CRUCIBLE, ORAXEN;
 
         fun registerLoadHandler(template: PackyTemplate) {
+            val id = template.id
             unregisterTemplateHandlers()
             when {
                 this == MODELENGINE && Plugins.isEnabled("ModelEngine") -> object : Listener {
                     @EventHandler
                     fun ModelRegistrationEvent.onMegPackZipped() {
-                        val id = template.id
+
                         if (phase != ModelGenerator.Phase.POST_ZIPPING) return
                         logSuccess("ModelEngine loadTrigger detected...")
                         val megPack = packy.plugin.server.pluginsFolder.resolve("ModelEngine/resource pack.zip").takeIf { it.exists() }
-                            ?: return logError("ModelEngine pack is missing. Skipping loadTrigger for $id-template")
+                            ?: return logError("ModelEngine pack is missing, skipping loadTrigger for $id-template")
                         megPack.copyTo(template.path.toFile(), overwrite = true)
 
                         PackyGenerator.cachedPacks.keys.removeIf { id in it }
@@ -55,16 +57,27 @@ object TemplateLoadTriggers {
                     }
                 }
 
-                this == HAPPY_HUD && Plugins.isEnabled("HappyHUD") -> {
-                    logError("HappyHUD load trigger not yet implemented")
-                    null
+                this == CRUCIBLE && Plugins.isEnabled("MythicCrucible") -> object : Listener {
+
                 }
 
                 this == ORAXEN && Plugins.isEnabled("Oraxen") -> object : Listener {
                     @EventHandler
                     fun OraxenPackPreUploadEvent.onOraxenPackPreUpload() {
                         isCancelled = true
-                        logError("Oraxen load trigger not yet implemented")
+                        val oraxenPack = OraxenPlugin.get().resourcePack?.file?.takeIf { it.exists() }
+                            ?: return logError("Oraxen-pack is missing, skipping loadTrigger for $id-template")
+                        oraxenPack.copyTo(template.path.toFile(), true)
+
+                        PackyGenerator.cachedPacks.keys.removeIf { id in it }
+                        PackyGenerator.cachedPacksByteArray.keys.removeIf { id in it }
+                        logSuccess("Copying Oraxen-pack for $id-template")
+
+                        if (packy.config.packSquash.enabled) {
+                            logInfo("Starting PackSquash process for $id-template...")
+                            PackySquash.squashPackyTemplate(template)
+                            logSuccess("Finished PackSquash process for $id-template")
+                        }
                     }
                 }
 

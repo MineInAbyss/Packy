@@ -38,6 +38,7 @@ dependencies {
 
     compileOnly(idofrontLibs.minecraft.plugin.modelengine)
     compileOnly(idofrontLibs.minecraft.plugin.oraxen)
+    compileOnly(idofrontLibs.minecraft.plugin.mythic.crucible)
     compileOnly(idofrontLibs.creative.api)
     compileOnly(idofrontLibs.creative.serializer.minecraft)
     compileOnly(idofrontLibs.creative.server)
@@ -73,7 +74,19 @@ paper {
             load = PaperPluginDescription.RelativeLoadOrder.BEFORE
             joinClasspath = true
         }
+
+        // LoadTrigger dependencies
         register("ModelEngine") {
+            required = false
+            load = PaperPluginDescription.RelativeLoadOrder.BEFORE
+            joinClasspath = true
+        }
+        register("Oraxen") {
+            required = false
+            load = PaperPluginDescription.RelativeLoadOrder.BEFORE
+            joinClasspath = true
+        }
+        register("MythicCrucible") {
             required = false
             load = PaperPluginDescription.RelativeLoadOrder.BEFORE
             joinClasspath = true
