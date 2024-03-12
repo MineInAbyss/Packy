@@ -10,6 +10,7 @@ import com.mineinabyss.packy.helpers.PackyDownloader
 import com.mineinabyss.packy.helpers.PackyGenerator
 import com.mineinabyss.packy.helpers.PackyServer
 import com.mineinabyss.packy.listener.PlayerListener
+import com.mineinabyss.packy.listener.TemplateLoadTriggers
 import kotlinx.coroutines.Job
 import org.bukkit.plugin.java.JavaPlugin
 import team.unnamed.creative.ResourcePack
@@ -50,6 +51,7 @@ class PackyPlugin : JavaPlugin() {
         PackyGenerator.cachedPacks.clear()
         PackyGenerator.cachedPacksByteArray.clear()
         PackyDownloader.downloadTemplates()
+        TemplateLoadTriggers.registerTemplateHandlers()
         PackyGenerator.setupForcedPackFiles()
     }
 }
