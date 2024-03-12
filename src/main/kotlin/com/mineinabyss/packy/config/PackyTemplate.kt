@@ -5,6 +5,8 @@ import kotlinx.serialization.EncodeDefault
 import kotlinx.serialization.EncodeDefault.Mode.NEVER
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.Transient
+import org.bukkit.event.Listener
 import java.nio.file.Path
 import kotlin.io.path.*
 
@@ -26,6 +28,8 @@ data class PackyTemplate(
     @EncodeDefault(NEVER) val loadTrigger: TemplateLoadTriggers.LoadTrigger? = null,
     @EncodeDefault(NEVER) private val filePath: String? = null
 ) {
+
+    @Transient var triggerListener: Listener? = null
 
     val id: String get() = name
 

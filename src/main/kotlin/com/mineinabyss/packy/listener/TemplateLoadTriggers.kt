@@ -1,10 +1,9 @@
 package com.mineinabyss.packy.listener
 
-import com.mineinabyss.idofront.messaging.logError
-import com.mineinabyss.idofront.messaging.logInfo
-import com.mineinabyss.idofront.messaging.logSuccess
+import com.mineinabyss.idofront.messaging.*
 import com.mineinabyss.idofront.plugin.Plugins
 import com.mineinabyss.idofront.plugin.listeners
+import com.mineinabyss.idofront.plugin.unregisterListeners
 import com.mineinabyss.packy.config.PackyTemplate
 import com.mineinabyss.packy.config.packy
 import com.mineinabyss.packy.helpers.PackyGenerator
@@ -18,27 +17,35 @@ import org.bukkit.event.Listener
 object TemplateLoadTriggers {
 
     fun registerTemplateHandlers() {
+        unregisterTemplateHandlers()
         packy.templates.values.forEach { it.loadTrigger?.registerLoadHandler(it) }
     }
 
+    fun unregisterTemplateHandlers() {
+        runCatching {
+            packy.templates.values.forEach { t -> t.triggerListener?.let { packy.plugin.unregisterListeners(it) } }
+        }
+    }
+
     enum class LoadTrigger {
-        MODELENGINE, HAPPYHUD, ORAXEN;
+        MODELENGINE, HAPPY_HUD, ORAXEN;
 
         fun registerLoadHandler(template: PackyTemplate) {
-            packy.plugin.listeners(when {
+            unregisterTemplateHandlers()
+            when {
                 this == MODELENGINE && Plugins.isEnabled("ModelEngine") -> object : Listener {
                     @EventHandler
                     fun ModelRegistrationEvent.onMegPackZipped() {
                         val id = template.id
                         if (phase != ModelGenerator.Phase.POST_ZIPPING) return
-                        logSuccess("ModelEngien loadTrigger detected...")
+                        logSuccess("ModelEngine loadTrigger detected...")
                         val megPack = packy.plugin.server.pluginsFolder.resolve("ModelEngine/resource pack.zip").takeIf { it.exists() }
                             ?: return logError("ModelEngine pack is missing. Skipping loadTrigger for $id-template")
-                        megPack.copyTo(template.path.toFile())
+                        megPack.copyTo(template.path.toFile(), overwrite = true)
 
                         PackyGenerator.cachedPacks.keys.removeIf { id in it }
                         PackyGenerator.cachedPacksByteArray.keys.removeIf { id in it }
-                        logSuccess("Copying ModelEngine pack for $id")
+                        logSuccess("Copying ModelEngine-pack for $id-template")
 
                         if (packy.config.packSquash.enabled) {
                             logInfo("Starting PackSquash process for $id-template...")
@@ -47,9 +54,12 @@ object TemplateLoadTriggers {
                         }
                     }
                 }
-                this == HAPPYHUD && Plugins.isEnabled("HappyHUD") -> {
-                    return logError("HappyHUD load trigger not yet implemented")
+
+                this == HAPPY_HUD && Plugins.isEnabled("HappyHUD") -> {
+                    logError("HappyHUD load trigger not yet implemented")
+                    null
                 }
+
                 this == ORAXEN && Plugins.isEnabled("Oraxen") -> object : Listener {
                     @EventHandler
                     fun OraxenPackPreUploadEvent.onOraxenPackPreUpload() {
@@ -58,8 +68,11 @@ object TemplateLoadTriggers {
                     }
                 }
 
-                else -> return
-            })
+                else -> null
+            }?.let {
+                template.triggerListener = it
+                packy.plugin.listeners(it)
+            }
         }
     }
 }

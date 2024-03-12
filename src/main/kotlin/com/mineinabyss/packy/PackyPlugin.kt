@@ -5,6 +5,7 @@ import com.mineinabyss.geary.modules.geary
 import com.mineinabyss.idofront.config.config
 import com.mineinabyss.idofront.di.DI
 import com.mineinabyss.idofront.plugin.listeners
+import com.mineinabyss.idofront.plugin.unregisterListeners
 import com.mineinabyss.packy.config.*
 import com.mineinabyss.packy.helpers.PackyDownloader
 import com.mineinabyss.packy.helpers.PackyGenerator
@@ -38,6 +39,7 @@ class PackyPlugin : JavaPlugin() {
     }
 
     fun createPackyContext() {
+        TemplateLoadTriggers.unregisterTemplateHandlers()
         DI.remove<PackyContext>()
         DI.add<PackyContext>(object : PackyContext {
             override val plugin = this@PackyPlugin
