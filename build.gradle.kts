@@ -17,6 +17,7 @@ repositories {
     mavenCentral()
     maven("https://repo.mineinabyss.com/releases")
     maven("https://repo.mineinabyss.com/snapshots")
+    maven("https://repo.oraxen.com/snapshots")
     maven("https://maven.pkg.jetbrains.space/public/p/compose/dev")
     maven("https://repo.unnamed.team/repository/unnamed-public/")
     maven("https://mvn.lumine.io/repository/maven-public/")
@@ -35,6 +36,8 @@ dependencies {
     compileOnly(packyLibs.geary.papermc)
     compileOnly(packyLibs.guiy)
 
+    compileOnly(idofrontLibs.minecraft.plugin.modelengine)
+    compileOnly(idofrontLibs.minecraft.plugin.oraxen)
     compileOnly(idofrontLibs.creative.api)
     compileOnly(idofrontLibs.creative.serializer.minecraft)
     compileOnly(idofrontLibs.creative.server)
