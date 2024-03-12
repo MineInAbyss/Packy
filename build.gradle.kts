@@ -20,7 +20,7 @@ repositories {
     maven("https://repo.oraxen.com/snapshots")
     maven("https://maven.pkg.jetbrains.space/public/p/compose/dev")
     maven("https://repo.unnamed.team/repository/unnamed-public/")
-    maven("https://mvn.lumine.io/repository/maven-public/")
+    maven("https://mvn.lumine.io/repository/maven-public/") { metadataSources { artifact() } }
     mavenLocal()
 }
 
