@@ -1,6 +1,6 @@
 package com.mineinabyss.packy.config
 
-import com.mineinabyss.packy.listener.TemplateLoadTriggers
+import com.mineinabyss.packy.listener.LoadTrigger
 import kotlinx.serialization.EncodeDefault
 import kotlinx.serialization.EncodeDefault.Mode.NEVER
 import kotlinx.serialization.ExperimentalSerializationApi
@@ -25,7 +25,7 @@ data class PackyTemplate(
     val forced: Boolean = false,
     @EncodeDefault(NEVER) val conflictsWith: Set<String> = setOf(),
     @EncodeDefault(NEVER) val githubDownload: GithubDownload? = null,
-    @EncodeDefault(NEVER) val loadTrigger: TemplateLoadTriggers.LoadTrigger? = null,
+    @EncodeDefault(NEVER) val loadTrigger: LoadTrigger? = null,
     @EncodeDefault(NEVER) private val filePath: String? = null
 ) {
 
