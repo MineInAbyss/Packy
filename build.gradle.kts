@@ -17,9 +17,10 @@ repositories {
     mavenCentral()
     maven("https://repo.mineinabyss.com/releases")
     maven("https://repo.mineinabyss.com/snapshots")
+    maven("https://repo.oraxen.com/snapshots")
     maven("https://maven.pkg.jetbrains.space/public/p/compose/dev")
     maven("https://repo.unnamed.team/repository/unnamed-public/")
-    maven("https://mvn.lumine.io/repository/maven-public/")
+    maven("https://mvn.lumine.io/repository/maven-public/") { metadataSources { artifact() } }
     mavenLocal()
 }
 
@@ -35,6 +36,9 @@ dependencies {
     compileOnly(packyLibs.geary.papermc)
     compileOnly(packyLibs.guiy)
 
+    compileOnly(idofrontLibs.minecraft.plugin.modelengine)
+    compileOnly(idofrontLibs.minecraft.plugin.oraxen)
+    compileOnly(idofrontLibs.minecraft.plugin.mythic.crucible)
     compileOnly(idofrontLibs.creative.api)
     compileOnly(idofrontLibs.creative.serializer.minecraft)
     compileOnly(idofrontLibs.creative.server)
@@ -67,6 +71,23 @@ paper {
         }
         register("Guiy") {
             required = true
+            load = PaperPluginDescription.RelativeLoadOrder.BEFORE
+            joinClasspath = true
+        }
+
+        // LoadTrigger dependencies
+        register("ModelEngine") {
+            required = false
+            load = PaperPluginDescription.RelativeLoadOrder.BEFORE
+            joinClasspath = true
+        }
+        register("Oraxen") {
+            required = false
+            load = PaperPluginDescription.RelativeLoadOrder.BEFORE
+            joinClasspath = true
+        }
+        register("MythicCrucible") {
+            required = false
             load = PaperPluginDescription.RelativeLoadOrder.BEFORE
             joinClasspath = true
         }

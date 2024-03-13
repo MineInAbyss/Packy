@@ -24,7 +24,11 @@ dependencyResolutionManagement {
     }
 
     versionCatalogs {
-        create("idofrontLibs").from("com.mineinabyss:catalog:$idofrontVersion")
+        create("idofrontLibs"){
+            from("com.mineinabyss:catalog:$idofrontVersion")
+            version("mythiccrucible", "2.0.0")
+            version("oraxen", "1.171.0-SNAPSHOT")
+        }
         create("packyLibs").from(files("gradle/libs.versions.toml"))
     }
 }
