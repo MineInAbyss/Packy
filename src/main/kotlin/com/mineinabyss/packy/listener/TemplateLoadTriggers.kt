@@ -23,7 +23,7 @@ object TemplateLoadTriggers {
 
     fun registerTemplateHandlers() {
         unregisterTemplateHandlers()
-        packy.templates.values.forEach { it.loadTrigger?.registerLoadHandler(it) }
+        packy.templates.values.forEach { it.loadTrigger.registerLoadHandler(it) }
     }
 
     fun unregisterTemplateHandlers() {
@@ -36,6 +36,13 @@ object TemplateLoadTriggers {
 @Serializable
 sealed interface LoadTrigger {
     fun registerLoadHandler(template: PackyTemplate)
+
+    @Serializable
+    @SerialName("None")
+    data object NoTrigger : LoadTrigger {
+        override fun registerLoadHandler(template: PackyTemplate) {
+        }
+    }
 
     @Serializable
     @SerialName("ModelEngine")
