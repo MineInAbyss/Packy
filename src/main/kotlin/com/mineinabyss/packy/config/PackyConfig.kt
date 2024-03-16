@@ -1,5 +1,6 @@
 package com.mineinabyss.packy.config
 
+import co.touchlab.kermit.Severity
 import com.charleskorn.kaml.YamlComment
 import com.mineinabyss.guiy.modifiers.Modifier
 import com.mineinabyss.guiy.modifiers.at

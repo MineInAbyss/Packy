@@ -3,10 +3,7 @@ package com.mineinabyss.packy.helpers
 import com.github.shynixn.mccoroutine.bukkit.asyncDispatcher
 import com.github.shynixn.mccoroutine.bukkit.launch
 import com.google.gson.JsonParser
-import com.mineinabyss.idofront.messaging.logError
-import com.mineinabyss.idofront.messaging.logInfo
-import com.mineinabyss.idofront.messaging.logSuccess
-import com.mineinabyss.idofront.messaging.logWarn
+import com.mineinabyss.idofront.textcomponents.miniMsg
 import com.mineinabyss.packy.config.PackyTemplate
 import com.mineinabyss.packy.config.packy
 import kotlinx.coroutines.Job
@@ -33,10 +30,10 @@ object PackyDownloader {
                 val lines = hashFile.readLines().toMutableSet().apply { removeIf { it.startsWith(template.id) } }
                 lines += "${template.id}=$latestHash"
                 hashFile.writeLines(lines)
-                if (templateExists) logSuccess("Updated hash for ${template.id}")
+                if (templateExists) packy.logger.iSuccess("Updated hash for ${template.id}")
             }
 
-            else -> logSuccess("Skipping download for ${template.id}, no changes applied to remote")
+            else -> packy.logger.iSuccess("Template up to date: <dark_gray>${template.id}".miniMsg())
         }
         return !templateExists || localHash == null || localHash != latestHash
     }
@@ -52,10 +49,10 @@ object PackyDownloader {
             .build()
 
         client.newCall(request).execute().use { response ->
-            if (!response.isSuccessful) return@use logWarn("Failed to get latest hash")
+            if (!response.isSuccessful) return@use packy.logger.w("Failed to get latest hash")
             val reader = response.body!!.charStream()
             return JsonParser.parseReader(reader)?.asJsonObject?.get("sha")?.asString
-                ?: return@use logWarn("Failed to read response")
+                ?: return@use packy.logger.w("Failed to read response")
         }
 
         return null
@@ -65,16 +62,16 @@ object PackyDownloader {
         startupJob = packy.plugin.launch(packy.plugin.asyncDispatcher) {
             packy.templates.entries.filter { it.value.githubDownload != null }.map { (id, template) ->
                 launch {
-                    logWarn("Downloading ${id}-template from GitHub...")
+                    packy.logger.i("Checking updates (GitHub): <dark_gray>$id".miniMsg())
                     if (updateGithubTemplate(template)) {
-                        logSuccess("Successfully downloaded ${id}-template!")
+                        packy.logger.iSuccess("Successfully downloaded ${id}-template!")
                         PackyGenerator.cachedPacks.keys.removeIf { id in it }
                         PackyGenerator.cachedPacksByteArray.keys.removeIf { id in it }
                     }
                     if (packy.config.packSquash.enabled) {
-                        logInfo("Starting PackSquash process for $id-template...")
+                        packy.logger.i("Starting PackSquash process for $id-template...")
                         PackySquash.squashPackyTemplate(template)
-                        logSuccess("Finished PackSquash process for $id-template")
+                        packy.logger.iSuccess("Finished PackSquash process for $id-template")
                     }
                 }
             }
@@ -83,7 +80,7 @@ object PackyDownloader {
 
     fun downloadAndExtractGithub(template: PackyTemplate) {
         val (owner, repo, branch, _) = template.githubDownload
-            ?: return logError("${template.id} has no githubDownload, skipping...")
+            ?: return packy.logger.e("${template.id} has no githubDownload, skipping...")
         val url = "https://api.github.com/repos/${owner}/${repo}/zipball/${branch}"
 
 
@@ -95,7 +92,7 @@ object PackyDownloader {
             .build()
 
         client.newCall(request).execute().use { response ->
-            if (!response.isSuccessful) return@use logError("Failed to download template ${template.id} via $url")
+            if (!response.isSuccessful) return@use packy.logger.e("Failed to download template ${template.id} via $url")
             response.downloadZipFromGithubResponse(template)
         }
     }

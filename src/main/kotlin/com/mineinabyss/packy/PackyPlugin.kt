@@ -1,9 +1,13 @@
 package com.mineinabyss.packy
 
+import co.touchlab.kermit.StaticConfig
 import com.mineinabyss.geary.autoscan.autoscan
 import com.mineinabyss.geary.modules.geary
 import com.mineinabyss.idofront.config.config
 import com.mineinabyss.idofront.di.DI
+import com.mineinabyss.idofront.messaging.ComponentLogger
+import com.mineinabyss.idofront.messaging.injectLogger
+import com.mineinabyss.idofront.messaging.observeLogger
 import com.mineinabyss.idofront.plugin.listeners
 import com.mineinabyss.packy.config.*
 import com.mineinabyss.packy.helpers.PackyDownloader
@@ -44,6 +48,7 @@ class PackyPlugin : JavaPlugin() {
             override val templates: Map<String, PackyTemplate> = config<PackyTemplates>("templates", dataFolder.toPath(), PackyTemplates()).getOrLoad().templateMap
             override val accessToken: PackyAccessToken by config("accessToken", dataFolder.toPath(), PackyAccessToken())
             override val defaultPack: ResourcePack = ResourcePack.resourcePack()
+            override val logger by plugin.observeLogger()
         })
 
         PackyGenerator.activeGeneratorJob.apply { values.forEach(Job::cancel) }.clear()

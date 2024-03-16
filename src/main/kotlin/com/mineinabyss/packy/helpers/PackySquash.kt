@@ -1,8 +1,5 @@
 package com.mineinabyss.packy.helpers
 
-import com.mineinabyss.idofront.messaging.logError
-import com.mineinabyss.idofront.messaging.logInfo
-import com.mineinabyss.idofront.messaging.logWarn
 import com.mineinabyss.packy.config.PackyTemplate
 import com.mineinabyss.packy.config.packy
 import okio.Path.Companion.toPath
@@ -37,7 +34,7 @@ object PackySquash {
         toml.writeText(tomlContent)
 
         runCatching {
-            logInfo("Squashing Packy-pack...")
+            packy.logger.i("Squashing Packy-pack...")
             val processBuilder = ProcessBuilder(packSquash.exePath, toml.absolutePath.replace("\\", "/"))
             processBuilder.directory(packy.plugin.dataFolder)
             processBuilder.redirectInput(ProcessBuilder.Redirect.PIPE)
@@ -51,8 +48,8 @@ object PackySquash {
             while (reader.readLine().also { currentLine = it } != null) {
                 val line = currentLine.takeUnless { it.isNullOrEmpty() } ?: continue
                 when {
-                    line.startsWith("!") -> logError(line)
-                    line.startsWith("*") -> logWarn(line)
+                    line.startsWith("!") -> packy.logger.e(line)
+                    line.startsWith("*") -> packy.logger.w(line)
                     //else -> logInfo(line)
                 }
             }
@@ -99,8 +96,8 @@ object PackySquash {
             while (reader.readLine().also { currentLine = it } != null) {
                 val line = template.id + ": " + (currentLine.takeUnless { it.isNullOrEmpty() } ?: continue)
                 when {
-                    line.startsWith("!") -> logError(line)
-                    line.startsWith("*") -> logWarn(line)
+                    line.startsWith("!") -> packy.logger.e(line)
+                    line.startsWith("*") -> packy.logger.w(line)
                     //else -> logInfo(line)
                 }
             }

@@ -1,6 +1,5 @@
 import net.minecrell.pluginyml.paper.PaperPluginDescription
 
-@Suppress("DSL_SCOPE_VIOLATION")
 plugins {
     alias(idofrontLibs.plugins.mia.kotlin.jvm)
     alias(idofrontLibs.plugins.kotlinx.serialization)

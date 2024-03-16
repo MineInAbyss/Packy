@@ -1,7 +1,7 @@
 package com.mineinabyss.packy.helpers
 
-import com.mineinabyss.idofront.messaging.logError
 import com.mineinabyss.packy.config.PackyTemplate
+import com.mineinabyss.packy.config.packy
 import okhttp3.Response
 import team.unnamed.creative.ResourcePack
 import team.unnamed.creative.serialize.minecraft.MinecraftResourcePackReader
@@ -28,7 +28,7 @@ fun File.readPack(): ResourcePack? {
 
 @OptIn(ExperimentalPathApi::class)
 fun Response.downloadZipFromGithubResponse(template: PackyTemplate) {
-    val (owner, repo, _, subPath) = template.githubDownload ?: return logError("${template.id} has no githubDownload, skipping...")
+    val (owner, repo, _, subPath) = template.githubDownload ?: return packy.logger.e("${template.id} has no githubDownload, skipping...")
     val zipStream = ZipInputStream(body!!.byteStream())
 
     runCatching {

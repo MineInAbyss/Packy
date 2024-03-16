@@ -2,9 +2,6 @@ package com.mineinabyss.packy.helpers
 
 import com.github.shynixn.mccoroutine.bukkit.launch
 import com.github.shynixn.mccoroutine.bukkit.ticks
-import com.mineinabyss.idofront.messaging.broadcast
-import com.mineinabyss.idofront.messaging.logError
-import com.mineinabyss.idofront.messaging.logSuccess
 import com.mineinabyss.idofront.textcomponents.miniMsg
 import com.mineinabyss.packy.components.packyData
 import com.mineinabyss.packy.config.packy
@@ -47,14 +44,14 @@ object PackyServer {
     }
 
     fun startServer() {
-        logSuccess("Started Packy-Server...")
+        packy.logger.i("Starting Packy-Server...")
         val (ip, port) = packy.config.server.let { it.ip to it.port }
         packServer = ResourcePackServer.server().address(ip, port).handler(handler).executor(Executors.newFixedThreadPool(20)).build()
         packServer?.start()
     }
 
     fun stopServer() {
-        logError("Stopping Packy-Server...")
+        packy.logger.i("Stopping Packy-Server...")
         packServer?.stop(0)
     }
 
