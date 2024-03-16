@@ -4,6 +4,7 @@ import com.charleskorn.kaml.PolymorphismStyle
 import com.charleskorn.kaml.SingleLineStringStyle
 import com.charleskorn.kaml.Yaml
 import com.charleskorn.kaml.YamlConfiguration
+import co.touchlab.kermit.StaticConfig
 import com.mineinabyss.geary.autoscan.autoscan
 import com.mineinabyss.geary.modules.geary
 import com.mineinabyss.geary.serialization.formats.YamlFormat
@@ -11,6 +12,9 @@ import com.mineinabyss.idofront.config.ConfigFormats
 import com.mineinabyss.idofront.config.Format
 import com.mineinabyss.idofront.config.config
 import com.mineinabyss.idofront.di.DI
+import com.mineinabyss.idofront.messaging.ComponentLogger
+import com.mineinabyss.idofront.messaging.injectLogger
+import com.mineinabyss.idofront.messaging.observeLogger
 import com.mineinabyss.idofront.plugin.listeners
 import com.mineinabyss.packy.config.*
 import com.mineinabyss.packy.helpers.PackyDownloader
@@ -56,6 +60,7 @@ class PackyPlugin : JavaPlugin() {
                 "templates", dataFolder.toPath(), PackyTemplates(), formats = templateFormat).getOrLoad().templateMap
             override val accessToken: PackyAccessToken by config("accessToken", dataFolder.toPath(), PackyAccessToken())
             override val defaultPack: ResourcePack = ResourcePack.resourcePack()
+            override val logger by plugin.observeLogger()
         })
 
         PackyGenerator.activeGeneratorJob.apply { values.forEach(Job::cancel) }.clear()

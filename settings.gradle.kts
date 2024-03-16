@@ -8,11 +8,6 @@ pluginManagement {
         maven("https://repo.mineinabyss.com/snapshots")
         maven("https://repo.papermc.io/repository/maven-public/") //Paper
     }
-
-    val composeVersion: String by settings
-    plugins {
-        id("org.jetbrains.compose") version composeVersion
-    }
 }
 
 dependencyResolutionManagement {

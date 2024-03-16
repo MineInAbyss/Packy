@@ -2,7 +2,6 @@ package com.mineinabyss.packy.helpers
 
 import com.github.shynixn.mccoroutine.bukkit.asyncDispatcher
 import com.github.shynixn.mccoroutine.bukkit.launch
-import com.mineinabyss.idofront.messaging.logSuccess
 import com.mineinabyss.idofront.textcomponents.miniMsg
 import com.mineinabyss.packy.config.packy
 import kotlinx.coroutines.*
@@ -34,7 +33,7 @@ object PackyGenerator {
                 packy.defaultPack.mergeWith(it)
             }
 
-            logSuccess("Finished configuring defaultPack")
+            packy.logger.iSuccess("Finished configuring defaultPack")
         }
     }
 

@@ -1,7 +1,5 @@
 package com.mineinabyss.packy.helpers
 
-import com.mineinabyss.idofront.messaging.logSuccess
-import com.mineinabyss.idofront.messaging.logWarn
 import com.mineinabyss.packy.config.packy
 import net.kyori.adventure.key.Key
 import team.unnamed.creative.ResourcePack
@@ -33,7 +31,7 @@ object PackObfuscator {
     private val obfuscatedTextures = mutableSetOf<ObfuscatedTexture>()
 
     fun obfuscatePack(resourcePack: ResourcePack) {
-        logWarn("Obfuscating pack...")
+        packy.logger.i("Obfuscating pack...")
         this.resourcePack = resourcePack
         obfuscatedModels.clear()
         obfuscatedTextures.clear()
@@ -42,7 +40,7 @@ object PackObfuscator {
         obfuscateFonts()
         obfuscateTextures()
         MinecraftResourcePackWriter.minecraft().writeToZipFile(packy.plugin.dataFolder.resolve("obfuscated.zip"), resourcePack)
-        logSuccess("Finished obfuscating pack!")
+        packy.logger.iSuccess("Finished obfuscating pack!")
     }
 
     private fun obfuscateModels() {
