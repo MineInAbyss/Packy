@@ -1,9 +1,12 @@
 package com.mineinabyss.packy.config
 
+import com.mineinabyss.packy.listener.LoadTrigger
 import kotlinx.serialization.EncodeDefault
 import kotlinx.serialization.EncodeDefault.Mode.NEVER
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.Transient
+import org.bukkit.event.Listener
 import java.nio.file.Path
 import kotlin.io.path.*
 
@@ -22,12 +25,16 @@ data class PackyTemplate(
     val forced: Boolean = false,
     @EncodeDefault(NEVER) val conflictsWith: Set<String> = setOf(),
     @EncodeDefault(NEVER) val githubDownload: GithubDownload? = null,
+    @EncodeDefault(NEVER) val loadTrigger: LoadTrigger = LoadTrigger.NoTrigger,
     @EncodeDefault(NEVER) private val filePath: String? = null
 ) {
+
+    @Transient var triggerListener: Listener? = null
+
     val id: String get() = name
 
     val path: Path
-        get() = filePath?.let { packy.plugin.dataFolder.parentFile.toPath() / it }
+        get() = filePath?.takeIf { it.isNotEmpty() }?.let { packy.plugin.dataFolder.parentFile.toPath() / it }
             ?: (packy.plugin.dataFolder.toPath() / "templates" / id)
                 .let { if (it.exists() && it.isDirectory()) it else Path(it.pathString + ".zip") }
 
