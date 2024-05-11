@@ -33,7 +33,7 @@ object PackyGenerator {
                 packy.defaultPack.mergeWith(it)
             }
 
-            packy.logger.iSuccess("Finished configuring defaultPack")
+            packy.logger.s("Finished configuring defaultPack")
         }
     }
 

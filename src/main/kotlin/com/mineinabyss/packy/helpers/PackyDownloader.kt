@@ -30,10 +30,10 @@ object PackyDownloader {
                 val lines = hashFile.readLines().toMutableSet().apply { removeIf { it.startsWith(template.id) } }
                 lines += "${template.id}=$latestHash"
                 hashFile.writeLines(lines)
-                if (templateExists) packy.logger.iSuccess("Updated hash for ${template.id}")
+                if (templateExists) packy.logger.s("Updated hash for ${template.id}")
             }
 
-            else -> packy.logger.iSuccess("Template up to date: <dark_gray>${template.id}".miniMsg())
+            else -> packy.logger.s("Template up to date: <dark_gray>${template.id}".miniMsg())
         }
         return !templateExists || localHash == null || localHash != latestHash
     }
@@ -64,14 +64,14 @@ object PackyDownloader {
                 launch {
                     packy.logger.i("Checking updates (GitHub): <dark_gray>$id".miniMsg())
                     if (updateGithubTemplate(template)) {
-                        packy.logger.iSuccess("Successfully downloaded ${id}-template!")
+                        packy.logger.s("Successfully downloaded ${id}-template!")
                         PackyGenerator.cachedPacks.keys.removeIf { id in it }
                         PackyGenerator.cachedPacksByteArray.keys.removeIf { id in it }
                     }
                     if (packy.config.packSquash.enabled) {
                         packy.logger.i("Starting PackSquash process for $id-template...")
                         PackySquash.squashPackyTemplate(template)
-                        packy.logger.iSuccess("Finished PackSquash process for $id-template")
+                        packy.logger.s("Finished PackSquash process for $id-template")
                     }
                 }
             }

@@ -40,7 +40,7 @@ object PackObfuscator {
         obfuscateFonts()
         obfuscateTextures()
         MinecraftResourcePackWriter.minecraft().writeToZipFile(packy.plugin.dataFolder.resolve("obfuscated.zip"), resourcePack)
-        packy.logger.iSuccess("Finished obfuscating pack!")
+        packy.logger.s("Finished obfuscating pack!")
     }
 
     private fun obfuscateModels() {

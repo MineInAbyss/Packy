@@ -49,8 +49,8 @@ data class PackyConfig(
 
     @Serializable
     data class PackyServer(
-        val ip: String = "127.0.0.1",
-        val port: Int = 8080,
+        val ip: String = "0.0.0.0",
+        val port: Int = 8082,
         val publicAddress: String = "http://$ip:$port"
     ) {
         fun publicUrl(hash: String, ids: TemplateIds) = "$publicAddress/$hash.zip?packs=${ids.joinToString(",")}"

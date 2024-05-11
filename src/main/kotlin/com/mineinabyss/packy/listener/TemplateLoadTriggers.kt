@@ -57,19 +57,19 @@ sealed interface LoadTrigger {
                 fun ModelRegistrationEvent.onMegPackZipped() {
 
                     if (phase != ModelGenerator.Phase.POST_ZIPPING) return
-                    logWarn("ModelEngine loadTrigger detected...")
+                    packy.logger.w("ModelEngine loadTrigger detected...")
                     val megPack = packy.plugin.server.pluginsFolder.resolve("ModelEngine/resource pack.zip").takeIf { it.exists() }
-                        ?: return logError("ModelEngine pack is missing, skipping loadTrigger for $id-template")
+                        ?: return packy.logger.e("ModelEngine pack is missing, skipping loadTrigger for $id-template")
                     megPack.copyTo(template.path.toFile(), overwrite = true)
 
                     PackyGenerator.cachedPacks.keys.removeIf { id in it }
                     PackyGenerator.cachedPacksByteArray.keys.removeIf { id in it }
-                    logSuccess("Copying ModelEngine-pack for $id-template")
+                    packy.logger.s("Copying ModelEngine-pack for $id-template")
 
                     if (packy.config.packSquash.enabled) {
-                        logInfo("Starting PackSquash process for $id-template...")
+                        packy.logger.i("Starting PackSquash process for $id-template...")
                         PackySquash.squashPackyTemplate(template)
-                        logSuccess("Finished PackSquash process for $id-template")
+                        packy.logger.s("Finished PackSquash process for $id-template")
                     }
                 }
             }
@@ -89,18 +89,18 @@ sealed interface LoadTrigger {
             val listener = object : Listener {
                 @EventHandler
                 fun MythicCrucibleGeneratePackEvent.onCruciblePack() {
-                    logWarn("MythicCrucible loadTrigger detected...")
+                    packy.logger.w("MythicCrucible loadTrigger detected...")
                     zippedPack?.copyTo(template.path.toFile(), true).takeIf { it?.exists() == true }
-                        ?: return logError("MythicCrucible-pack is missing, skipping loadTrigger for $id-template")
+                        ?: return packy.logger.e("MythicCrucible-pack is missing, skipping loadTrigger for $id-template")
 
                     PackyGenerator.cachedPacks.keys.removeIf { id in it }
                     PackyGenerator.cachedPacksByteArray.keys.removeIf { id in it }
-                    logSuccess("Copying MythicCrucible-pack for $id-template")
+                    packy.logger.s("Copying MythicCrucible-pack for $id-template")
 
                     if (packy.config.packSquash.enabled) {
-                        logInfo("Starting PackSquash process for $id-template...")
+                        packy.logger.i("Starting PackSquash process for $id-template...")
                         PackySquash.squashPackyTemplate(template)
-                        logSuccess("Finished PackSquash process for $id-template")
+                        packy.logger.s("Finished PackSquash process for $id-template")
                     }
                 }
             }
@@ -120,20 +120,20 @@ sealed interface LoadTrigger {
             val listener = object : Listener {
                 @EventHandler
                 fun OraxenPackPreUploadEvent.onOraxenPackPreUpload() {
-                    logWarn("Oraxen loadTrigger detected...")
+                    packy.logger.w("Oraxen loadTrigger detected...")
                     isCancelled = true
                     val oraxenPack = OraxenPlugin.get().resourcePack?.file?.takeIf { it.exists() }
-                        ?: return logError("Oraxen-pack is missing, skipping loadTrigger for $id-template")
+                        ?: return packy.logger.e("Oraxen-pack is missing, skipping loadTrigger for $id-template")
                     oraxenPack.copyTo(template.path.toFile(), true)
 
                     PackyGenerator.cachedPacks.keys.removeIf { id in it }
                     PackyGenerator.cachedPacksByteArray.keys.removeIf { id in it }
-                    logSuccess("Copying Oraxen-pack for $id-template")
+                    packy.logger.s("Copying Oraxen-pack for $id-template")
 
                     if (packy.config.packSquash.enabled) {
-                        logInfo("Starting PackSquash process for $id-template...")
+                        packy.logger.i("Starting PackSquash process for $id-template...")
                         PackySquash.squashPackyTemplate(template)
-                        logSuccess("Finished PackSquash process for $id-template")
+                        packy.logger.s("Finished PackSquash process for $id-template")
                     }
                 }
             }
