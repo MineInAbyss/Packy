@@ -24,8 +24,7 @@ class PlayerListener : Listener {
         // Remove old or forced keys from enabledPackAddons
         player.packyData.enabledPackAddons.removeIf { t -> t.id !in packy.templates.keys || t.forced }
         // Ensure that PackyTemplates are up-to-date
-        player.packyData.enabledPackAddons.forEach {  template ->
-            if (template in packy.templates.values) return@forEach
+        player.packyData.enabledPackAddons.filter { it in packy.templates.values }.forEach { template ->
             player.packyData.enabledPackAddons -= template
             packy.templates.entries.find { it.key == template.id }?.value?.let {
                 player.packyData.enabledPackAddons += it
