@@ -7,6 +7,8 @@ import com.mineinabyss.packy.components.packyData
 import com.mineinabyss.packy.config.packy
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
+import net.kyori.adventure.resource.ResourcePackInfo
+import net.kyori.adventure.resource.ResourcePackRequest
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.format.NamedTextColor
 import org.bukkit.entity.Player
@@ -22,15 +24,13 @@ object PackyServer {
 
     suspend fun sendPack(player: Player) {
         val templateIds = player.packyData.enabledPackIds
-
         val actionBarJob = packy.plugin.launch { while (isActive) player.sendPackGeneratingActionBar() }
         val resourcePack = PackyGenerator.getOrCreateCachedPack(templateIds).apply { invokeOnCompletion { actionBarJob.cancel() } }.await()
 
-        player.setResourcePack(
-            packy.config.server.publicUrl(resourcePack.hash(), templateIds),
-            resourcePack.hash(),
-            packy.config.force && !player.packyData.bypassForced,
-            packy.config.prompt.miniMsg()
+        player.sendResourcePacks(ResourcePackRequest.resourcePackRequest()
+            .packs(resourcePack.resourcePackInfo).replace(true)
+            .required(packy.config.force && !player.packyData.bypassForced)
+            .prompt(packy.config.prompt.miniMsg())
         )
     }
 

@@ -11,13 +11,13 @@ import org.bukkit.event.Listener
 import org.bukkit.event.player.PlayerJoinEvent
 
 class PlayerListener : Listener {
-    @EventHandler(priority = EventPriority.HIGHEST)
+    /*@EventHandler(priority = EventPriority.HIGHEST)
     fun PlayerJoinEvent.sendPack() {
-        if (PackyServer.packServer != null) packy.plugin.launch {
+        if (PackyServer.packServer != null && !player.hasResourcePack()) packy.plugin.launch {
             delay(packy.config.packSendDelay)
             PackyServer.sendPack(player)
         }
-    }
+    }*/
 
     @EventHandler(priority = EventPriority.NORMAL)
     fun PlayerJoinEvent.filterPackyData() {
