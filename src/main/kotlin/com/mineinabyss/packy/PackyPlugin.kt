@@ -79,6 +79,7 @@ class PackyPlugin : JavaPlugin() {
 
     fun createPackyContext() {
         TemplateLoadTriggers.unregisterTemplateHandlers()
+
         DI.remove<PackyContext>()
         DI.add<PackyContext>(object : PackyContext {
             override val plugin = this@PackyPlugin

@@ -18,8 +18,8 @@ fun PackySubMenu(subMenu: PackyConfig.PackySubMenu) {
         val template = packy.templates.entries.find { it.key == templateId }?.value ?: return@forEach
         Button(pack.modifiers.toModifier(), onClick = {
             when {
-                template !in player.packyData.enabledPackAddons -> PackPicker.addPack(player, templateId, packyData)
-                else -> PackPicker.removePack(player, templateId, packyData)
+                template !in player.packyData.enabledPackAddons -> PackPicker.addPack(player, templateId)
+                else -> PackPicker.removePack(player, templateId)
             }
             scope.hasChanged = true
             scope.nav.back()

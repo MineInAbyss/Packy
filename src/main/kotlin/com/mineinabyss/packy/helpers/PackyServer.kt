@@ -7,7 +7,6 @@ import com.mineinabyss.packy.components.packyData
 import com.mineinabyss.packy.config.packy
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
-import net.kyori.adventure.resource.ResourcePackInfo
 import net.kyori.adventure.resource.ResourcePackRequest
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.format.NamedTextColor
@@ -44,7 +43,7 @@ object PackyServer {
     }
 
     fun startServer() {
-        packy.logger.i("Starting Packy-Server...")
+        packy.logger.s("Starting Packy-Server...")
         val (ip, port) = packy.config.server.let { it.ip to it.port }
         packServer = ResourcePackServer.server().address(ip, port).handler(handler).executor(Executors.newFixedThreadPool(20)).build()
         packServer?.start()
@@ -55,7 +54,7 @@ object PackyServer {
         packServer?.stop(0)
     }
 
-    fun URI.parseTemplateIds(): TemplateIds? {
+    private fun URI.parseTemplateIds(): TemplateIds? {
         // split query string into map
         val queryMap = query.split('&').mapNotNull {
             it.split('=', limit = 2).takeIf { it.size == 2 }?.let { it.first() to it.last() }
