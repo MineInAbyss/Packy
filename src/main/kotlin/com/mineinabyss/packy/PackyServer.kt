@@ -1,10 +1,11 @@
-package com.mineinabyss.packy.helpers
+package com.mineinabyss.packy
 
 import com.github.shynixn.mccoroutine.bukkit.launch
 import com.github.shynixn.mccoroutine.bukkit.ticks
 import com.mineinabyss.idofront.textcomponents.miniMsg
 import com.mineinabyss.packy.components.packyData
 import com.mineinabyss.packy.config.packy
+import com.mineinabyss.packy.helpers.TemplateIds
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import net.kyori.adventure.resource.ResourcePackRequest

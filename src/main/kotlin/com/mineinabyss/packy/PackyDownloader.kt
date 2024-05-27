@@ -1,4 +1,4 @@
-package com.mineinabyss.packy.helpers
+package com.mineinabyss.packy
 
 import com.github.shynixn.mccoroutine.bukkit.asyncDispatcher
 import com.github.shynixn.mccoroutine.bukkit.launch
@@ -6,6 +6,7 @@ import com.google.gson.JsonParser
 import com.mineinabyss.idofront.textcomponents.miniMsg
 import com.mineinabyss.packy.config.PackyTemplate
 import com.mineinabyss.packy.config.packy
+import com.mineinabyss.packy.helpers.downloadZipFromGithubResponse
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import okhttp3.OkHttpClient

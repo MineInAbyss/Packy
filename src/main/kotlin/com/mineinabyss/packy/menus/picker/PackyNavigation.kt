@@ -12,7 +12,7 @@ import com.mineinabyss.packy.components.PackyData
 import com.mineinabyss.packy.components.packyData
 import com.mineinabyss.packy.config.PackyConfig
 import com.mineinabyss.packy.config.packy
-import com.mineinabyss.packy.helpers.PackyServer
+import com.mineinabyss.packy.PackyServer
 import kotlinx.coroutines.withContext
 import org.bukkit.entity.Player
 

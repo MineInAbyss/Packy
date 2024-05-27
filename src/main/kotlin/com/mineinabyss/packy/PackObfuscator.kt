@@ -1,6 +1,7 @@
-package com.mineinabyss.packy.helpers
+package com.mineinabyss.packy
 
 import com.mineinabyss.packy.config.packy
+import com.mineinabyss.packy.helpers.VanillaPackKeys
 import net.kyori.adventure.key.Key
 import team.unnamed.creative.ResourcePack
 import team.unnamed.creative.atlas.AtlasSource
@@ -32,7 +33,7 @@ object PackObfuscator {
 
     fun obfuscatePack(resourcePack: ResourcePack) {
         packy.logger.i("Obfuscating pack...")
-        this.resourcePack = resourcePack
+        PackObfuscator.resourcePack = resourcePack
         obfuscatedModels.clear()
         obfuscatedTextures.clear()
 

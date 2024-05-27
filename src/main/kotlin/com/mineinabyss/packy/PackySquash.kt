@@ -1,7 +1,8 @@
-package com.mineinabyss.packy.helpers
+package com.mineinabyss.packy
 
 import com.mineinabyss.packy.config.PackyTemplate
 import com.mineinabyss.packy.config.packy
+import com.mineinabyss.packy.helpers.unzip
 import okio.Path.Companion.toPath
 import team.unnamed.creative.ResourcePack
 import team.unnamed.creative.serialize.minecraft.MinecraftResourcePackWriter

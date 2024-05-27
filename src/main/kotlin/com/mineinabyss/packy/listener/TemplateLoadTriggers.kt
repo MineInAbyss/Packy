@@ -1,13 +1,12 @@
 package com.mineinabyss.packy.listener
 
-import com.mineinabyss.idofront.messaging.*
 import com.mineinabyss.idofront.plugin.Plugins
 import com.mineinabyss.idofront.plugin.listeners
 import com.mineinabyss.idofront.plugin.unregisterListeners
 import com.mineinabyss.packy.config.PackyTemplate
 import com.mineinabyss.packy.config.packy
-import com.mineinabyss.packy.helpers.PackyGenerator
-import com.mineinabyss.packy.helpers.PackySquash
+import com.mineinabyss.packy.PackyGenerator
+import com.mineinabyss.packy.PackySquash
 import com.mineinabyss.packy.listener.TemplateLoadTriggers.unregisterTemplateHandlers
 import com.ticxo.modelengine.api.events.ModelRegistrationEvent
 import com.ticxo.modelengine.api.generator.ModelGenerator
