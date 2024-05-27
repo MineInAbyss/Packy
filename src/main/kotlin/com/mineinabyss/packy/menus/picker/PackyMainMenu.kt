@@ -14,7 +14,6 @@ import com.mineinabyss.packy.menus.Button
 import org.bukkit.Material
 import org.bukkit.inventory.ItemStack
 
-
 @Composable
 fun PackyMenu() {
     val packyData = PackyDataProvider.current
@@ -31,8 +30,8 @@ fun PackyMenu() {
             Item(subMenu.button.toItemStack(), subMenu.modifiers.toModifier().clickable {
                 // Return if the task returns null, meaning button was spammed whilst a set was currently generating
                 when {
-                    templateId !in packyData.enabledPackIds -> PackPicker.addPack(player, templateId, packyData)
-                    else -> PackPicker.removePack(player, templateId, packyData)
+                    templateId !in packyData.enabledPackIds -> PackPicker.addPack(player, templateId)
+                    else -> PackPicker.removePack(player, templateId)
                 } ?: return@clickable
 
                 scope.hasChanged = true
@@ -52,7 +51,7 @@ fun PackyMenu() {
 
                 CycleButton(subMenu, pack) {
                     // Return if the task returns null, meaning button was spammed whilst a set was currently generating
-                    PackPicker.addPack(player, nextTemplateId, packyData) ?: return@CycleButton
+                    PackPicker.addPack(player, nextTemplateId) ?: return@CycleButton
 
                     packs = packs.rotatedLeft()
                     scope.hasChanged = true

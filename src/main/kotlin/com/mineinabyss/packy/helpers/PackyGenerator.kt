@@ -3,8 +3,11 @@ package com.mineinabyss.packy.helpers
 import com.github.shynixn.mccoroutine.bukkit.asyncDispatcher
 import com.github.shynixn.mccoroutine.bukkit.launch
 import com.mineinabyss.idofront.textcomponents.miniMsg
+import com.mineinabyss.packy.components.PackyPack
 import com.mineinabyss.packy.config.packy
 import kotlinx.coroutines.*
+import net.kyori.adventure.resource.ResourcePackInfo
+import net.minecraft.server.packs.repository.Pack
 import team.unnamed.creative.BuiltResourcePack
 import team.unnamed.creative.ResourcePack
 import team.unnamed.creative.base.Writable
@@ -17,8 +20,8 @@ import kotlin.io.path.exists
 @OptIn(ExperimentalCoroutinesApi::class)
 object PackyGenerator {
     private val generatorDispatcher = Dispatchers.IO.limitedParallelism(1)
-    val activeGeneratorJob: MutableMap<TemplateIds, Deferred<BuiltResourcePack>> = mutableMapOf()
-    val cachedPacks: CacheMap<TemplateIds, BuiltResourcePack> = CacheMap(packy.config.cachedPackAmount)
+    val activeGeneratorJob: MutableMap<TemplateIds, Deferred<PackyPack>> = mutableMapOf()
+    val cachedPacks: CacheMap<TemplateIds, PackyPack> = CacheMap(packy.config.cachedPackAmount)
     val cachedPacksByteArray: CacheMap<TemplateIds, ByteArray> = CacheMap(packy.config.cachedPackAmount)
 
     fun setupForcedPackFiles() {
@@ -37,7 +40,9 @@ object PackyGenerator {
         }
     }
 
-    suspend fun getOrCreateCachedPack(templateIds: TemplateIds): Deferred<BuiltResourcePack> = coroutineScope {
+    fun getCachedPack(templateIds: TemplateIds): PackyPack? = cachedPacks[templateIds]
+
+    suspend fun getOrCreateCachedPack(templateIds: TemplateIds): Deferred<PackyPack> = coroutineScope {
         PackyDownloader.startupJob?.join() // Ensure templates are downloaded
 
         // Make sure we read data on sync thread
@@ -58,9 +63,12 @@ object PackyGenerator {
 
                     cachedPack.sortItemOverrides()
                     if (packy.config.obfuscate) PackObfuscator.obfuscatePack(cachedPack)
-                    MinecraftResourcePackWriter.minecraft().build(cachedPack).apply {
-                        cachedPacks[templateIds] = this
-                        cachedPacksByteArray[templateIds] = this.data().toByteArray()
+                    MinecraftResourcePackWriter.minecraft().writeToDirectory(packy.plugin.dataFolder.resolve("test"), cachedPack)
+                    MinecraftResourcePackWriter.minecraft().build(cachedPack).let {
+                        val packyPack = PackyPack(it.hash(), packy.config.server.publicUrl(it.hash(), templateIds), it)
+                        cachedPacks[templateIds] = packyPack
+                        cachedPacksByteArray[templateIds] = it.data().toByteArray()
+                        packyPack
                     }
                 }.also {
                     launch(generatorDispatcher) {

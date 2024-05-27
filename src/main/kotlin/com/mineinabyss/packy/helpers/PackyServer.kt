@@ -7,6 +7,7 @@ import com.mineinabyss.packy.components.packyData
 import com.mineinabyss.packy.config.packy
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
+import net.kyori.adventure.resource.ResourcePackRequest
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.format.NamedTextColor
 import org.bukkit.entity.Player
@@ -22,15 +23,13 @@ object PackyServer {
 
     suspend fun sendPack(player: Player) {
         val templateIds = player.packyData.enabledPackIds
-
         val actionBarJob = packy.plugin.launch { while (isActive) player.sendPackGeneratingActionBar() }
         val resourcePack = PackyGenerator.getOrCreateCachedPack(templateIds).apply { invokeOnCompletion { actionBarJob.cancel() } }.await()
 
-        player.setResourcePack(
-            packy.config.server.publicUrl(resourcePack.hash(), templateIds),
-            resourcePack.hash(),
-            packy.config.force && !player.packyData.bypassForced,
-            packy.config.prompt.miniMsg()
+        player.sendResourcePacks(ResourcePackRequest.resourcePackRequest()
+            .packs(resourcePack.resourcePackInfo).replace(true)
+            .required(packy.config.force && !player.packyData.bypassForced)
+            .prompt(packy.config.prompt.miniMsg())
         )
     }
 
@@ -44,7 +43,7 @@ object PackyServer {
     }
 
     fun startServer() {
-        packy.logger.i("Starting Packy-Server...")
+        packy.logger.s("Starting Packy-Server...")
         val (ip, port) = packy.config.server.let { it.ip to it.port }
         packServer = ResourcePackServer.server().address(ip, port).handler(handler).executor(Executors.newFixedThreadPool(20)).build()
         packServer?.start()
@@ -55,7 +54,7 @@ object PackyServer {
         packServer?.stop(0)
     }
 
-    fun URI.parseTemplateIds(): TemplateIds? {
+    private fun URI.parseTemplateIds(): TemplateIds? {
         // split query string into map
         val queryMap = query.split('&').mapNotNull {
             it.split('=', limit = 2).takeIf { it.size == 2 }?.let { it.first() to it.last() }
