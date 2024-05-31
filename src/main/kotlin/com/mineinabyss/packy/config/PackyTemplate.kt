@@ -15,6 +15,8 @@ import kotlin.io.path.*
 data class PackyTemplates(val templates: List<PackyTemplate> = listOf()) {
     @EncodeDefault(NEVER)
     val templateMap: Map<String, PackyTemplate> = templates.associateBy { it.name }
+
+    fun component2(): Map<String, PackyTemplate> = templateMap
 }
 
 @Serializable
@@ -44,7 +46,10 @@ data class PackyTemplate(
         val repo: String,
         val branch: String,
         @EncodeDefault(NEVER) val subFolder: String? = null
-    )
+    ) {
+        fun key(): GithubDownloadKey = GithubDownloadKey(org, repo, branch)
+        data class GithubDownloadKey(val org: String, val repo: String, val branch: String)
+    }
 }
 
 @Serializable

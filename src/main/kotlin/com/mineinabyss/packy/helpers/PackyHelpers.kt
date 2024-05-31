@@ -3,11 +3,10 @@ package com.mineinabyss.packy.helpers
 import com.mineinabyss.packy.config.PackyTemplate
 import com.mineinabyss.packy.config.packy
 import okhttp3.Response
+import org.apache.commons.io.IOUtils
 import team.unnamed.creative.ResourcePack
 import team.unnamed.creative.serialize.minecraft.MinecraftResourcePackReader
-import java.io.File
-import java.io.FileInputStream
-import java.io.FileOutputStream
+import java.io.*
 import java.util.*
 import java.util.zip.ZipEntry
 import java.util.zip.ZipInputStream
@@ -27,60 +26,62 @@ fun File.readPack(): ResourcePack? {
 }
 
 @OptIn(ExperimentalPathApi::class)
-fun Response.downloadZipFromGithubResponse(template: PackyTemplate) {
-    val (owner, repo, _, subPath) = template.githubDownload ?: return packy.logger.e("${template.id} has no githubDownload, skipping...")
-    val zipStream = ZipInputStream(body!!.byteStream())
+fun Response.downloadZipFromGithubResponse(vararg templates: PackyTemplate) {
+    // Read the entire response body into a byte array
+    val responseBody = body?.byteStream()?.use { inputStream ->
+        ByteArrayOutputStream().apply {
+            inputStream.copyTo(this)
+        }.toByteArray()
+    } ?: run {
+        packy.logger.e("${templates.joinToString { it.name }} has no response body, skipping...")
+        return
+    }
 
-    runCatching {
-        template.path.deleteRecursively()
-
-        ZipOutputStream(FileOutputStream(template.path.toFile())).use { zipOutputStream ->
-            var entry = zipStream.nextEntry
-
-            while (entry != null) {
-                if ( entry.name.startsWith("$owner-$repo", true) && !entry.isDirectory) {
-                    entry.name.substringAfter("/${subPath?.let { "$it/" } ?: ""}").takeIf { it != entry!!.name }?.let { fileName ->
-                        zipOutputStream.putNextEntry(ZipEntry(fileName))
-
-                        val buffer = ByteArray(1024)
-                        var len: Int
-                        while (zipStream.read(buffer).also { len = it } > 0)
-                            zipOutputStream.write(buffer, 0, len)
-
-                        zipOutputStream.closeEntry()
-                    }
-                }
-                zipStream.closeEntry()
-                entry = zipStream.nextEntry
-            }
+    templates.forEach { template ->
+        val githubDownload = template.githubDownload
+        if (githubDownload == null) {
+            packy.logger.e("${template.name} has no githubDownload, skipping...")
+            return@forEach
         }
-    }.onFailure { it.printStackTrace() }.also { zipStream.close() }
+
+        val (owner, repo, _, subPath) = githubDownload
+
+        // Create a new ZipInputStream from the byte array for each template
+        val zipStream = ZipInputStream(ByteArrayInputStream(responseBody))
+
+        runCatching {
+            // Ensure the template path is deleted before extraction
+            template.path.deleteRecursively()
+
+            // Use a ZipOutputStream to write the extracted files
+            ZipOutputStream(FileOutputStream(template.path.toFile())).use { zipOutputStream ->
+                var entry = zipStream.nextEntry
+
+                while (entry != null) {
+                    if (entry.name.startsWith("$owner-$repo", ignoreCase = true) && !entry.isDirectory) {
+                        val entryName = entry.name.substringAfter("/${subPath?.let { "$it/" } ?: ""}")
+                        if (entryName != entry.name) {
+                            zipOutputStream.putNextEntry(ZipEntry(entryName))
+
+                            val buffer = ByteArray(1024)
+                            var len: Int
+                            while (zipStream.read(buffer).also { len = it } > 0) {
+                                zipOutputStream.write(buffer, 0, len)
+                            }
+
+                            zipOutputStream.closeEntry()
+                        }
+                    }
+                    zipStream.closeEntry()
+                    entry = zipStream.nextEntry
+                }
+            }
+        }.onFailure { it.printStackTrace() }
+        zipStream.close() // Ensure the ZipInputStream is closed properly
+    }
 }
 
 typealias TemplateIds = SortedSet<String>
-
-fun zipDirectory(directory: File, zipDest: File) {
-    val files = directory.walkTopDown().toList()
-    val buffer = ByteArray(1024)
-
-    ZipOutputStream(FileOutputStream(zipDest)).use { zipOutputStream ->
-        files.forEach { file ->
-            val entryName = directory.toPath().relativize(file.toPath()).toString()
-            val entry = ZipEntry(entryName)
-            zipOutputStream.putNextEntry(entry)
-
-            if (file.isDirectory) return@forEach
-
-            FileInputStream(file).use { inputStream ->
-                var len: Int
-                while (inputStream.read(buffer).also { len = it } > 0) {
-                    zipOutputStream.write(buffer, 0, len)
-                }
-            }
-            zipOutputStream.closeEntry()
-        }
-    }
-}
 
 fun unzip(zipFile: File, destDir: File) {
     runCatching {

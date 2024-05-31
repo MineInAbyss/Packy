@@ -30,8 +30,9 @@ class PackyCommands : IdofrontCommandExecutor(), TabCompleter {
                     })
                     action {
                         packy.plugin.launch(packy.plugin.asyncDispatcher) {
+                            val templates = packy.templates.filter { it.value.githubDownload?.key() == template.githubDownload!!.key() }.values.sortedBy { it.id }.toTypedArray()
                             sender.info("Downloading template ${template.id}...")
-                            PackyDownloader.updateGithubTemplate(template)
+                            PackyDownloader.updateGithubTemplate(*templates)
                             sender.success("Downloaded template ${template.id}!")
                         }
                     }
