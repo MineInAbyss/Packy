@@ -4,7 +4,7 @@ import androidx.compose.runtime.*
 import com.github.shynixn.mccoroutine.bukkit.launch
 import com.github.shynixn.mccoroutine.bukkit.minecraftDispatcher
 import com.mineinabyss.guiy.components.canvases.Chest
-import com.mineinabyss.guiy.inventory.GuiyOwner
+import com.mineinabyss.guiy.inventory.LocalGuiyOwner
 import com.mineinabyss.guiy.modifiers.Modifier
 import com.mineinabyss.guiy.modifiers.height
 import com.mineinabyss.guiy.navigation.Navigator
@@ -26,12 +26,13 @@ class PackySubScreen(val subMenu: PackyConfig.PackySubMenu) : PackyScreen(subMen
 typealias PackyNav = Navigator<PackyScreen>
 
 class PackyUIScope(val player: Player) {
-    var hasChanged = false
+    var changedAction: ()-> Unit? = {}
     val nav = PackyNav { PackyScreen.Default }
 }
 
 @Composable
-fun GuiyOwner.PackyMainMenu(player: Player) {
+fun PackyMainMenu(player: Player) {
+    val owner = LocalGuiyOwner.current
     val scope = remember { PackyUIScope(player) }
     var packyData: PackyData by remember { mutableStateOf(PackyData(mutableSetOf())) }
     LaunchedEffect(Unit) {
@@ -40,11 +41,14 @@ fun GuiyOwner.PackyMainMenu(player: Player) {
         }
     }
     CompositionLocalProvider(PackyScopeProvider provides scope, PackyDataProvider provides packyData) {
-        scope.nav.withScreen(setOf(player), onEmpty = ::exit) { screen ->
+        scope.nav.withScreen(setOf(player), onEmpty = owner::exit) { screen ->
             Chest(setOf(player), screen.title, Modifier.height(screen.height), onClose = {
-                player.closeInventory()
-                if (scope.hasChanged) packy.plugin.launch {
-                    PackyServer.sendPack(player)
+                owner.exit()
+                scope.changedAction.invoke()?.let {
+                    packy.plugin.launch {
+                        player.packyData = packyData
+                        PackyServer.sendPack(player)
+                    }
                 }
             }) {
                 when (screen) {

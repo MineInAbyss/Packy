@@ -8,7 +8,7 @@ plugins {
     alias(idofrontLibs.plugins.mia.copyjar)
     alias(idofrontLibs.plugins.mia.publication)
     alias(idofrontLibs.plugins.mia.autoversion)
-    alias(idofrontLibs.plugins.compose)
+    alias(idofrontLibs.plugins.compose.compiler)
     id("net.minecrell.plugin-yml.paper") version "0.6.0"
 }
 
@@ -48,7 +48,7 @@ dependencies {
 }
 
 tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
-    kotlinOptions {
+    compilerOptions {
         freeCompilerArgs = listOf(
             "-Xcontext-receivers",
         )

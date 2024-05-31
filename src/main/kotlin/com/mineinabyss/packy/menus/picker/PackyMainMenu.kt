@@ -4,7 +4,7 @@ import androidx.compose.runtime.*
 import com.mineinabyss.guiy.components.Grid
 import com.mineinabyss.guiy.components.Item
 import com.mineinabyss.guiy.modifiers.Modifier
-import com.mineinabyss.guiy.modifiers.clickable
+import com.mineinabyss.guiy.modifiers.click.clickable
 import com.mineinabyss.idofront.items.editItemMeta
 import com.mineinabyss.idofront.textcomponents.miniMsg
 import com.mineinabyss.packy.config.PackyConfig
@@ -30,11 +30,10 @@ fun PackyMenu() {
             Item(subMenu.button.toItemStack(), subMenu.modifiers.toModifier().clickable {
                 // Return if the task returns null, meaning button was spammed whilst a set was currently generating
                 when {
-                    templateId !in packyData.enabledPackIds -> PackPicker.addPack(player, templateId)
-                    else -> PackPicker.removePack(player, templateId)
+                    templateId !in packyData.enabledPackIds -> PackPicker.addPack(scope, player, packyData, templateId)
+                    else -> PackPicker.removePack(scope, player, packyData, templateId)
                 } ?: return@clickable
 
-                scope.hasChanged = true
                 scope.nav.refresh()
             })
         } else when (subMenu.type) {
@@ -51,10 +50,9 @@ fun PackyMenu() {
 
                 CycleButton(subMenu, pack) {
                     // Return if the task returns null, meaning button was spammed whilst a set was currently generating
-                    PackPicker.addPack(player, nextTemplateId) ?: return@CycleButton
+                    PackPicker.addPack(scope, player, packyData, nextTemplateId) ?: return@CycleButton
 
                     packs = packs.rotatedLeft()
-                    scope.hasChanged = true
                     scope.nav.refresh()
                 }
             }
