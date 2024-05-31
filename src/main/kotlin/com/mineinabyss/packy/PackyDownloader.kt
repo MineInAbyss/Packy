@@ -20,7 +20,7 @@ object PackyDownloader {
     fun updateGithubTemplate(vararg templates: PackyTemplate): Boolean {
         val template = templates.first()
         val templateIds = templates.joinToString("|") { it.id }
-        val regex = "$templateIds=.*".toRegex()
+        val regex = "$templateIds=.*".replace("|", "\\|").toRegex()
         val hashFile = packy.plugin.dataFolder.toPath() / "templates" / "localHashes.txt"
         hashFile.createParentDirectories()
         hashFile.toFile().createNewFile()
