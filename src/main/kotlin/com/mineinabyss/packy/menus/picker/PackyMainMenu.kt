@@ -1,8 +1,8 @@
 package com.mineinabyss.packy.menus.picker
 
 import androidx.compose.runtime.*
-import com.mineinabyss.guiy.components.Grid
 import com.mineinabyss.guiy.components.Item
+import com.mineinabyss.guiy.components.VerticalGrid
 import com.mineinabyss.guiy.modifiers.Modifier
 import com.mineinabyss.guiy.modifiers.click.clickable
 import com.mineinabyss.idofront.items.editItemMeta
@@ -63,7 +63,7 @@ fun PackyMenu() {
 @Composable
 fun CycleButton(subMenu: PackyConfig.PackySubMenu, pack: PackyConfig.PackyPack, onClick: () -> Unit) {
     val modifier = subMenu.modifiers.offset.toAtModifier()
-    Grid(subMenu.modifiers.size.toSizeModifier(modifier)) {
+    VerticalGrid(subMenu.modifiers.size.toSizeModifier(modifier)) {
         Button(enabled = true, onClick = onClick) {
             Item(subMenu.button.toItemStack(pack.button?.toItemStackOrNull() ?: ItemStack.empty()), subMenu.modifiers.size.toSizeModifier())
         }

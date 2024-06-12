@@ -3,7 +3,7 @@ package com.mineinabyss.packy.menus.picker
 import androidx.compose.runtime.Composable
 import com.mineinabyss.guiy.components.Item
 import com.mineinabyss.guiy.modifiers.Modifier
-import com.mineinabyss.guiy.modifiers.at
+import com.mineinabyss.guiy.modifiers.placement.absolute.at
 import com.mineinabyss.packy.components.packyData
 import com.mineinabyss.packy.config.PackyConfig
 import com.mineinabyss.packy.config.packy
