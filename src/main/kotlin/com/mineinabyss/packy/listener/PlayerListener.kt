@@ -8,18 +8,11 @@ import org.bukkit.event.Listener
 import org.bukkit.event.player.PlayerJoinEvent
 
 class PlayerListener : Listener {
-    /*@EventHandler(priority = EventPriority.HIGHEST)
-    fun PlayerJoinEvent.sendPack() {
-        if (PackyServer.packServer != null && !player.hasResourcePack()) packy.plugin.launch {
-            delay(packy.config.packSendDelay)
-            PackyServer.sendPack(player)
-        }
-    }*/
 
     @EventHandler(priority = EventPriority.NORMAL)
     fun PlayerJoinEvent.filterPackyData() {
         // Remove old or forced keys from enabledPackAddons
-        player.packyData.enabledPackAddons.removeIf { t -> t.id !in packy.templates.keys || t.forced }
+        player.packyData.enabledPackAddons.removeIf { t -> t.id !in packy.templates.keys || t.required }
         // Ensure that PackyTemplates are up-to-date
         player.packyData.enabledPackAddons.filter { it in packy.templates.values }.forEach { template ->
             player.packyData.enabledPackAddons -= template

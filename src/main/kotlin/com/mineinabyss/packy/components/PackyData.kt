@@ -9,11 +9,10 @@ import com.mineinabyss.packy.config.packy
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import org.bukkit.entity.Player
-import org.jetbrains.annotations.Unmodifiable
 
 @Serializable
 @SerialName("packy:packy_data")
-data class PackyData(val enabledPackAddons: MutableSet<PackyTemplate> = packy.templates.values.filter { !it.forced && it.default }.toMutableSet(), var bypassForced: Boolean = false) {
+data class PackyData(val enabledPackAddons: MutableSet<PackyTemplate> = packy.templates.values.filter { !it.required && it.default }.toMutableSet(), var bypassForced: Boolean = false) {
     val enabledPackIds get() = enabledPackAddons.map { it.id }.toSortedSet()
 }
 

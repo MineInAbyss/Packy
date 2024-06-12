@@ -24,7 +24,7 @@ data class PackyTemplates(val templates: List<PackyTemplate> = listOf()) {
 data class PackyTemplate(
     val name: String,
     val default: Boolean = false,
-    val forced: Boolean = false,
+    val required: Boolean = false,
     @EncodeDefault(NEVER) val conflictsWith: Set<String> = setOf(),
     @EncodeDefault(NEVER) val githubDownload: GithubDownload? = null,
     @EncodeDefault(NEVER) val loadTrigger: LoadTrigger = LoadTrigger.NoTrigger,

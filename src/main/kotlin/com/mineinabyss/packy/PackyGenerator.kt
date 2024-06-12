@@ -31,7 +31,7 @@ object PackyGenerator {
                 ?.let { packy.defaultPack.packMeta(packy.config.mcmeta.format, it.miniMsg()) }
 
             // Add all forced packs to defaultPack
-            packy.templates.filter { it.value.forced }.values.mapNotNull { it.path.toFile().readPack() }.forEach {
+            packy.templates.filter { it.value.required }.values.mapNotNull { it.path.toFile().readPack() }.forEach {
                 packy.defaultPack.mergeWith(it)
             }
 
@@ -55,14 +55,14 @@ object PackyGenerator {
                     val cachedPack = ResourcePack.resourcePack()
                     cachedPack.mergeWith(packy.defaultPack)
 
-                    // Filters out all forced files as they are already in defaultPack
+                    // Filters out all required files as they are already in defaultPack
                     // Filter all TemplatePacks that are not default or not in players enabledPackAddons
-                    packy.templates.values.filter { !it.forced && it.id in templateIds }
+                    packy.templates.values.filter { !it.required && it.id in templateIds }
                         .mapNotNull { it.path.toFile().readPack() }.forEach { cachedPack.mergeWith(it) }
 
                     cachedPack.sortItemOverrides()
                     if (packy.config.obfuscate) PackObfuscator.obfuscatePack(cachedPack)
-                    MinecraftResourcePackWriter.minecraft().writeToDirectory(packy.plugin.dataFolder.resolve("test"), cachedPack)
+
                     MinecraftResourcePackWriter.minecraft().build(cachedPack).let {
                         val packyPack = PackyPack(it.hash(), packy.config.server.publicUrl(it.hash(), templateIds), it)
                         cachedPacks[templateIds] = packyPack

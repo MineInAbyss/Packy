@@ -3,6 +3,7 @@ package com.mineinabyss.packy
 import com.github.shynixn.mccoroutine.bukkit.launch
 import com.github.shynixn.mccoroutine.bukkit.ticks
 import com.mineinabyss.geary.papermc.datastore.decode
+import com.mineinabyss.idofront.nms.interceptClientbound
 import com.mineinabyss.idofront.nms.nbt.getOfflinePDC
 import com.mineinabyss.idofront.textcomponents.miniMsg
 import com.mineinabyss.packy.components.PackyData
@@ -58,7 +59,7 @@ object PackyServer {
         delay(10.ticks)
     }
 
-    fun registerConfigurationPacketListener() {
+    fun registerConfigPacketHandler() {
         val key = NamespacedKey.fromString("configuration_listener", packy.plugin)
         ChannelInitializeListenerHolder.addListener(key!!) { channel: Channel ->
             channel.pipeline().addBefore("packet_handler", key.toString(), object : ChannelDuplexHandler() {
