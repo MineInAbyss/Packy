@@ -32,7 +32,7 @@ class PackyPlugin : JavaPlugin() {
 
     override fun onEnable() {
         createPackyContext()
-        PackyCommands()
+        PackyCommands.registerCommands()
         PackyServer.startServer()
 
         listeners(PlayerListener())
