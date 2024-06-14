@@ -4,6 +4,7 @@ import com.github.shynixn.mccoroutine.bukkit.launch
 import com.github.shynixn.mccoroutine.bukkit.ticks
 import com.mineinabyss.geary.papermc.datastore.decode
 import com.mineinabyss.idofront.events.call
+import com.mineinabyss.idofront.messaging.broadcast
 import com.mineinabyss.idofront.nms.interceptClientbound
 import com.mineinabyss.idofront.nms.interceptServerbound
 import com.mineinabyss.idofront.nms.nbt.getOfflinePDC
@@ -24,6 +25,9 @@ import net.kyori.adventure.resource.ResourcePackRequest
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.format.NamedTextColor
 import net.minecraft.network.Connection
+import net.minecraft.network.protocol.Packet
+import net.minecraft.network.protocol.common.ClientboundDisconnectPacket
+import net.minecraft.network.protocol.common.ClientboundResourcePackPopPacket
 import net.minecraft.network.protocol.common.ClientboundResourcePackPushPacket
 import net.minecraft.network.protocol.common.ServerboundResourcePackPacket
 import net.minecraft.network.protocol.configuration.ClientboundFinishConfigurationPacket
@@ -65,16 +69,16 @@ object PackyServer {
 
     private val cachedPackyData = mutableMapOf<UUID, PackyData>()
     fun registerConfigPacketHandler() {
-        packy.plugin.interceptClientbound { packet, player ->
-            if (player == null) return@interceptClientbound packet
+        packy.plugin.interceptClientbound { packet: Packet<*>, connection: Connection ->
             if (packet !is ClientboundFinishConfigurationPacket) return@interceptClientbound packet
+            val player = connection.player?.bukkitEntity ?: return@interceptClientbound packet
             if (player.resourcePackStatus != null) return@interceptClientbound packet
             val packyData = player.getOfflinePDC()?.decode<PackyData>() ?: return@interceptClientbound packet
 
             cachedPackyData[player.uniqueId] = packyData
             packy.plugin.launch {
                 val info = PackyGenerator.getOrCreateCachedPack(packyData.enabledPackIds).await().resourcePackInfo
-                (player as CraftPlayer).handle.connection.send(
+                connection.send(
                     ClientboundResourcePackPushPacket(
                         info.id(), info.uri().toString(), info.hash(),
                         packy.config.force && !packyData.bypassForced,
@@ -86,16 +90,23 @@ object PackyServer {
             return@interceptClientbound null
         }
 
-        packy.plugin.interceptServerbound { packet, player ->
-            if (player == null) return@interceptServerbound packet
-            if (packet !is ServerboundResourcePackPacket || !packet.isTerminal) return@interceptServerbound packet
+        packy.plugin.interceptServerbound { packet: Packet<*>, connection: Connection ->
+            if (packet !is ServerboundResourcePackPacket || !packet.action.isTerminal) return@interceptServerbound packet
+            val player = connection.player?.bukkitEntity ?: return@interceptServerbound packet
             val packyData = cachedPackyData[player.uniqueId] ?: return@interceptServerbound packet
+            val status = PlayerResourcePackStatusEvent.Status.entries.find { it.name == packet.action.name } ?: return@interceptServerbound packet
             PackyGenerator.getCachedPack(packyData.enabledPackIds)?.resourcePackInfo?.id()?.takeIf { it == packet.id } ?: return@interceptServerbound packet
 
-            PlayerResourcePackStatusEvent(player, packet.id, PlayerResourcePackStatusEvent.Status.valueOf(packet.action.name)).call()
-            (player as CraftPlayer).handle.connection.send(ClientboundFinishConfigurationPacket.INSTANCE)
+            // Manually call event and change player-status over sending the packet
+            // Doing so causes some error with syncing tasks and this does effectively the same
+            player.resourcePackStatus = status
+            packy.plugin.launch {
+                PlayerResourcePackStatusEvent(player, packet.id, status).call()
+            }
+            connection.send(ClientboundFinishConfigurationPacket.INSTANCE)
             cachedPackyData.remove(player.uniqueId)
-            null
+
+            return@interceptServerbound null
         }
     }
 
