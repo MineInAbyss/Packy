@@ -11,6 +11,7 @@ import com.mineinabyss.idofront.config.Format
 import com.mineinabyss.idofront.config.config
 import com.mineinabyss.idofront.di.DI
 import com.mineinabyss.idofront.messaging.observeLogger
+import com.mineinabyss.idofront.nms.PacketListener
 import com.mineinabyss.idofront.plugin.listeners
 import com.mineinabyss.packy.config.*
 import com.mineinabyss.packy.listener.PlayerListener
@@ -44,6 +45,7 @@ class PackyPlugin : JavaPlugin() {
 
     fun createPackyContext() {
         TemplateLoadTriggers.unregisterTemplateHandlers()
+        PacketListener.unregisterListener(this)
 
         DI.remove<PackyContext>()
         DI.add<PackyContext>(object : PackyContext {
@@ -63,7 +65,6 @@ class PackyPlugin : JavaPlugin() {
         PackyDownloader.downloadTemplates()
         TemplateLoadTriggers.registerTemplateHandlers()
         PackyGenerator.setupForcedPackFiles()
-
         PackyServer.registerConfigPacketHandler()
     }
 

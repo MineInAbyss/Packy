@@ -3,7 +3,9 @@ package com.mineinabyss.packy
 import com.github.shynixn.mccoroutine.bukkit.launch
 import com.github.shynixn.mccoroutine.bukkit.ticks
 import com.mineinabyss.geary.papermc.datastore.decode
+import com.mineinabyss.idofront.events.call
 import com.mineinabyss.idofront.nms.interceptClientbound
+import com.mineinabyss.idofront.nms.interceptServerbound
 import com.mineinabyss.idofront.nms.nbt.getOfflinePDC
 import com.mineinabyss.idofront.textcomponents.miniMsg
 import com.mineinabyss.packy.components.PackyData
@@ -26,7 +28,9 @@ import net.minecraft.network.protocol.common.ClientboundResourcePackPushPacket
 import net.minecraft.network.protocol.common.ServerboundResourcePackPacket
 import net.minecraft.network.protocol.configuration.ClientboundFinishConfigurationPacket
 import org.bukkit.NamespacedKey
+import org.bukkit.craftbukkit.entity.CraftPlayer
 import org.bukkit.entity.Player
+import org.bukkit.event.player.PlayerResourcePackStatusEvent
 import team.unnamed.creative.serialize.minecraft.MinecraftResourcePackWriter
 import team.unnamed.creative.server.ResourcePackServer
 import team.unnamed.creative.server.handler.ResourcePackRequestHandler
@@ -59,59 +63,39 @@ object PackyServer {
         delay(10.ticks)
     }
 
+    private val cachedPackyData = mutableMapOf<UUID, PackyData>()
     fun registerConfigPacketHandler() {
-        val key = NamespacedKey.fromString("configuration_listener", packy.plugin)
-        ChannelInitializeListenerHolder.addListener(key!!) { channel: Channel ->
-            channel.pipeline().addBefore("packet_handler", key.toString(), object : ChannelDuplexHandler() {
-                private val connection = channel.pipeline()["packet_handler"] as Connection
-                private val cachedPackyData = mutableMapOf<UUID, PackyData>()
+        packy.plugin.interceptClientbound { packet, player ->
+            if (player == null) return@interceptClientbound packet
+            if (packet !is ClientboundFinishConfigurationPacket) return@interceptClientbound packet
+            if (player.resourcePackStatus != null) return@interceptClientbound packet
+            val packyData = player.getOfflinePDC()?.decode<PackyData>() ?: return@interceptClientbound packet
 
-                override fun write(ctx: ChannelHandlerContext, packet: Any, promise: ChannelPromise) {
-                    if (packet is ClientboundFinishConfigurationPacket) {
-                        connection.player.bukkitEntity.getOfflinePDC()?.decode<PackyData>()?.apply {
-                            cachedPackyData[connection.player.uuid] = this
-                            packy.plugin.launch {
-                                val info = PackyGenerator.getOrCreateCachedPack(enabledPackIds).await().resourcePackInfo
-                                connection.send(
-                                    ClientboundResourcePackPushPacket(
-                                        info.id(), info.uri().toString(), info.hash(),
-                                        packy.config.force && !bypassForced,
-                                        Optional.of(PaperAdventure.asVanilla(packy.config.prompt.miniMsg()))
-                                    )
-                                )
-                            }
-                        } ?: ctx.write(packet, promise)
-                    } else ctx.write(packet, promise)
-                }
+            cachedPackyData[player.uniqueId] = packyData
+            packy.plugin.launch {
+                val info = PackyGenerator.getOrCreateCachedPack(packyData.enabledPackIds).await().resourcePackInfo
+                (player as CraftPlayer).handle.connection.send(
+                    ClientboundResourcePackPushPacket(
+                        info.id(), info.uri().toString(), info.hash(),
+                        packy.config.force && !packyData.bypassForced,
+                        Optional.of(PaperAdventure.asVanilla(packy.config.prompt.miniMsg()))
+                    )
+                )
+            }
 
-                override fun channelRead(ctx: ChannelHandlerContext, packet: Any) {
-                    if (packet is ServerboundResourcePackPacket && finishConfigPhase(packet.action)) {
-                        cachedPackyData[connection.player.uuid]?.let { packyData ->
-                            PackyGenerator.getCachedPack(packyData.enabledPackIds)?.resourcePackInfo?.id()
-                                ?.takeIf { it == packet.id }?.let {
-                                    // We no longer need to listen or process ClientboundFinishConfigurationPacket that we send ourselves
-                                    ctx.pipeline().remove(this)
-                                    connection.send(ClientboundFinishConfigurationPacket.INSTANCE)
-                                    cachedPackyData.remove(connection.player.uuid)
-                                    return
-                                }
-                        }
-                    }
-                    ctx.fireChannelRead(packet)
-                }
-            })
+            return@interceptClientbound null
         }
-    }
 
-    private fun finishConfigPhase(action: ServerboundResourcePackPacket.Action): Boolean {
-        return when (action) {
-            ServerboundResourcePackPacket.Action.SUCCESSFULLY_LOADED -> true
-            //TODO Figure out why SUCCESSFULLY_LOADED isnt sent and thus never completes the channelRead
-            //ServerboundResourcePackPacket.Action.DOWNLOADED -> true
-            ServerboundResourcePackPacket.Action.FAILED_DOWNLOAD -> true
-            ServerboundResourcePackPacket.Action.FAILED_RELOAD -> true
-            ServerboundResourcePackPacket.Action.DISCARDED -> true
-            else -> false
+        packy.plugin.interceptServerbound { packet, player ->
+            if (player == null) return@interceptServerbound packet
+            if (packet !is ServerboundResourcePackPacket || !packet.isTerminal) return@interceptServerbound packet
+            val packyData = cachedPackyData[player.uniqueId] ?: return@interceptServerbound packet
+            PackyGenerator.getCachedPack(packyData.enabledPackIds)?.resourcePackInfo?.id()?.takeIf { it == packet.id } ?: return@interceptServerbound packet
+
+            PlayerResourcePackStatusEvent(player, packet.id, PlayerResourcePackStatusEvent.Status.valueOf(packet.action.name)).call()
+            (player as CraftPlayer).handle.connection.send(ClientboundFinishConfigurationPacket.INSTANCE)
+            cachedPackyData.remove(player.uniqueId)
+            null
         }
     }
 
