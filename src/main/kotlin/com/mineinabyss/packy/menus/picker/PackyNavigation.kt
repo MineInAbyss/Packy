@@ -26,7 +26,7 @@ class PackySubScreen(val subMenu: PackyConfig.PackySubMenu) : PackyScreen(subMen
 typealias PackyNav = Navigator<PackyScreen>
 
 class PackyUIScope(val player: Player) {
-    var changedAction: ()-> Unit? = {}
+    var changedAction: (() -> Unit?)? = null
     val nav = PackyNav { PackyScreen.Default }
 }
 
@@ -44,7 +44,7 @@ fun PackyMainMenu(player: Player) {
         scope.nav.withScreen(setOf(player), onEmpty = owner::exit) { screen ->
             Chest(setOf(player), screen.title, Modifier.height(screen.height), onClose = {
                 owner.exit()
-                scope.changedAction.invoke()?.let {
+                scope.changedAction?.invoke()?.run {
                     packy.plugin.launch {
                         player.packyData = packyData
                         PackyServer.sendPack(player)

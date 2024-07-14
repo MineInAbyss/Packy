@@ -63,6 +63,7 @@ object PackyGenerator {
                     cachedPack.sortItemOverrides()
                     if (packy.config.obfuscate) PackObfuscator.obfuscatePack(cachedPack)
 
+                    MinecraftResourcePackWriter.minecraft().writeToZipFile(packy.plugin.dataFolder.resolve("test.zip"), cachedPack)
                     MinecraftResourcePackWriter.minecraft().build(cachedPack).let {
                         val packyPack = PackyPack(it.hash(), packy.config.server.publicUrl(it.hash(), templateIds), it)
                         cachedPacks[templateIds] = packyPack
