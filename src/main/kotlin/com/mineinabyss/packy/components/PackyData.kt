@@ -12,14 +12,20 @@ import org.bukkit.entity.Player
 
 @Serializable
 @SerialName("packy:packy_data")
-data class PackyData(val enabledPackAddons: MutableSet<PackyTemplate> = packy.templates.values.filter { !it.required && it.default }.toMutableSet(), var bypassForced: Boolean = false) {
+data class PackyData(
+    val enabledPackAddons: MutableSet<PackyTemplate> = packy.templates.values.filter { !it.required && it.default }.toMutableSet(),
+    var bypassForced: Boolean = false
+) {
     val enabledPackIds get() = enabledPackAddons.map { it.id }.toSortedSet()
 }
 
 var Player.packyData
     get() = this.toGeary().getOrSetPersisting { PackyData() }
-    set(value) { this.toGeary().setPersisting(value) }
-fun Player.removeConflictingPacks(template: PackyTemplate) : Set<PackyTemplate> {
+    set(value) {
+        this.toGeary().setPersisting(value)
+    }
+
+fun Player.removeConflictingPacks(template: PackyTemplate): Set<PackyTemplate> {
     return mutableSetOf<PackyTemplate>().apply {
         packyData.enabledPackAddons.removeIf { t ->
             t.conflictsWith(template).let { if (it) this.add(t); it }

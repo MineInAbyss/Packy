@@ -32,8 +32,6 @@ data class PackyConfig(
     @YamlComment("This will use PackSquash to automatically squash all templates")
     @EncodeDefault(ALWAYS) val packSquash: PackSquash = PackSquash(),
     @EncodeDefault(ALWAYS) val cachedPackAmount: Int = 18,
-    @Serializable(with = DurationSerializer::class)
-    @EncodeDefault(ALWAYS) val packSendDelay: Duration = 1.seconds,
     @EncodeDefault(ALWAYS) val menu: PackyMenu = PackyMenu()
 ) {
     @Serializable
@@ -49,6 +47,7 @@ data class PackyConfig(
 
     @Serializable
     data class PackyServer(
+        @YamlComment("Change this to your server's actual IP, unless on localhost")
         val ip: String = "0.0.0.0",
         val port: Int = 8082,
         val publicAddress: String = "http://$ip:$port"
