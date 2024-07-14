@@ -1,10 +1,15 @@
 package com.mineinabyss.packy
 
+import com.mineinabyss.idofront.messaging.broadcastVal
+import com.mineinabyss.idofront.messaging.logVal
+import com.mineinabyss.packy.config.PackyConfig
 import com.mineinabyss.packy.config.packy
-import com.mineinabyss.packy.helpers.VanillaPackKeys
+import com.mineinabyss.packy.helpers.VanillaKeys
 import net.kyori.adventure.key.Key
 import team.unnamed.creative.ResourcePack
 import team.unnamed.creative.atlas.AtlasSource
+import team.unnamed.creative.atlas.SingleAtlasSource
+import team.unnamed.creative.blockstate.BlockState
 import team.unnamed.creative.blockstate.MultiVariant
 import team.unnamed.creative.blockstate.Selector
 import team.unnamed.creative.blockstate.Variant
@@ -13,70 +18,83 @@ import team.unnamed.creative.model.ItemOverride
 import team.unnamed.creative.model.Model
 import team.unnamed.creative.model.ModelTexture
 import team.unnamed.creative.model.ModelTextures
-import team.unnamed.creative.serialize.minecraft.MinecraftResourcePackWriter
+import team.unnamed.creative.sound.Sound
+import team.unnamed.creative.sound.SoundRegistry
 import team.unnamed.creative.texture.Texture
 import java.util.*
 
-object PackObfuscator {
+class PackObfuscator(private val resourcePack: ResourcePack) {
 
-    private lateinit var resourcePack: ResourcePack
+    private class ObfuscatedModel(val originalModel: Model, val obfuscatedModel: Model) {
+        fun find(key: Key) = originalModel.takeIf { it.key() == key } ?: obfuscatedModel.takeIf { it.key() == key }
+    }
 
-    private class ObfuscatedModel(val originalModel: Model, val obfuscatedModel: Model)
     private class ObfuscatedTexture(
         val originalTexture: Texture,
-        val obfuscatedTexture: Texture,
-        val isItemTexture: Boolean = false
-    )
+        val obfuscatedTexture: Texture
+    ) {
+        fun find(key: Key) = originalTexture.takeIf { it.key() == key } ?: obfuscatedTexture.takeIf { it.key() == key }
+    }
+
+    private class ObfuscatedSound(val originalSound: Sound, val obfuscatedSound: Sound) {
+        fun find(key: Key) = originalSound.takeIf { it.key() == key } ?: obfuscatedSound.takeIf { it.key() == key }
+    }
 
     private val obfuscatedModels = mutableSetOf<ObfuscatedModel>()
     private val obfuscatedTextures = mutableSetOf<ObfuscatedTexture>()
+    private val obfuscatedSounds = mutableSetOf<ObfuscatedSound>()
 
-    fun obfuscatePack(resourcePack: ResourcePack) {
+    private fun Set<ObfuscatedModel>.findObf(key: Key) = firstOrNull { it.find(key) != null }?.obfuscatedModel
+    private fun Set<ObfuscatedTexture>.findObf(key: Key) = firstOrNull { it.find(key) != null }?.obfuscatedTexture
+    private fun Set<ObfuscatedSound>.findObf(key: Key) = firstOrNull { it.find(key) != null }?.obfuscatedSound
+
+    fun obfuscatePack() {
+        if (packy.config.obfuscation == PackyConfig.ObfuscationType.NONE) return
         packy.logger.i("Obfuscating pack...")
-        PackObfuscator.resourcePack = resourcePack
+
         obfuscatedModels.clear()
         obfuscatedTextures.clear()
 
         obfuscateModels()
         obfuscateFonts()
         obfuscateTextures()
-        MinecraftResourcePackWriter.minecraft().writeToZipFile(packy.plugin.dataFolder.resolve("obfuscated.zip"), resourcePack)
+        obfuscateSounds()
+
         packy.logger.s("Finished obfuscating pack!")
     }
 
     private fun obfuscateModels() {
-        resourcePack.models().mapNotNull { it }.forEach { obfuscateModel(it) }
+        resourcePack.models().filterNotNull().forEach { obfuscateModel(it) }
 
-        obfuscatedModels.map { it.originalModel.key() }.forEach(resourcePack::removeModel)
-        obfuscatedModels.map { it.obfuscatedModel }.toSet().forEach(resourcePack::model)
+        obfuscatedModels.forEach {
+            resourcePack.removeModel(it.originalModel.key())
+            it.obfuscatedModel.addTo(resourcePack)
+        }
+
         obfuscateBlockStates()
     }
 
-    private fun obfuscateModel(model: Model): Model {
-        return when {
-            model.key() in VanillaPackKeys.defaultModels -> model.obfuscateOverrides()
-            else -> model.obfuscateModelTextures().obfuscate()
-        }
-    }
+    private fun obfuscateBlockStates() {
+        resourcePack.blockStates().filterNotNull().forEach { blockState ->
+            val multiparts = blockState.multipart().map {
+                Selector.of(it.condition(), MultiVariant.of(it.variant().variants().map { v -> v.obfuscateVariant() }))
+            }
 
-    private fun Model.obfuscateModelTextures(): Model {
-        val layers = textures().layers().filterNotNull().filter { it.key() != null }.map { modelTexture ->
-            obfuscateItemTexture(modelTexture)?.keyNoPng?.let { ModelTexture.ofKey(it) } ?: modelTexture
-        }
-        val variables = textures().variables().map { variable ->
-            variable.key to (obfuscateItemTexture(variable.value)?.keyNoPng?.let { ModelTexture.ofKey(it) } ?: variable.value)
-        }.toMap()
+            val variants = blockState.variants().map {
+                it.key to MultiVariant.of(it.value.variants().map { v -> v.obfuscateVariant() })
+            }.toMap()
 
-        val particle = textures().particle()?.let { p -> obfuscateItemTexture(p)?.keyNoPng?.let { ModelTexture.ofKey(it) } ?: p }
-        val modelTextures = ModelTextures.builder().layers(layers).variables(variables).particle(particle).build()
-        return this.toBuilder().textures(modelTextures).build()
+            BlockState.of(blockState.key(), variants, multiparts).addTo(resourcePack)
+        }
     }
 
     private fun obfuscateFonts() {
         resourcePack.fonts().mapNotNull { it }.map { font ->
             font.providers(font.providers().filterNotNull().map { provider ->
                 when (provider) {
-                    is BitMapFontProvider -> provider.toBuilder().file(obfuscateFontTexture(provider)?.key() ?: provider.file()).build()
+                    is BitMapFontProvider -> provider.toBuilder()
+                        .file(obfuscateFontTexture(provider)?.key() ?: provider.file()).build()
+
                     else -> provider
                 }
             })
@@ -89,60 +107,107 @@ object PackObfuscator {
             resourcePack.texture(it.obfuscatedTexture)
         }
 
-        // Obfuscate the atlas sources
-        resourcePack.atlases().filterNotNull().map { atlas ->
-            atlas.toBuilder().sources(obfuscatedTextures.filter { it.isItemTexture }.map { it.obfuscatedTexture.keyNoPng }.map(AtlasSource::single)).build()
+        obfuscateAtlases()
+    }
+
+    private fun obfuscateAtlases() {
+        resourcePack.atlases().map { atlas ->
+            val nonSingleSources = atlas.sources().filterNot { it is SingleAtlasSource }.toMutableList()
+            val obfSources = atlas.sources().filterIsInstance<SingleAtlasSource>().map { s ->
+                obfuscatedTextures.firstOrNull { it.find(s.resource()) != null }?.let {
+                    AtlasSource.single(it.obfuscatedTexture.key().removeSuffix(".png"))
+                } ?: s
+            }
+
+            nonSingleSources += obfSources
+            atlas.toBuilder().sources(nonSingleSources).build()
         }.forEach(resourcePack::atlas)
     }
 
-    private fun obfuscateBlockStates() {
-        resourcePack.blockStates().filterNotNull().forEach { blockState ->
-            val multiparts = blockState.multipart().map {
-                Selector.of(it.condition(), MultiVariant.of(it.variant().variants().map { v -> v.obfuscateVariant() }))
-            }
-            blockState.multipart().clear()
-            blockState.multipart().addAll(multiparts)
+    private fun obfuscateSounds() {
+        resourcePack.sounds().map { sound ->
+            val obfSound = Sound.sound(sound.key().obfuscateKey(), sound.data())
+            obfuscatedSounds += ObfuscatedSound(sound, obfSound)
+            return@map obfSound
+        }.toList().forEach(resourcePack::sound)
 
-            val variants = blockState.variants().map {
-                it.key to MultiVariant.of(it.value.variants().map { v -> v.obfuscateVariant() })
-            }
-            blockState.variants().clear()
-            blockState.variants().putAll(variants)
-            resourcePack.blockState(blockState)
+        resourcePack.soundRegistries().map soundRegistries@{ soundRegistry ->
+            SoundRegistry.soundRegistry(
+                soundRegistry.namespace(),
+                soundRegistry.sounds().map soundEvents@{ soundEvent ->
+                    soundEvent.toBuilder().sounds(soundEvent.sounds().map soundEntries@{ soundEntry ->
+                        obfuscatedSounds.findObf(soundEntry.key())?.let {
+                            soundEntry.toBuilder().key(it.key()).build()
+                        } ?: soundEntry
+                    }).build()
+                }).addTo(resourcePack)
         }
+
+        obfuscatedSounds.forEach {
+            resourcePack.removeSound(it.originalSound.key())
+            it.obfuscatedSound.addTo(resourcePack)
+        }
+    }
+
+
+    private fun obfuscateModel(model: Model) =
+        obfuscatedModels.findObf(model.key()) ?: model.obfuscateModelTextures().obfuscateOverrides()
+
+    private fun Model.obfuscateModelTextures(): Model {
+        obfuscatedModels.findObf(this.key())?.let { return it }
+        val layers = textures().layers().filter { it.key() != null }.map { modelTexture ->
+            obfuscateItemTexture(modelTexture)?.key()?.let { ModelTexture.ofKey(it) } ?: modelTexture
+        }
+        val variables = textures().variables().map { variable ->
+            variable.key to (obfuscateItemTexture(variable.value)?.key()
+                ?.let(ModelTexture::ofKey) ?: variable.value)
+        }.toMap()
+
+        val particle = textures().particle()
+            ?.let { p -> obfuscateItemTexture(p)?.key()?.let { ModelTexture.ofKey(it) } ?: p }
+        val modelTextures = ModelTextures.builder().layers(layers).variables(variables).particle(particle).build()
+        return this.toBuilder().textures(modelTextures).build()
     }
 
     private fun Variant.obfuscateVariant(): Variant {
         return Variant.builder()
-            .model(obfuscatedModels.find { it.originalModel.key() == model() }?.obfuscatedModel?.key() ?: model())
+            .model(obfuscatedModels.findObf(model())?.key() ?: model())
             .uvLock(uvLock()).weight(weight()).x(x()).y(y()).build()
     }
 
-    private val Texture.keyNoPng get() = key().removeSuffix(".png")
+    private fun Model.obfuscateOverrides(): Model = obfuscatedModels.findObf(key()) ?: toBuilder().overrides(
+        overrides().filterNotNull().map { override ->
+            if (VanillaKeys.isVanilla(override.model())) return@map override
+            val modelKey = obfuscatedModels.findObf(override.model())?.key()
+                ?: resourcePack.takeUnless { override.model() == this.key() }?.model(override.model())?.let { obfuscateModel(it) }?.key()
+                ?: override.model()
+
+            return@map ItemOverride.of(modelKey, override.predicate())
+        }
+    ).key(key().takeUnless(VanillaKeys::isVanilla)?.obfuscateKey() ?: key()).build()
+        .also { obfuscatedModels += ObfuscatedModel(this@obfuscateOverrides, it) }
+
+
     private fun Key.removeSuffix(suffix: String) = Key.key(asString().removeSuffix(suffix))
+    private fun Key.appendSuffix(suffix: String) = Key.key(asString().removeSuffix(suffix).plus(suffix))
 
-    private fun Model.obfuscate() = this.obfuscateOverrides().toBuilder().key(Key.key(UUID.randomUUID().toString())).build()
-        .apply { obfuscatedModels += ObfuscatedModel(this@obfuscate, this) }
-    private fun Model.obfuscateOverrides() = toBuilder().overrides(overrides().filterNotNull().map { override ->
-        if (override.model() in VanillaPackKeys.defaultModels) return@map override
-        ItemOverride.of((resourcePack.models().find { it.key() == override.model() }?.let { obfuscateModel(it) }
-            ?: obfuscatedModels.find { it.originalModel.key() == override.model() || it.obfuscatedModel.key() == override.model() }?.obfuscatedModel
-            ?: override.model()).key(), override.predicate())
-    }).build().apply { obfuscatedModels += ObfuscatedModel(this@obfuscateOverrides, this) }
-
-    private fun Texture.obfuscate(isItemTexture: Boolean) =
-        this.toBuilder().key(Key.key(UUID.randomUUID().toString() + ".png")).build()
-            .apply { obfuscatedTextures += ObfuscatedTexture(this@obfuscate, this, isItemTexture) }
+    private fun Texture.obfuscate() =
+        this.toBuilder().key(this.key().obfuscateKey()).build()
+            .also { obfuscatedTextures += ObfuscatedTexture(this@obfuscate, it) }
 
     private fun obfuscateItemTexture(modelTexture: ModelTexture): Texture? {
-        val keyPng = modelTexture.key()?.let { Key.key(it.removeSuffix(".png").asString() + ".png") }
-        return obfuscatedTextures.find { it.originalTexture.key() == keyPng }?.obfuscatedTexture
-            ?: resourcePack.textures().find { it.key() == keyPng }?.obfuscate(true)
+        val keyPng = modelTexture.key()?.removeSuffix(".png") ?: return null
+        return obfuscatedTextures.findObf(keyPng) ?: resourcePack.texture(keyPng)?.obfuscate()
     }
 
     private fun obfuscateFontTexture(provider: BitMapFontProvider): Texture? {
-        val keyPng = Key.key(provider.file().removeSuffix(".png").asString() + ".png")
-        return obfuscatedTextures.find { it.originalTexture.key() == keyPng }?.obfuscatedTexture
-            ?: resourcePack.textures().find { it.key() == keyPng }?.obfuscate(false)
+        val keyPng = provider.file().appendSuffix(".png")
+        return obfuscatedTextures.findObf(keyPng) ?: resourcePack.texture(keyPng)?.obfuscate()
     }
+
+    private fun Key.obfuscateKey() = when (packy.config.obfuscation) {
+        PackyConfig.ObfuscationType.NONE -> this
+        PackyConfig.ObfuscationType.FULL -> Key.key(UUID.randomUUID().toString(), UUID.randomUUID().toString())
+        PackyConfig.ObfuscationType.SIMPLE -> Key.key(this.namespace(), UUID.randomUUID().toString())
+    }.let { if (asString().endsWith(".png")) it.appendSuffix(".png") else it.removeSuffix(".png") }
 }
