@@ -28,12 +28,22 @@ data class PackyConfig(
     @EncodeDefault(ALWAYS) val server: PackyServer = PackyServer(),
     @EncodeDefault(ALWAYS) val prompt: String = "",
     @EncodeDefault(ALWAYS) val force: Boolean = false,
-    @EncodeDefault(ALWAYS) val obfuscate: Boolean = false,
+    @YamlComment("What ObfuscationType to use, valid options are FULL, SIMPLE & NONE")
+    @EncodeDefault(ALWAYS) val obfuscation: ObfuscationType = ObfuscationType.FULL,
     @YamlComment("This will use PackSquash to automatically squash all templates")
     @EncodeDefault(ALWAYS) val packSquash: PackSquash = PackSquash(),
-    @EncodeDefault(ALWAYS) val cachedPackAmount: Int = 18,
+    @YamlComment(
+        "The amount of TemplateID combinations Packy should cache the ResourcePack off",
+        "If your ResourcePack is large it is recommended to lower this value"
+    )
+    @EncodeDefault(ALWAYS) val cachedPackAmount: Int = 10,
     @EncodeDefault(ALWAYS) val menu: PackyMenu = PackyMenu()
 ) {
+
+    enum class ObfuscationType {
+        FULL, SIMPLE, NONE
+    }
+
     @Serializable
     data class PackSquash(
         val enabled: Boolean = false,
