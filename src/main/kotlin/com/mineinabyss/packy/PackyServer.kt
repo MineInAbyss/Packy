@@ -4,7 +4,6 @@ import com.github.shynixn.mccoroutine.bukkit.launch
 import com.github.shynixn.mccoroutine.bukkit.ticks
 import com.mineinabyss.geary.papermc.datastore.decode
 import com.mineinabyss.idofront.events.call
-import com.mineinabyss.idofront.messaging.broadcast
 import com.mineinabyss.idofront.nms.interceptClientbound
 import com.mineinabyss.idofront.nms.interceptServerbound
 import com.mineinabyss.idofront.nms.nbt.getOfflinePDC
@@ -13,12 +12,7 @@ import com.mineinabyss.packy.components.PackyData
 import com.mineinabyss.packy.components.packyData
 import com.mineinabyss.packy.config.packy
 import com.mineinabyss.packy.helpers.TemplateIds
-import io.netty.channel.Channel
-import io.netty.channel.ChannelDuplexHandler
-import io.netty.channel.ChannelHandlerContext
-import io.netty.channel.ChannelPromise
 import io.papermc.paper.adventure.PaperAdventure
-import io.papermc.paper.network.ChannelInitializeListenerHolder
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import net.kyori.adventure.resource.ResourcePackRequest
@@ -26,13 +20,17 @@ import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.format.NamedTextColor
 import net.minecraft.network.Connection
 import net.minecraft.network.protocol.Packet
-import net.minecraft.network.protocol.common.ClientboundDisconnectPacket
-import net.minecraft.network.protocol.common.ClientboundResourcePackPopPacket
+import net.minecraft.network.protocol.common.ClientboundPingPacket
 import net.minecraft.network.protocol.common.ClientboundResourcePackPushPacket
 import net.minecraft.network.protocol.common.ServerboundResourcePackPacket
 import net.minecraft.network.protocol.configuration.ClientboundFinishConfigurationPacket
-import org.bukkit.NamespacedKey
-import org.bukkit.craftbukkit.entity.CraftPlayer
+import net.minecraft.network.protocol.configuration.ClientboundSelectKnownPacks
+import net.minecraft.network.protocol.ping.ServerboundPingRequestPacket
+import net.minecraft.server.MinecraftServer
+import net.minecraft.server.network.ConfigurationTask
+import net.minecraft.server.network.ServerConfigurationPacketListenerImpl
+import net.minecraft.server.network.config.ServerResourcePackConfigurationTask
+import org.bukkit.craftbukkit.CraftServer
 import org.bukkit.entity.Player
 import org.bukkit.event.player.PlayerResourcePackStatusEvent
 import team.unnamed.creative.serialize.minecraft.MinecraftResourcePackWriter
@@ -54,7 +52,7 @@ object PackyServer {
         player.sendResourcePacks(ResourcePackRequest.resourcePackRequest()
             .packs(resourcePack.resourcePackInfo).replace(true)
             .required(packy.config.force && !player.packyData.bypassForced)
-            .prompt(packy.config.prompt.miniMsg())
+            .prompt(packy.config.prompt?.miniMsg())
         )
     }
 
@@ -67,46 +65,39 @@ object PackyServer {
         delay(10.ticks)
     }
 
-    private val cachedPackyData = mutableMapOf<UUID, PackyData>()
+    private val configurationTasks = ServerConfigurationPacketListenerImpl::class.java.getDeclaredField("configurationTasks").apply { isAccessible = true }
+    private val startNextTaskMethod = ServerConfigurationPacketListenerImpl::class.java.getDeclaredMethod("startNextTask").apply { isAccessible = true }
     fun registerConfigPacketHandler() {
-        packy.plugin.interceptClientbound { packet: Packet<*>, connection: Connection ->
-            if (packet !is ClientboundFinishConfigurationPacket) return@interceptClientbound packet
-            val player = connection.player?.bukkitEntity ?: return@interceptClientbound packet
-            if (player.resourcePackStatus != null) return@interceptClientbound packet
-            val packyData = player.getOfflinePDC()?.decode<PackyData>() ?: return@interceptClientbound packet
 
-            cachedPackyData[player.uniqueId] = packyData
+        packy.plugin.interceptClientbound { packet: Packet<*>, connection: Connection ->
+            if (packet !is ClientboundSelectKnownPacks) return@interceptClientbound packet
+            val configListener = connection.packetListener as? ServerConfigurationPacketListenerImpl ?: return@interceptClientbound packet
+            val player = connection.player?.bukkitEntity ?: return@interceptClientbound packet
+            val packyData = player.getOfflinePDC()?.decode<PackyData>() ?: return@interceptClientbound packet
+            val taskQueue = configurationTasks.get(configListener) as? Queue<ConfigurationTask> ?: return@interceptClientbound packet
+
+            // Removes the JoinWorldTask from the Queue
+            val headTask = taskQueue.poll()
+
+            // Runs next tick, after the queue progresses and is empty
             packy.plugin.launch {
                 val info = PackyGenerator.getOrCreateCachedPack(packyData.enabledPackIds).await().resourcePackInfo
-                connection.send(
-                    ClientboundResourcePackPushPacket(
-                        info.id(), info.uri().toString(), info.hash(),
-                        packy.config.force && !packyData.bypassForced,
-                        Optional.of(PaperAdventure.asVanilla(packy.config.prompt.miniMsg()))
-                    )
+                taskQueue.add(
+                    ServerResourcePackConfigurationTask(
+                        MinecraftServer.ServerResourcePackInfo(
+                            info.id(), info.uri().toString(), info.hash(),
+                            packy.config.force && !packyData.bypassForced,
+                            PaperAdventure.asVanilla(packy.config.prompt?.miniMsg())
+                        ))
                 )
+
+                headTask?.let(taskQueue::add)
+                startNextTaskMethod.invoke(configListener)
             }
 
-            return@interceptClientbound null
-        }
-
-        packy.plugin.interceptServerbound { packet: Packet<*>, connection: Connection ->
-            if (packet !is ServerboundResourcePackPacket || !packet.action.isTerminal) return@interceptServerbound packet
-            val player = connection.player?.bukkitEntity ?: return@interceptServerbound packet
-            val packyData = cachedPackyData[player.uniqueId] ?: return@interceptServerbound packet
-            val status = PlayerResourcePackStatusEvent.Status.entries.find { it.name == packet.action.name } ?: return@interceptServerbound packet
-            PackyGenerator.getCachedPack(packyData.enabledPackIds)?.resourcePackInfo?.id()?.takeIf { it == packet.id } ?: return@interceptServerbound packet
-
-            // Manually call event and change player-status over sending the packet
-            // Doing so causes some error with syncing tasks and this does effectively the same
-            player.resourcePackStatus = status
-            packy.plugin.launch {
-                PlayerResourcePackStatusEvent(player, packet.id, status).call()
-            }
-            connection.send(ClientboundFinishConfigurationPacket.INSTANCE)
-            cachedPackyData.remove(player.uniqueId)
-
-            return@interceptServerbound null
+            // Returns the ClientboundSelectKnownPacks packet, which causes the queue to continue
+            // Since it is now empty it does nothing, until our coroutine finishes and triggers startNextTask
+            return@interceptClientbound packet
         }
     }
 

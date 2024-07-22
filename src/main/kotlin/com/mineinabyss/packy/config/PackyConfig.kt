@@ -1,6 +1,5 @@
 package com.mineinabyss.packy.config
 
-import co.touchlab.kermit.Severity
 import com.charleskorn.kaml.YamlComment
 import com.mineinabyss.guiy.modifiers.Modifier
 import com.mineinabyss.guiy.modifiers.placement.absolute.at
@@ -14,6 +13,7 @@ import kotlinx.serialization.EncodeDefault.Mode.ALWAYS
 import kotlinx.serialization.EncodeDefault.Mode.NEVER
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.Serializable
+import net.kyori.adventure.resource.ResourcePackStatus
 import org.bukkit.Bukkit
 import org.bukkit.Material
 import org.bukkit.inventory.ItemStack
@@ -26,7 +26,7 @@ data class PackyConfig(
     @EncodeDefault(ALWAYS) val mcmeta: PackyMcMeta = PackyMcMeta(),
     @EncodeDefault(ALWAYS) val icon: String = "pack.png",
     @EncodeDefault(ALWAYS) val server: PackyServer = PackyServer(),
-    @EncodeDefault(ALWAYS) val prompt: String = "",
+    @EncodeDefault(ALWAYS) val prompt: String? = null,
     @EncodeDefault(ALWAYS) val force: Boolean = false,
     @YamlComment("What ObfuscationType to use, valid options are FULL, SIMPLE & NONE")
     @EncodeDefault(ALWAYS) val obfuscation: ObfuscationType = ObfuscationType.FULL,
