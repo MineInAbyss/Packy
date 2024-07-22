@@ -24,7 +24,13 @@ import net.minecraft.network.protocol.common.ClientboundPingPacket
 import net.minecraft.network.protocol.common.ClientboundResourcePackPushPacket
 import net.minecraft.network.protocol.common.ServerboundResourcePackPacket
 import net.minecraft.network.protocol.configuration.ClientboundFinishConfigurationPacket
+import net.minecraft.network.protocol.configuration.ClientboundSelectKnownPacks
 import net.minecraft.network.protocol.ping.ServerboundPingRequestPacket
+import net.minecraft.server.MinecraftServer
+import net.minecraft.server.network.ConfigurationTask
+import net.minecraft.server.network.ServerConfigurationPacketListenerImpl
+import net.minecraft.server.network.config.ServerResourcePackConfigurationTask
+import org.bukkit.craftbukkit.CraftServer
 import org.bukkit.entity.Player
 import org.bukkit.event.player.PlayerResourcePackStatusEvent
 import team.unnamed.creative.serialize.minecraft.MinecraftResourcePackWriter
@@ -46,7 +52,7 @@ object PackyServer {
         player.sendResourcePacks(ResourcePackRequest.resourcePackRequest()
             .packs(resourcePack.resourcePackInfo).replace(true)
             .required(packy.config.force && !player.packyData.bypassForced)
-            .prompt(packy.config.prompt.miniMsg())
+            .prompt(packy.config.prompt?.miniMsg())
         )
     }
 
@@ -59,50 +65,39 @@ object PackyServer {
         delay(10.ticks)
     }
 
-    private val cachedPackyData = mutableMapOf<UUID, PackyData>()
+    private val configurationTasks = ServerConfigurationPacketListenerImpl::class.java.getDeclaredField("configurationTasks").apply { isAccessible = true }
+    private val startNextTaskMethod = ServerConfigurationPacketListenerImpl::class.java.getDeclaredMethod("startNextTask").apply { isAccessible = true }
     fun registerConfigPacketHandler() {
-        if (!packy.config.dispatch.sendPreJoin) return
+
         packy.plugin.interceptClientbound { packet: Packet<*>, connection: Connection ->
-            if (packet !is ClientboundFinishConfigurationPacket) return@interceptClientbound packet
+            if (packet !is ClientboundSelectKnownPacks) return@interceptClientbound packet
+            val configListener = connection.packetListener as? ServerConfigurationPacketListenerImpl ?: return@interceptClientbound packet
             val player = connection.player?.bukkitEntity ?: return@interceptClientbound packet
-            if (player.resourcePackStatus != null) return@interceptClientbound packet
             val packyData = player.getOfflinePDC()?.decode<PackyData>() ?: return@interceptClientbound packet
+            val taskQueue = configurationTasks.get(configListener) as? Queue<ConfigurationTask> ?: return@interceptClientbound packet
 
-            if (packy.config.dispatch.sendPreJoinOnCached && PackyGenerator.getCachedPack(packyData.enabledPackIds) == null)
-                return@interceptClientbound packet
+            // Removes the JoinWorldTask from the Queue
+            val headTask = taskQueue.poll()
 
-            cachedPackyData[player.uniqueId] = packyData
+            // Runs next tick, after the queue progresses and is empty
             packy.plugin.launch {
                 val info = PackyGenerator.getOrCreateCachedPack(packyData.enabledPackIds).await().resourcePackInfo
-                connection.send(
-                    ClientboundResourcePackPushPacket(
-                        info.id(), info.uri().toString(), info.hash(),
-                        packy.config.force && !packyData.bypassForced,
-                        Optional.of(PaperAdventure.asVanilla(packy.config.prompt.miniMsg()))
-                    )
+                taskQueue.add(
+                    ServerResourcePackConfigurationTask(
+                        MinecraftServer.ServerResourcePackInfo(
+                            info.id(), info.uri().toString(), info.hash(),
+                            packy.config.force && !packyData.bypassForced,
+                            PaperAdventure.asVanilla(packy.config.prompt?.miniMsg())
+                        ))
                 )
+
+                headTask?.let(taskQueue::add)
+                startNextTaskMethod.invoke(configListener)
             }
 
-            return@interceptClientbound null
-        }
-
-        packy.plugin.interceptServerbound { packet: Packet<*>, connection: Connection ->
-            if (packet !is ServerboundResourcePackPacket || !packet.action.isTerminal) return@interceptServerbound packet
-            val player = connection.player?.bukkitEntity ?: return@interceptServerbound packet
-            val packyData = cachedPackyData[player.uniqueId] ?: return@interceptServerbound packet
-            val status = PlayerResourcePackStatusEvent.Status.entries.find { it.name == packet.action.name } ?: return@interceptServerbound packet
-            PackyGenerator.getCachedPack(packyData.enabledPackIds)?.resourcePackInfo?.id()?.takeIf { it == packet.id } ?: return@interceptServerbound packet
-
-            // Manually call event and change player-status over sending the packet
-            // Doing so causes some error with syncing tasks and this does effectively the same
-            player.resourcePackStatus = status
-            packy.plugin.launch {
-                PlayerResourcePackStatusEvent(player, packet.id, status).call()
-            }
-            connection.send(ClientboundFinishConfigurationPacket.INSTANCE)
-            cachedPackyData.remove(player.uniqueId)
-
-            return@interceptServerbound null
+            // Returns the ClientboundSelectKnownPacks packet, which causes the queue to continue
+            // Since it is now empty it does nothing, until our coroutine finishes and triggers startNextTask
+            return@interceptClientbound packet
         }
     }
 

@@ -26,8 +26,7 @@ data class PackyConfig(
     @EncodeDefault(ALWAYS) val mcmeta: PackyMcMeta = PackyMcMeta(),
     @EncodeDefault(ALWAYS) val icon: String = "pack.png",
     @EncodeDefault(ALWAYS) val server: PackyServer = PackyServer(),
-    @EncodeDefault(ALWAYS) val dispatch: PackyDispatch = PackyDispatch(),
-    @EncodeDefault(ALWAYS) val prompt: String = "",
+    @EncodeDefault(ALWAYS) val prompt: String? = null,
     @EncodeDefault(ALWAYS) val force: Boolean = false,
     @YamlComment("What ObfuscationType to use, valid options are FULL, SIMPLE & NONE")
     @EncodeDefault(ALWAYS) val obfuscation: ObfuscationType = ObfuscationType.FULL,
@@ -40,16 +39,6 @@ data class PackyConfig(
     @EncodeDefault(ALWAYS) val cachedPackAmount: Int = 10,
     @EncodeDefault(ALWAYS) val menu: PackyMenu = PackyMenu()
 ) {
-
-    @Serializable
-    data class PackyDispatch(
-        @YamlComment("Sends the pack before the player loads into the world")
-        val sendPreJoin: Boolean = true,
-        @YamlComment("If the pack has been generated and cached, allow pre-join dispatch")
-        val sendPreJoinOnCached: Boolean = true,
-        @YamlComment("The delay to wait before sending the pack")
-        val sendDelay: @Serializable(DurationSerializer::class) Duration = 0.seconds
-    )
 
     enum class ObfuscationType {
         FULL, SIMPLE, NONE
