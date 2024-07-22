@@ -65,7 +65,6 @@ object PackyGenerator {
                     PackObfuscator(cachedPack).obfuscatePack()
 
                     val builtPack = MinecraftResourcePackWriter.minecraft().build(cachedPack)
-                    MinecraftResourcePackWriter.minecraft().writeToZipFile(packy.plugin.dataFolder.toPath().resolve("test.zip"), cachedPack)
                     PackyPack(builtPack, templateIds).apply {
                         cachedPacks[templateIds] = this
                         cachedPacksByteArray[templateIds] = builtPack.data().toByteArray()
