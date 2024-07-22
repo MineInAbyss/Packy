@@ -1,6 +1,5 @@
 package com.mineinabyss.packy.config
 
-import co.touchlab.kermit.Severity
 import com.charleskorn.kaml.YamlComment
 import com.mineinabyss.guiy.modifiers.Modifier
 import com.mineinabyss.guiy.modifiers.placement.absolute.at
@@ -14,6 +13,7 @@ import kotlinx.serialization.EncodeDefault.Mode.ALWAYS
 import kotlinx.serialization.EncodeDefault.Mode.NEVER
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.Serializable
+import net.kyori.adventure.resource.ResourcePackStatus
 import org.bukkit.Bukkit
 import org.bukkit.Material
 import org.bukkit.inventory.ItemStack
@@ -26,6 +26,7 @@ data class PackyConfig(
     @EncodeDefault(ALWAYS) val mcmeta: PackyMcMeta = PackyMcMeta(),
     @EncodeDefault(ALWAYS) val icon: String = "pack.png",
     @EncodeDefault(ALWAYS) val server: PackyServer = PackyServer(),
+    @EncodeDefault(ALWAYS) val dispatch: PackyDispatch = PackyDispatch(),
     @EncodeDefault(ALWAYS) val prompt: String = "",
     @EncodeDefault(ALWAYS) val force: Boolean = false,
     @YamlComment("What ObfuscationType to use, valid options are FULL, SIMPLE & NONE")
@@ -39,6 +40,16 @@ data class PackyConfig(
     @EncodeDefault(ALWAYS) val cachedPackAmount: Int = 10,
     @EncodeDefault(ALWAYS) val menu: PackyMenu = PackyMenu()
 ) {
+
+    @Serializable
+    data class PackyDispatch(
+        @YamlComment("Sends the pack before the player loads into the world")
+        val sendPreJoin: Boolean = true,
+        @YamlComment("If the pack has been generated and cached, allow pre-join dispatch")
+        val sendPreJoinOnCached: Boolean = true,
+        @YamlComment("The delay to wait before sending the pack")
+        val sendDelay: @Serializable(DurationSerializer::class) Duration = 0.seconds
+    )
 
     enum class ObfuscationType {
         FULL, SIMPLE, NONE

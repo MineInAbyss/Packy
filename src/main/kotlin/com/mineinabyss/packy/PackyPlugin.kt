@@ -12,12 +12,20 @@ import com.mineinabyss.idofront.config.config
 import com.mineinabyss.idofront.di.DI
 import com.mineinabyss.idofront.messaging.observeLogger
 import com.mineinabyss.idofront.nms.PacketListener
+import com.mineinabyss.idofront.nms.interceptClientbound
+import com.mineinabyss.idofront.nms.interceptServerbound
 import com.mineinabyss.idofront.plugin.listeners
 import com.mineinabyss.packy.config.*
 import com.mineinabyss.packy.listener.PlayerListener
 import com.mineinabyss.packy.listener.TemplateLoadTriggers
 import kotlinx.coroutines.Job
 import kotlinx.serialization.modules.EmptySerializersModule
+import net.minecraft.network.Connection
+import net.minecraft.network.protocol.Packet
+import net.minecraft.network.protocol.common.ClientboundPingPacket
+import net.minecraft.network.protocol.ping.ServerboundPingRequestPacket
+import net.minecraft.network.protocol.status.ClientboundStatusResponsePacket
+import net.minecraft.network.protocol.status.ServerboundStatusRequestPacket
 import org.bukkit.plugin.java.JavaPlugin
 import team.unnamed.creative.ResourcePack
 

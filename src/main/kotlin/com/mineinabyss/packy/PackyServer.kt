@@ -4,7 +4,6 @@ import com.github.shynixn.mccoroutine.bukkit.launch
 import com.github.shynixn.mccoroutine.bukkit.ticks
 import com.mineinabyss.geary.papermc.datastore.decode
 import com.mineinabyss.idofront.events.call
-import com.mineinabyss.idofront.messaging.broadcast
 import com.mineinabyss.idofront.nms.interceptClientbound
 import com.mineinabyss.idofront.nms.interceptServerbound
 import com.mineinabyss.idofront.nms.nbt.getOfflinePDC
@@ -13,12 +12,7 @@ import com.mineinabyss.packy.components.PackyData
 import com.mineinabyss.packy.components.packyData
 import com.mineinabyss.packy.config.packy
 import com.mineinabyss.packy.helpers.TemplateIds
-import io.netty.channel.Channel
-import io.netty.channel.ChannelDuplexHandler
-import io.netty.channel.ChannelHandlerContext
-import io.netty.channel.ChannelPromise
 import io.papermc.paper.adventure.PaperAdventure
-import io.papermc.paper.network.ChannelInitializeListenerHolder
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import net.kyori.adventure.resource.ResourcePackRequest
@@ -26,13 +20,11 @@ import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.format.NamedTextColor
 import net.minecraft.network.Connection
 import net.minecraft.network.protocol.Packet
-import net.minecraft.network.protocol.common.ClientboundDisconnectPacket
-import net.minecraft.network.protocol.common.ClientboundResourcePackPopPacket
+import net.minecraft.network.protocol.common.ClientboundPingPacket
 import net.minecraft.network.protocol.common.ClientboundResourcePackPushPacket
 import net.minecraft.network.protocol.common.ServerboundResourcePackPacket
 import net.minecraft.network.protocol.configuration.ClientboundFinishConfigurationPacket
-import org.bukkit.NamespacedKey
-import org.bukkit.craftbukkit.entity.CraftPlayer
+import net.minecraft.network.protocol.ping.ServerboundPingRequestPacket
 import org.bukkit.entity.Player
 import org.bukkit.event.player.PlayerResourcePackStatusEvent
 import team.unnamed.creative.serialize.minecraft.MinecraftResourcePackWriter
@@ -69,11 +61,15 @@ object PackyServer {
 
     private val cachedPackyData = mutableMapOf<UUID, PackyData>()
     fun registerConfigPacketHandler() {
+        if (!packy.config.dispatch.sendPreJoin) return
         packy.plugin.interceptClientbound { packet: Packet<*>, connection: Connection ->
             if (packet !is ClientboundFinishConfigurationPacket) return@interceptClientbound packet
             val player = connection.player?.bukkitEntity ?: return@interceptClientbound packet
             if (player.resourcePackStatus != null) return@interceptClientbound packet
             val packyData = player.getOfflinePDC()?.decode<PackyData>() ?: return@interceptClientbound packet
+
+            if (packy.config.dispatch.sendPreJoinOnCached && PackyGenerator.getCachedPack(packyData.enabledPackIds) == null)
+                return@interceptClientbound packet
 
             cachedPackyData[player.uniqueId] = packyData
             packy.plugin.launch {
