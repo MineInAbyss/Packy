@@ -2,15 +2,14 @@ package com.mineinabyss.packy
 
 import com.github.shynixn.mccoroutine.bukkit.asyncDispatcher
 import com.github.shynixn.mccoroutine.bukkit.launch
-import com.mineinabyss.idofront.messaging.logVal
 import com.mineinabyss.idofront.textcomponents.miniMsg
 import com.mineinabyss.packy.components.PackyPack
+import com.mineinabyss.packy.config.PackyTemplate
 import com.mineinabyss.packy.config.packy
 import com.mineinabyss.packy.helpers.CacheMap
 import com.mineinabyss.packy.helpers.TemplateIds
 import com.mineinabyss.packy.helpers.readPack
 import kotlinx.coroutines.*
-import net.kyori.adventure.key.Key
 import team.unnamed.creative.ResourcePack
 import team.unnamed.creative.base.Writable
 import team.unnamed.creative.serialize.minecraft.MinecraftResourcePackWriter
@@ -24,7 +23,7 @@ object PackyGenerator {
     val cachedPacks: CacheMap<TemplateIds, PackyPack> = CacheMap(packy.config.cachedPackAmount)
     val cachedPacksByteArray: CacheMap<TemplateIds, ByteArray> = CacheMap(packy.config.cachedPackAmount)
 
-    fun setupForcedPackFiles() {
+    fun setupRequiredPackTemplates() {
         packy.plugin.launch(packy.plugin.asyncDispatcher) {
             (packy.plugin.dataFolder.toPath() / packy.config.icon).takeIf { it.exists() }
                 ?.let { packy.defaultPack.icon(Writable.path(it)) }
@@ -32,7 +31,7 @@ object PackyGenerator {
                 ?.let { packy.defaultPack.packMeta(packy.config.mcmeta.format, it.miniMsg()) }
 
             // Add all forced packs to defaultPack
-            packy.templates.filter { it.value.required }.values.mapNotNull { it.path.toFile().readPack() }.forEach {
+            packy.templates.filterValues(PackyTemplate::required).values.mapNotNull { it.path.toFile().readPack() }.forEach {
                 packy.defaultPack.mergeWith(it)
             }
 

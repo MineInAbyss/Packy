@@ -5,3 +5,4 @@ guiy="0.12.1"
 [libraries]
 geary-papermc = { module = "com.mineinabyss:geary-papermc", version.ref = "gearyPaper" }
 guiy = { module = "com.mineinabyss:guiy-compose", version.ref = "guiy" }
+betterhud = "com.github.toxicity188:BetterHud:beta-28"

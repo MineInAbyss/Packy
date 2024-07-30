@@ -17,12 +17,14 @@ import kotlin.io.path.deleteRecursively
 
 fun File.readPack(): ResourcePack? {
     val reader = MinecraftResourcePackReader.minecraft()
-    return when {
-        !exists() -> null
-        isDirectory && !listFiles().isNullOrEmpty() -> reader.readFromDirectory(this)
-        extension == "zip" -> reader.readFromZipFile(this)
-        else -> null
-    }
+    return runCatching {
+        when {
+            !exists() -> null
+            isDirectory && !listFiles().isNullOrEmpty() -> reader.readFromDirectory(this)
+            extension == "zip" -> reader.readFromZipFile(this)
+            else -> null
+        }
+    }.getOrNull()
 }
 
 @OptIn(ExperimentalPathApi::class)

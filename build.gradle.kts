@@ -21,6 +21,7 @@ repositories {
     maven("https://maven.pkg.jetbrains.space/public/p/compose/dev")
     maven("https://repo.unnamed.team/repository/unnamed-public/")
     maven("https://mvn.lumine.io/repository/maven-public/") { metadataSources { artifact() } }
+    maven("https://jitpack.io")
     mavenLocal()
 }
 
@@ -36,6 +37,7 @@ dependencies {
     // Geary platform
     compileOnly(packyLibs.geary.papermc)
     compileOnly(packyLibs.guiy)
+    compileOnly(packyLibs.betterhud)
 
     compileOnly(idofrontLibs.minecraft.plugin.modelengine)
     compileOnly(idofrontLibs.minecraft.plugin.oraxen)
@@ -88,6 +90,11 @@ paper {
             joinClasspath = true
         }
         register("MythicCrucible") {
+            required = false
+            load = PaperPluginDescription.RelativeLoadOrder.BEFORE
+            joinClasspath = true
+        }
+        register("BetterHud") {
             required = false
             load = PaperPluginDescription.RelativeLoadOrder.BEFORE
             joinClasspath = true
