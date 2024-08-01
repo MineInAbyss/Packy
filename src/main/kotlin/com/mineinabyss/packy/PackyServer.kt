@@ -30,10 +30,7 @@ import net.minecraft.server.MinecraftServer
 import net.minecraft.server.network.ConfigurationTask
 import net.minecraft.server.network.ServerConfigurationPacketListenerImpl
 import net.minecraft.server.network.config.ServerResourcePackConfigurationTask
-import org.bukkit.craftbukkit.CraftServer
 import org.bukkit.entity.Player
-import org.bukkit.event.player.PlayerResourcePackStatusEvent
-import team.unnamed.creative.serialize.minecraft.MinecraftResourcePackWriter
 import team.unnamed.creative.server.ResourcePackServer
 import team.unnamed.creative.server.handler.ResourcePackRequestHandler
 import java.net.URI
@@ -124,7 +121,7 @@ object PackyServer {
     private val handler = ResourcePackRequestHandler { _, exchange ->
         val data = exchange.requestURI.parseTemplateIds()
             ?.let { templateIds -> PackyGenerator.cachedPacksByteArray[templateIds] }
-            ?: MinecraftResourcePackWriter.minecraft().build(packy.defaultPack).data().toByteArray()
+            ?: packy.writer.build(packy.defaultPack).data().toByteArray()
         exchange.responseHeaders["Content-Type"] = "application/zip"
         exchange.sendResponseHeaders(200, data.size.toLong())
         exchange.responseBody.use { responseStream -> responseStream.write(data) }

@@ -20,6 +20,8 @@ import kotlinx.coroutines.Job
 import kotlinx.serialization.modules.EmptySerializersModule
 import org.bukkit.plugin.java.JavaPlugin
 import team.unnamed.creative.ResourcePack
+import team.unnamed.creative.serialize.minecraft.MinecraftResourcePackReader
+import team.unnamed.creative.serialize.minecraft.MinecraftResourcePackWriter
 
 class PackyPlugin : JavaPlugin() {
 
@@ -57,13 +59,15 @@ class PackyPlugin : JavaPlugin() {
             override val accessToken: PackyAccessToken by config("accessToken", dataFolder.toPath(), PackyAccessToken())
             override val defaultPack: ResourcePack = ResourcePack.resourcePack()
             override val logger by plugin.observeLogger()
+            override val reader = MinecraftResourcePackReader.builder().lenient(true).build()
+            override val writer = MinecraftResourcePackWriter.builder().prettyPrinting(false).build()
         })
 
         PackyGenerator.activeGeneratorJob.apply { values.forEach(Job::cancel) }.clear()
         PackyGenerator.cachedPacks.clear()
         PackyGenerator.cachedPacksByteArray.clear()
         PackyDownloader.downloadTemplates()
-        TemplateLoadTriggers.registerTemplateHandlers()
+        //TemplateLoadTriggers.registerTemplateHandlers()
         PackyGenerator.setupRequiredPackTemplates()
         PackyServer.registerConfigPacketHandler()
     }

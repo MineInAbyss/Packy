@@ -26,7 +26,7 @@ object PackySquash {
 
         val packName = UUID.randomUUID().toString()
         val packDir = packy.plugin.dataFolder.resolve("packsquash").resolve(packName)
-        MinecraftResourcePackWriter.minecraft().writeToDirectory(packDir, resourcePack)
+        packy.writer.writeToDirectory(packDir, resourcePack)
 
         val toml = packDir.parentFile.resolve("$packName.toml")
         val tomlContent = baseToml.readText()

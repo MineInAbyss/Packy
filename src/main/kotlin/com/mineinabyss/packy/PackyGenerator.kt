@@ -12,7 +12,6 @@ import com.mineinabyss.packy.helpers.readPack
 import kotlinx.coroutines.*
 import team.unnamed.creative.ResourcePack
 import team.unnamed.creative.base.Writable
-import team.unnamed.creative.serialize.minecraft.MinecraftResourcePackWriter
 import team.unnamed.creative.sound.SoundRegistry
 import kotlin.io.path.div
 import kotlin.io.path.exists
@@ -63,7 +62,7 @@ object PackyGenerator {
                     cachedPack.sortItemOverrides()
                     PackObfuscator(cachedPack).obfuscatePack()
 
-                    val builtPack = MinecraftResourcePackWriter.minecraft().build(cachedPack)
+                    val builtPack = packy.writer.build(cachedPack)
                     PackyPack(builtPack, templateIds).apply {
                         cachedPacks[templateIds] = this
                         cachedPacksByteArray[templateIds] = builtPack.data().toByteArray()
