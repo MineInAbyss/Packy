@@ -9,6 +9,7 @@ import com.mineinabyss.packy.components.packyData
 import com.mineinabyss.packy.config.packy
 import com.mineinabyss.packy.menus.picker.PackyMainMenu
 import io.papermc.paper.command.brigadier.argument.ArgumentTypes
+import org.bukkit.entity.Player
 
 object PackyCommands {
     fun registerCommands() {
@@ -26,13 +27,19 @@ object PackyCommands {
                     }
                 }
                 "send" {
+                    playerExecutes {
+                        packy.plugin.launch {
+                            PackyServer.sendPack(player)
+                            sender.success("Sent pack to ${player.name}")
+                        }
+                    }
                     val players by ArgumentTypes.players()
                     executes {
                         packy.plugin.launch {
                             players().forEach {
                                 PackyServer.sendPack(it)
-                                sender.success("Sent pack to ${it.name}")
                             }
+                            sender.success("Sent pack to ${players().take(6).joinToString(",") { it.name }}...")
                         }
                     }
                 }
