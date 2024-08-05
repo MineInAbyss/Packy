@@ -3,28 +3,13 @@ package com.mineinabyss.packy.helpers
 import com.mineinabyss.packy.config.PackyTemplate
 import com.mineinabyss.packy.config.packy
 import okhttp3.Response
-import org.apache.commons.io.IOUtils
-import team.unnamed.creative.ResourcePack
-import team.unnamed.creative.serialize.minecraft.MinecraftResourcePackReader
 import java.io.*
 import java.util.*
 import java.util.zip.ZipEntry
 import java.util.zip.ZipInputStream
 import java.util.zip.ZipOutputStream
 import kotlin.io.path.ExperimentalPathApi
-import kotlin.io.path.deleteIfExists
 import kotlin.io.path.deleteRecursively
-
-fun File.readPack(): ResourcePack? {
-    return runCatching {
-        when {
-            !exists() -> null
-            isDirectory && !listFiles().isNullOrEmpty() -> packy.reader.readFromDirectory(this)
-            extension == "zip" -> packy.reader.readFromZipFile(this)
-            else -> null
-        }
-    }.onFailure { packy.logger.w(this.name + ": " + it.message) }.getOrNull()
-}
 
 @OptIn(ExperimentalPathApi::class)
 fun Response.downloadZipFromGithubResponse(vararg templates: PackyTemplate) {

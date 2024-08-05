@@ -7,6 +7,7 @@ import com.mineinabyss.idofront.events.call
 import com.mineinabyss.idofront.nms.interceptClientbound
 import com.mineinabyss.idofront.nms.interceptServerbound
 import com.mineinabyss.idofront.nms.nbt.getOfflinePDC
+import com.mineinabyss.idofront.resourcepacks.ResourcePacks
 import com.mineinabyss.idofront.textcomponents.miniMsg
 import com.mineinabyss.packy.components.PackyData
 import com.mineinabyss.packy.components.packyData
@@ -121,7 +122,7 @@ object PackyServer {
     private val handler = ResourcePackRequestHandler { _, exchange ->
         val data = exchange.requestURI.parseTemplateIds()
             ?.let { templateIds -> PackyGenerator.cachedPacksByteArray[templateIds] }
-            ?: packy.writer.build(packy.defaultPack).data().toByteArray()
+            ?: ResourcePacks.resourcePackWriter.build(packy.defaultPack).data().toByteArray()
         exchange.responseHeaders["Content-Type"] = "application/zip"
         exchange.sendResponseHeaders(200, data.size.toLong())
         exchange.responseBody.use { responseStream -> responseStream.write(data) }

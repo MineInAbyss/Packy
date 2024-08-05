@@ -59,8 +59,6 @@ class PackyPlugin : JavaPlugin() {
             override val accessToken: PackyAccessToken by config("accessToken", dataFolder.toPath(), PackyAccessToken())
             override val defaultPack: ResourcePack = ResourcePack.resourcePack()
             override val logger by plugin.observeLogger()
-            override val reader = MinecraftResourcePackReader.builder().lenient(true).build()
-            override val writer = MinecraftResourcePackWriter.builder().prettyPrinting(false).build()
         })
 
         PackyGenerator.activeGeneratorJob.apply { values.forEach(Job::cancel) }.clear()

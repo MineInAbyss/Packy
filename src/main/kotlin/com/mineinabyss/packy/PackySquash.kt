@@ -1,5 +1,6 @@
 package com.mineinabyss.packy
 
+import com.mineinabyss.idofront.resourcepacks.ResourcePacks
 import com.mineinabyss.packy.config.PackyTemplate
 import com.mineinabyss.packy.config.packy
 import com.mineinabyss.packy.helpers.unzip
@@ -26,7 +27,7 @@ object PackySquash {
 
         val packName = UUID.randomUUID().toString()
         val packDir = packy.plugin.dataFolder.resolve("packsquash").resolve(packName)
-        packy.writer.writeToDirectory(packDir, resourcePack)
+        ResourcePacks.resourcePackWriter.writeToDirectory(packDir, resourcePack)
 
         val toml = packDir.parentFile.resolve("$packName.toml")
         val tomlContent = baseToml.readText()

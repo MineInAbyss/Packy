@@ -7,6 +7,7 @@ import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 import org.bukkit.event.Listener
+import java.io.File
 import java.nio.file.Path
 import kotlin.io.path.*
 
@@ -35,10 +36,9 @@ data class PackyTemplate(
 
     val id: String get() = name
 
-    val path: Path
-        get() = filePath?.takeIf { it.isNotEmpty() }?.let { packy.plugin.dataFolder.parentFile.toPath() / it }
-            ?: (packy.plugin.dataFolder.toPath() / "templates" / id)
-                .let { if (it.exists() && it.isDirectory()) it else Path(it.pathString + ".zip") }
+    @Transient val path: Path = filePath?.takeIf { it.isNotEmpty() }?.let { packy.plugin.dataFolder.parentFile.toPath() / it }
+        ?: (packy.plugin.dataFolder.toPath() / "templates" / id)
+            .let { if (it.exists() && it.isDirectory()) it else Path(it.pathString + ".zip") }
 
     @Serializable
     data class GithubDownload(

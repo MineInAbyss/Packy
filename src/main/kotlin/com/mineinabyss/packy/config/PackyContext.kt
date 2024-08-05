@@ -15,6 +15,4 @@ interface PackyContext {
     val templates: Map<String, PackyTemplate>
     val accessToken: PackyAccessToken
     val logger: ComponentLogger
-    val reader: MinecraftResourcePackReader
-    val writer: MinecraftResourcePackWriter
 }

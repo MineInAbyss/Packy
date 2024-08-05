@@ -2,13 +2,13 @@ package com.mineinabyss.packy
 
 import com.github.shynixn.mccoroutine.bukkit.asyncDispatcher
 import com.github.shynixn.mccoroutine.bukkit.launch
+import com.mineinabyss.idofront.resourcepacks.ResourcePacks
 import com.mineinabyss.idofront.textcomponents.miniMsg
 import com.mineinabyss.packy.components.PackyPack
 import com.mineinabyss.packy.config.PackyTemplate
 import com.mineinabyss.packy.config.packy
 import com.mineinabyss.packy.helpers.CacheMap
 import com.mineinabyss.packy.helpers.TemplateIds
-import com.mineinabyss.packy.helpers.readPack
 import kotlinx.coroutines.*
 import team.unnamed.creative.ResourcePack
 import team.unnamed.creative.base.Writable
@@ -30,8 +30,8 @@ object PackyGenerator {
                 ?.let { packy.defaultPack.packMeta(packy.config.mcmeta.format, it.miniMsg()) }
 
             // Add all forced packs to defaultPack
-            packy.templates.filterValues(PackyTemplate::required).values.mapNotNull { it.path.toFile().readPack() }.forEach {
-                packy.defaultPack.mergeWith(it)
+            packy.templates.filterValues(PackyTemplate::required).values.mapNotNull { ResourcePacks.readToResourcePack(it.path.toFile()) }.forEach {
+                ResourcePacks.mergeResourcePacks(packy.defaultPack, it)
             }
 
             packy.logger.s("Finished configuring defaultPack")
@@ -52,17 +52,17 @@ object PackyGenerator {
             activeGeneratorJob.getOrPut(templateIds) {
                 async(Dispatchers.IO) {
                     val cachedPack = ResourcePack.resourcePack()
-                    cachedPack.mergeWith(packy.defaultPack)
+                    ResourcePacks.mergeResourcePacks(cachedPack, packy.defaultPack)
 
                     // Filters out all required files as they are already in defaultPack
                     // Filter all TemplatePacks that are not default or not in players enabledPackAddons
                     packy.templates.values.filter { !it.required && it.id in templateIds }
-                        .mapNotNull { it.path.toFile().readPack() }.forEach { cachedPack.mergeWith(it) }
+                        .mapNotNull { ResourcePacks.readToResourcePack(it.path.toFile()) }.forEach { ResourcePacks.mergeResourcePacks(cachedPack, it) }
 
                     cachedPack.sortItemOverrides()
                     PackObfuscator(cachedPack).obfuscatePack()
 
-                    val builtPack = packy.writer.build(cachedPack)
+                    val builtPack = ResourcePacks.resourcePackWriter.build(cachedPack)
                     PackyPack(builtPack, templateIds).apply {
                         cachedPacks[templateIds] = this
                         cachedPacksByteArray[templateIds] = builtPack.data().toByteArray()
@@ -88,44 +88,5 @@ object PackyGenerator {
             }
             this.model(model.toBuilder().overrides(sortedOverrides).build())
         }
-    }
-
-    private fun ResourcePack.mergeWith(mergePack: ResourcePack) {
-        mergePack.textures().forEach(this::texture)
-        mergePack.sounds().forEach(this::sound)
-        mergePack.unknownFiles().forEach(this::unknownFile)
-
-        mergePack.models().forEach { model ->
-            val baseModel = model(model.key()) ?: return@forEach model(model)
-            model(model.apply { overrides().addAll(baseModel.overrides()) })
-        }
-        mergePack.fonts().forEach { font ->
-            val baseFont = font(font.key()) ?: return@forEach font(font)
-            font(baseFont.apply { providers().addAll(font.providers()) })
-        }
-        mergePack.soundRegistries().forEach { soundRegistry ->
-            val baseRegistry = soundRegistry(soundRegistry.namespace()) ?: return@forEach soundRegistry(soundRegistry)
-            soundRegistry(
-                SoundRegistry.soundRegistry(
-                    soundRegistry.namespace(),
-                    baseRegistry.sounds().toMutableSet().apply { addAll(soundRegistry.sounds()) })
-            )
-        }
-        mergePack.atlases().forEach { atlas ->
-            val baseAtlas = atlas(atlas.key())?.toBuilder() ?: return@forEach atlas(atlas)
-            atlas.sources().forEach(baseAtlas::addSource)
-            atlas(baseAtlas.build())
-        }
-        mergePack.languages().forEach { language ->
-            val baseLanguage = language(language.key()) ?: return@forEach language(language)
-            language(baseLanguage.apply { translations().putAll(language.translations()) })
-        }
-        mergePack.blockStates().forEach { blockState ->
-            val baseBlockState = blockState(blockState.key()) ?: return@forEach blockState(blockState)
-            blockState(baseBlockState.apply { variants().putAll(blockState.variants()) })
-        }
-
-        if (packMeta()?.description().isNullOrEmpty()) mergePack.packMeta()?.let { packMeta(it) }
-        if (icon() == null) mergePack.icon()?.let { icon(it) }
     }
 }
