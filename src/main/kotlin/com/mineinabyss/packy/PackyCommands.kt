@@ -9,6 +9,7 @@ import com.mineinabyss.packy.components.packyData
 import com.mineinabyss.packy.config.packy
 import com.mineinabyss.packy.menus.picker.PackyMainMenu
 import io.papermc.paper.command.brigadier.argument.ArgumentTypes
+import org.bukkit.Bukkit
 import org.bukkit.entity.Player
 
 object PackyCommands {
@@ -19,6 +20,11 @@ object PackyCommands {
                     executes {
                         packy.plugin.createPackyContext()
                         sender.success("Packy has been reloaded!")
+                        if (packy.config.sendOnReload) packy.plugin.server.onlinePlayers.forEach {
+                            packy.plugin.launch {
+                                PackyServer.sendPack(it)
+                            }
+                        }
                     }
                 }
                 "menu" {

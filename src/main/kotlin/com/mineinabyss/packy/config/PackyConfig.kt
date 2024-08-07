@@ -28,6 +28,7 @@ data class PackyConfig(
     @EncodeDefault(ALWAYS) val server: PackyServer = PackyServer(),
     @EncodeDefault(ALWAYS) val prompt: String? = null,
     @EncodeDefault(ALWAYS) val force: Boolean = false,
+    @EncodeDefault(ALWAYS) val sendOnReload: Boolean = false,
     @YamlComment("What ObfuscationType to use, valid options are FULL, SIMPLE & NONE")
     @EncodeDefault(ALWAYS) val obfuscation: ObfuscationType = ObfuscationType.FULL,
     @YamlComment("This will use PackSquash to automatically squash all templates")
