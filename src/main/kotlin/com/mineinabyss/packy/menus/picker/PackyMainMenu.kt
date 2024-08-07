@@ -24,8 +24,7 @@ fun PackyMenu() {
         var packs by remember { mutableStateOf(subPackList[subMenu]!!) }
 
         if (subMenu.packs.size == 1) {
-            val templateId = subMenu.packs.keys.firstOrNull() ?: return@map
-            packy.templates.entries.find { it.key == templateId }?.value ?: return@map
+            val templateId = subMenu.packs.keys.firstOrNull()?.takeIf { it in packy.templates } ?: return@map
 
             Item(subMenu.button.toItemStack(), subMenu.modifiers.toModifier().clickable {
                 // Return if the task returns null, meaning button was spammed whilst a set was currently generating

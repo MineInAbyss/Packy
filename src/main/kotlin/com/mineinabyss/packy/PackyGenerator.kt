@@ -30,7 +30,7 @@ object PackyGenerator {
                 ?.let { packy.defaultPack.packMeta(packy.config.mcmeta.format, it.miniMsg()) }
 
             // Add all forced packs to defaultPack
-            packy.templates.filterValues(PackyTemplate::required).values.mapNotNull { ResourcePacks.readToResourcePack(it.path.toFile()) }.forEach {
+            packy.templates.filter(PackyTemplate::required).mapNotNull { ResourcePacks.readToResourcePack(it.path.toFile()) }.forEach {
                 ResourcePacks.mergeResourcePacks(packy.defaultPack, it)
             }
 
@@ -56,7 +56,7 @@ object PackyGenerator {
 
                     // Filters out all required files as they are already in defaultPack
                     // Filter all TemplatePacks that are not default or not in players enabledPackAddons
-                    packy.templates.values.filter { !it.required && it.id in templateIds }
+                    packy.templates.filter { !it.required && it.id in templateIds }
                         .mapNotNull { ResourcePacks.readToResourcePack(it.path.toFile()) }
                         .forEach { ResourcePacks.mergeResourcePacks(cachedPack, it) }
 

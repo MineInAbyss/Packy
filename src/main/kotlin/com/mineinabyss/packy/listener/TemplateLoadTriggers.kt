@@ -29,12 +29,12 @@ object TemplateLoadTriggers {
 
     fun registerTemplateHandlers() {
         unregisterTemplateHandlers()
-        packy.templates.values.forEach { it.loadTrigger.registerLoadHandler(it) }
+        packy.templates.forEach { it.loadTrigger.registerLoadHandler(it) }
     }
 
     fun unregisterTemplateHandlers() {
         runCatching {
-            packy.templates.values.forEach { t -> t.triggerListener?.let { packy.plugin.unregisterListeners(it) } }
+            packy.templates.forEach { t -> t.triggerListener?.let { packy.plugin.unregisterListeners(it) } }
         }
     }
 }

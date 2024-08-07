@@ -19,14 +19,14 @@ fun Response.downloadZipFromGithubResponse(vararg templates: PackyTemplate) {
             inputStream.copyTo(this)
         }.toByteArray()
     } ?: run {
-        packy.logger.e("${templates.joinToString { it.name }} has no response body, skipping...")
+        packy.logger.e("${templates.joinToString { it.id }} has no response body, skipping...")
         return
     }
 
     templates.forEach { template ->
         val githubDownload = template.githubDownload
         if (githubDownload == null) {
-            packy.logger.e("${template.name} has no githubDownload, skipping...")
+            packy.logger.e("${template.id} has no githubDownload, skipping...")
             return@forEach
         }
 

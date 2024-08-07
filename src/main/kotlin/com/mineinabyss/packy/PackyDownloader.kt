@@ -65,9 +65,8 @@ object PackyDownloader {
 
     fun downloadTemplates() {
         startupJob = packy.plugin.launch(packy.plugin.asyncDispatcher) {
-            packy.templates.values.filter { it.githubDownload != null }
-                .sortedBy { it.id }
-                .groupBy { it.githubDownload!!.key() }
+            packy.templates.filter { it.githubDownload != null }
+                .sortedBy { it.id }.groupBy { it.githubDownload!!.key() }
                 .map { (_, templates) ->
                     val templateIds = templates.joinToString { it.id }
                     val suffix = "template" + if (templates.size > 1) "s" else ""

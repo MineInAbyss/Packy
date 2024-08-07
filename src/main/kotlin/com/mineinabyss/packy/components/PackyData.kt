@@ -13,7 +13,7 @@ import org.bukkit.entity.Player
 @Serializable
 @SerialName("packy:packy_data")
 data class PackyData(
-    val enabledPackAddons: MutableSet<PackyTemplate> = packy.templates.values.filter { !it.required && it.default }.toMutableSet(),
+    val enabledPackAddons: MutableSet<PackyTemplate> = packy.templates.filter { !it.required && it.default }.toMutableSet(),
     var bypassForced: Boolean = false
 ) {
     val enabledPackIds get() = enabledPackAddons.map { it.id }.toSortedSet()
