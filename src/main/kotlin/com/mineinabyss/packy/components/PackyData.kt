@@ -20,7 +20,7 @@ data class PackyData(
 }
 
 var Player.packyData
-    get() = this.toGeary().getOrSetPersisting { PackyData() }
+    get() = this.toGeary().getOrSetPersisting<PackyData> { PackyData() }
     set(value) {
         this.toGeary().setPersisting(value)
     }

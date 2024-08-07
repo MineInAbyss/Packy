@@ -36,7 +36,7 @@ data class PackyTemplate(
 
     val id: String get() = name
 
-    @Transient val path: Path = filePath?.takeIf { it.isNotEmpty() }?.let { packy.plugin.dataFolder.parentFile.toPath() / it }
+    val path: Path get() = filePath?.takeIf { it.isNotEmpty() }?.let { packy.plugin.dataFolder.parentFile.toPath() / it }
         ?: (packy.plugin.dataFolder.toPath() / "templates" / id)
             .let { if (it.exists() && it.isDirectory()) it else Path(it.pathString + ".zip") }
 
