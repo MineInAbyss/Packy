@@ -59,7 +59,7 @@ object PackyGenerator {
                     packy.templates.values.filter { !it.required && it.id in templateIds }
                         .mapNotNull { ResourcePacks.readToResourcePack(it.path.toFile()) }.forEach { ResourcePacks.mergeResourcePacks(cachedPack, it) }
 
-                    cachedPack.sortItemOverrides()
+                    ResourcePacks.sortItemOverrides(cachedPack)
                     PackObfuscator(cachedPack).obfuscatePack()
 
                     val builtPack = ResourcePacks.resourcePackWriter.build(cachedPack)
@@ -74,19 +74,6 @@ object PackyGenerator {
                     }
                 }
             }
-        }
-    }
-
-    /**
-     * Ensures the ItemOverrides of a model are in numerical order for their CustomModelData
-     */
-    private fun ResourcePack.sortItemOverrides() {
-        this.models().forEach { model ->
-            val sortedOverrides = model.overrides().sortedBy { override ->
-                // value() is a LazilyParsedNumber so convert it to an Int
-                override.predicate().find { it.name() == "custom_model_data" }?.value()?.toString()?.toIntOrNull() ?: 0
-            }
-            this.model(model.toBuilder().overrides(sortedOverrides).build())
         }
     }
 }
