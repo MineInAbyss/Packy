@@ -57,9 +57,9 @@ object PackyGenerator {
                     // Filters out all required files as they are already in defaultPack
                     // Filter all TemplatePacks that are not default or not in players enabledPackAddons
                     packy.templates.values.filter { !it.required && it.id in templateIds }
-                        .mapNotNull { ResourcePacks.readToResourcePack(it.path.toFile()) }.forEach { ResourcePacks.mergeResourcePacks(cachedPack, it) }
+                        .mapNotNull { ResourcePacks.readToResourcePack(it.path.toFile()) }
+                        .forEach { ResourcePacks.mergeResourcePacks(cachedPack, it) }
 
-                    ResourcePacks.sortItemOverrides(cachedPack)
                     PackObfuscator(cachedPack).obfuscatePack()
 
                     val builtPack = ResourcePacks.resourcePackWriter.build(cachedPack)
