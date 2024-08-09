@@ -178,6 +178,7 @@ class PackObfuscator(private val resourcePack: ResourcePack) {
 
         return toBuilder().parent(
             obfuscatedModels.findObf(parent)?.key()
+                ?: ResourcePacks.defaultVanillaResourcePack?.model(parent)?.let { return this }
                 ?: resourcePack.takeUnless { parent == key() }?.model(parent)?.let(::obfuscateModel)?.key()
                 ?: parent
         ).build()
