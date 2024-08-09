@@ -3,9 +3,7 @@ package com.mineinabyss.packy
 import com.github.shynixn.mccoroutine.bukkit.launch
 import com.github.shynixn.mccoroutine.bukkit.ticks
 import com.mineinabyss.geary.papermc.datastore.decode
-import com.mineinabyss.idofront.events.call
 import com.mineinabyss.idofront.nms.interceptClientbound
-import com.mineinabyss.idofront.nms.interceptServerbound
 import com.mineinabyss.idofront.nms.nbt.getOfflinePDC
 import com.mineinabyss.idofront.resourcepacks.ResourcePacks
 import com.mineinabyss.idofront.textcomponents.miniMsg
@@ -21,12 +19,7 @@ import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.format.NamedTextColor
 import net.minecraft.network.Connection
 import net.minecraft.network.protocol.Packet
-import net.minecraft.network.protocol.common.ClientboundPingPacket
-import net.minecraft.network.protocol.common.ClientboundResourcePackPushPacket
-import net.minecraft.network.protocol.common.ServerboundResourcePackPacket
-import net.minecraft.network.protocol.configuration.ClientboundFinishConfigurationPacket
 import net.minecraft.network.protocol.configuration.ClientboundSelectKnownPacks
-import net.minecraft.network.protocol.ping.ServerboundPingRequestPacket
 import net.minecraft.server.MinecraftServer
 import net.minecraft.server.network.ConfigurationTask
 import net.minecraft.server.network.ServerConfigurationPacketListenerImpl
@@ -41,6 +34,7 @@ import java.util.concurrent.Executors
 
 object PackyServer {
     var packServer: ResourcePackServer? = null
+    private lateinit var builtDefaultPack: ByteArray
 
     suspend fun sendPack(player: Player) {
         val templateIds = player.packyData.enabledPackIds
@@ -52,6 +46,10 @@ object PackyServer {
             .required(packy.config.force && !player.packyData.bypassForced)
             .prompt(packy.config.prompt?.miniMsg())
         )
+    }
+
+    fun cacheDefaultPackData() {
+        builtDefaultPack = ResourcePacks.resourcePackWriter.build(packy.defaultPack).data().toByteArray()
     }
 
     private suspend fun Player.sendPackGeneratingActionBar() {
@@ -120,9 +118,8 @@ object PackyServer {
     }
 
     private val handler = ResourcePackRequestHandler { _, exchange ->
-        val data = exchange.requestURI.parseTemplateIds()
-            ?.let { templateIds -> PackyGenerator.cachedPacksByteArray[templateIds] }
-            ?: ResourcePacks.resourcePackWriter.build(packy.defaultPack).data().toByteArray()
+        val data = exchange.requestURI.parseTemplateIds()?.takeIf { it.isNotEmpty() }
+            ?.let(PackyGenerator.cachedPacksByteArray::get) ?: builtDefaultPack
         exchange.responseHeaders["Content-Type"] = "application/zip"
         exchange.sendResponseHeaders(200, data.size.toLong())
         exchange.responseBody.use { responseStream -> responseStream.write(data) }

@@ -1,5 +1,8 @@
 package com.mineinabyss.packy.listener
 
+import com.mineinabyss.geary.addons.GearyPhase
+import com.mineinabyss.geary.modules.geary
+import com.mineinabyss.geary.papermc.gearyPaper
 import com.mineinabyss.idofront.di.DI
 import com.mineinabyss.idofront.messaging.broadcast
 import com.mineinabyss.idofront.plugin.Plugins
@@ -49,6 +52,28 @@ sealed interface LoadTrigger {
         override fun registerLoadHandler(template: PackyTemplate) {
         }
     }
+
+    /*@Serializable
+    @SerialName("Geary")
+    data object GearyTrigger : LoadTrigger {
+        override fun registerLoadHandler(template: PackyTemplate) {
+            if (!Plugins.isEnabled("Geary")) return
+
+            val id = template.id
+            geary.pipeline.runOnOrAfter(GearyPhase.ENABLE) {
+                if (!gearyPaper.config.resourcePack.generate) return@runOnOrAfter
+                packy.logger.w("Geary loadTrigger detected...")
+
+                template.clearFromCache()
+                packy.logger.s("")
+                if (gearyPaper.config.resourcePack.outputPath.startsWith("../Packy/templates", true)) {
+                    return@runOnOrAfter // Geary is copying it so we ignore
+                } else {
+                    val resourcePack =
+                }
+            }
+        }
+    }*/
 
     @Serializable
     @SerialName("ModelEngine")

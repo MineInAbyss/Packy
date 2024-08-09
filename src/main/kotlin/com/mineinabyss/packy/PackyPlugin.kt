@@ -20,8 +20,6 @@ import kotlinx.coroutines.Job
 import kotlinx.serialization.modules.EmptySerializersModule
 import org.bukkit.plugin.java.JavaPlugin
 import team.unnamed.creative.ResourcePack
-import team.unnamed.creative.serialize.minecraft.MinecraftResourcePackReader
-import team.unnamed.creative.serialize.minecraft.MinecraftResourcePackWriter
 
 class PackyPlugin : JavaPlugin() {
 
@@ -65,8 +63,9 @@ class PackyPlugin : JavaPlugin() {
         PackyGenerator.cachedPacks.clear()
         PackyGenerator.cachedPacksByteArray.clear()
         PackyDownloader.downloadTemplates()
-        //TemplateLoadTriggers.registerTemplateHandlers()
+        TemplateLoadTriggers.registerTemplateHandlers()
         PackyGenerator.setupRequiredPackTemplates()
+        PackyServer.cacheDefaultPackData()
         PackyServer.registerConfigPacketHandler()
     }
 
