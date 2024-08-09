@@ -188,12 +188,8 @@ class PackObfuscator(private val resourcePack: ResourcePack) {
         ?: toBuilder().overrides(overrides().filterNotNull().map { override ->
             val overrideKey = override.model()
             val modelKey = obfuscatedModels.findObf(overrideKey)?.key()
-                ?: resourcePack.takeUnless {
-                    overrideKey == this.key() || ResourcePacks.defaultVanillaResourcePack?.model(
-                        overrideKey
-                    ) != null
-                }
-                    ?.model(overrideKey)?.let(::obfuscateModel)?.key()
+                ?: ResourcePacks.defaultVanillaResourcePack?.model(overrideKey)?.let { overrideKey }
+                ?: resourcePack.takeUnless { overrideKey == this.key() }?.model(overrideKey)?.let(::obfuscateModel)?.key()
                 ?: overrideKey
 
             return@map ItemOverride.of(modelKey, override.predicate())
