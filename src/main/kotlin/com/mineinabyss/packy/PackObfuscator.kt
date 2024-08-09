@@ -153,6 +153,7 @@ class PackObfuscator(private val resourcePack: ResourcePack) {
 
     private fun Model.obfuscateModelTextures(): Model {
         obfuscatedModels.findObf(this.key())?.let { return it }
+        if (ResourcePacks.defaultVanillaResourcePack?.model(key()) != null) return this
 
         val layers = textures().layers().filter { it.key() != null }.map { modelTexture ->
             obfuscateModelTexture(modelTexture)?.key()?.let(ModelTexture::ofKey) ?: modelTexture
@@ -207,12 +208,12 @@ class PackObfuscator(private val resourcePack: ResourcePack) {
 
     private fun obfuscateModelTexture(modelTexture: ModelTexture): Texture? {
         val keyPng = modelTexture.key()?.removeSuffix(".png") ?: return null
-        return obfuscatedTextures.findObf(keyPng) ?: resourcePack.texture(keyPng)?.obfuscate()
+        return obfuscatedTextures.findObf(keyPng) ?: ResourcePacks.defaultVanillaResourcePack?.texture(keyPng) ?: resourcePack.texture(keyPng)?.obfuscate()
     }
 
     private fun obfuscateFontTexture(provider: BitMapFontProvider): Texture? {
         val keyPng = provider.file().appendSuffix(".png")
-        return obfuscatedTextures.findObf(keyPng) ?: resourcePack.texture(keyPng)?.obfuscate()
+        return obfuscatedTextures.findObf(keyPng) ?: ResourcePacks.defaultVanillaResourcePack?.texture(keyPng) ?: resourcePack.texture(keyPng)?.obfuscate()
     }
 
     private fun Key.obfuscateKey() = when (packy.config.obfuscation) {
