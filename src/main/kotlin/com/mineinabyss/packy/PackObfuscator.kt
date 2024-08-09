@@ -1,10 +1,8 @@
 package com.mineinabyss.packy
 
-import com.mineinabyss.idofront.messaging.broadcastVal
-import com.mineinabyss.idofront.messaging.logVal
+import com.mineinabyss.idofront.resourcepacks.ResourcePacks
 import com.mineinabyss.packy.config.PackyConfig
 import com.mineinabyss.packy.config.packy
-import com.mineinabyss.packy.helpers.VanillaKeys
 import net.kyori.adventure.key.Key
 import team.unnamed.creative.ResourcePack
 import team.unnamed.creative.atlas.AtlasSource
@@ -177,14 +175,14 @@ class PackObfuscator(private val resourcePack: ResourcePack) {
 
     private fun Model.obfuscateOverrides(): Model = obfuscatedModels.findObf(key()) ?: toBuilder().overrides(
         overrides().filterNotNull().map { override ->
-            if (VanillaKeys.isVanilla(override.model())) return@map override
+            if (ResourcePacks.defaultVanillaResourcePack?.model(override.model()) != null) return@map override
             val modelKey = obfuscatedModels.findObf(override.model())?.key()
                 ?: resourcePack.takeUnless { override.model() == this.key() }?.model(override.model())?.let { obfuscateModel(it) }?.key()
                 ?: override.model()
 
             return@map ItemOverride.of(modelKey, override.predicate())
         }
-    ).key(key().takeUnless(VanillaKeys::isVanilla)?.obfuscateKey() ?: key()).build()
+    ).key(key().takeUnless { ResourcePacks.defaultVanillaResourcePack?.model(it) != null }?.obfuscateKey() ?: key()).build()
         .also { obfuscatedModels += ObfuscatedModel(this@obfuscateOverrides, it) }
 
 
