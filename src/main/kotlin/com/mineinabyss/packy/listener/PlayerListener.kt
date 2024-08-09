@@ -1,6 +1,7 @@
 package com.mineinabyss.packy.listener
 
 import com.mineinabyss.packy.components.packyData
+import com.mineinabyss.packy.config.PackyTemplate
 import com.mineinabyss.packy.config.packy
 import org.bukkit.event.EventHandler
 import org.bukkit.event.EventPriority
@@ -11,12 +12,10 @@ class PlayerListener : Listener {
 
     @EventHandler(priority = EventPriority.NORMAL)
     fun PlayerJoinEvent.filterPackyData() {
-        // Remove old or forced keys from enabledPackAddons
-        player.packyData.enabledPackAddons.removeIf { t -> t.id !in packy.templates || t.required }
-        // Ensure that PackyTemplates are up-to-date
-        player.packyData.enabledPackAddons.filter { it in packy.templates }.forEach { template ->
-            player.packyData.enabledPackAddons -= template
-            packy.templates[template.id]?.let { player.packyData.enabledPackAddons += it }
-        }
+        val packyData = player.packyData
+        // Remove old or required keys from templates
+        packyData.templates.keys.filter { packy.templates[it] == null }.forEach(packyData.templates::remove)
+        // Add missing template keys
+        packy.templates.forEach { template -> packyData.templates.computeIfAbsent(template.id) { template.default || template.required } }
     }
 }

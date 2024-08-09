@@ -7,7 +7,10 @@ import com.mineinabyss.idofront.nms.interceptClientbound
 import com.mineinabyss.idofront.nms.nbt.getOfflinePDC
 import com.mineinabyss.idofront.resourcepacks.ResourcePacks
 import com.mineinabyss.idofront.textcomponents.miniMsg
+import com.mineinabyss.packy.PackyGenerator.cachedPacks
+import com.mineinabyss.packy.PackyGenerator.cachedPacksByteArray
 import com.mineinabyss.packy.components.PackyData
+import com.mineinabyss.packy.components.PackyPack
 import com.mineinabyss.packy.components.packyData
 import com.mineinabyss.packy.config.packy
 import com.mineinabyss.packy.helpers.TemplateIds
@@ -25,6 +28,7 @@ import net.minecraft.server.network.ConfigurationTask
 import net.minecraft.server.network.ServerConfigurationPacketListenerImpl
 import net.minecraft.server.network.config.ServerResourcePackConfigurationTask
 import org.bukkit.entity.Player
+import team.unnamed.creative.ResourcePack
 import team.unnamed.creative.server.ResourcePackServer
 import team.unnamed.creative.server.handler.ResourcePackRequestHandler
 import java.net.URI
@@ -34,7 +38,6 @@ import java.util.concurrent.Executors
 
 object PackyServer {
     var packServer: ResourcePackServer? = null
-    private lateinit var builtDefaultPack: ByteArray
 
     suspend fun sendPack(player: Player) {
         val templateIds = player.packyData.enabledPackIds
@@ -46,10 +49,6 @@ object PackyServer {
             .required(packy.config.force && !player.packyData.bypassForced)
             .prompt(packy.config.prompt?.miniMsg())
         )
-    }
-
-    fun cacheDefaultPackData() {
-        builtDefaultPack = ResourcePacks.resourcePackWriter.build(packy.defaultPack).data().toByteArray()
     }
 
     private suspend fun Player.sendPackGeneratingActionBar() {
@@ -68,9 +67,9 @@ object PackyServer {
         packy.plugin.interceptClientbound { packet: Packet<*>, connection: Connection ->
             if (packet !is ClientboundSelectKnownPacks) return@interceptClientbound packet
             val configListener = connection.packetListener as? ServerConfigurationPacketListenerImpl ?: return@interceptClientbound packet
-            val player = connection.player?.bukkitEntity ?: return@interceptClientbound packet
-            val packyData = player.getOfflinePDC()?.decode<PackyData>() ?: return@interceptClientbound packet
             val taskQueue = configurationTasks.get(configListener) as? Queue<ConfigurationTask> ?: return@interceptClientbound packet
+            val offlinePdc = connection.player?.bukkitEntity?.getOfflinePDC() ?: return@interceptClientbound packet
+            val packyData = offlinePdc.decode<PackyData>() ?: PackyData()
 
             // Removes the JoinWorldTask from the Queue
             val headTask = taskQueue.poll()
@@ -118,8 +117,8 @@ object PackyServer {
     }
 
     private val handler = ResourcePackRequestHandler { _, exchange ->
-        val data = exchange.requestURI.parseTemplateIds()?.takeIf { it.isNotEmpty() }
-            ?.let(PackyGenerator.cachedPacksByteArray::get) ?: builtDefaultPack
+        val data = exchange.requestURI.parseTemplateIds()?.let(cachedPacksByteArray::get)
+            ?: ResourcePacks.resourcePackWriter.build(packy.defaultPack).data().toByteArray()
         exchange.responseHeaders["Content-Type"] = "application/zip"
         exchange.sendResponseHeaders(200, data.size.toLong())
         exchange.responseBody.use { responseStream -> responseStream.write(data) }

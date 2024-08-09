@@ -12,7 +12,6 @@ import com.mineinabyss.packy.helpers.TemplateIds
 import kotlinx.coroutines.*
 import team.unnamed.creative.ResourcePack
 import team.unnamed.creative.base.Writable
-import team.unnamed.creative.sound.SoundRegistry
 import kotlin.io.path.div
 import kotlin.io.path.exists
 
@@ -62,6 +61,7 @@ object PackyGenerator {
 
                     PackObfuscator(cachedPack).obfuscatePack()
 
+                    ResourcePacks.resourcePackWriter.writeToZipFile(packy.plugin.dataFolder.resolve("test2.zip"), cachedPack)
                     val builtPack = ResourcePacks.resourcePackWriter.build(cachedPack)
                     PackyPack(builtPack, templateIds).apply {
                         cachedPacks[templateIds] = this

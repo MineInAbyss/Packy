@@ -62,7 +62,7 @@ class PackObfuscator(private val resourcePack: ResourcePack) {
     }
 
     private fun obfuscateModels() {
-        resourcePack.models().filterNotNull().forEach { obfuscateModel(it) }
+        resourcePack.models().filterNotNull().forEach(::obfuscateModel)
 
         obfuscatedModels.forEach {
             resourcePack.removeModel(it.originalModel.key())
@@ -149,20 +149,20 @@ class PackObfuscator(private val resourcePack: ResourcePack) {
 
 
     private fun obfuscateModel(model: Model) =
-        obfuscatedModels.findObf(model.key()) ?: model.obfuscateModelTextures().obfuscateOverrides()
+        obfuscatedModels.findObf(model.key()) ?: model.obfuscateModelTextures().obfuscateParentModel().obfuscateOverrides()
 
     private fun Model.obfuscateModelTextures(): Model {
         obfuscatedModels.findObf(this.key())?.let { return it }
+
         val layers = textures().layers().filter { it.key() != null }.map { modelTexture ->
-            obfuscateItemTexture(modelTexture)?.key()?.let { ModelTexture.ofKey(it) } ?: modelTexture
+            obfuscateModelTexture(modelTexture)?.key()?.let(ModelTexture::ofKey) ?: modelTexture
         }
         val variables = textures().variables().map { variable ->
-            variable.key to (obfuscateItemTexture(variable.value)?.key()
-                ?.let(ModelTexture::ofKey) ?: variable.value)
+            variable.key to (obfuscateModelTexture(variable.value)?.key()?.let(ModelTexture::ofKey) ?: variable.value)
         }.toMap()
 
         val particle = textures().particle()
-            ?.let { p -> obfuscateItemTexture(p)?.key()?.let { ModelTexture.ofKey(it) } ?: p }
+            ?.let { p -> obfuscateModelTexture(p)?.key()?.let { ModelTexture.ofKey(it) } ?: p }
         val modelTextures = ModelTextures.builder().layers(layers).variables(variables).particle(particle).build()
         return this.toBuilder().textures(modelTextures).build()
     }
@@ -173,12 +173,24 @@ class PackObfuscator(private val resourcePack: ResourcePack) {
             .uvLock(uvLock()).weight(weight()).x(x()).y(y()).build()
     }
 
+    private fun Model.obfuscateParentModel(): Model {
+        val parent = parent() ?: return this
+        obfuscatedModels.findObf(key())?.let { return it }
+
+        return toBuilder().parent(
+            obfuscatedModels.findObf(parent)?.key()
+            ?: resourcePack.takeUnless { parent == key() }?.model(parent)?.let(::obfuscateModel)?.key()
+            ?: parent
+        ).build()
+    }
+
     private fun Model.obfuscateOverrides(): Model = obfuscatedModels.findObf(key()) ?: toBuilder().overrides(
         overrides().filterNotNull().map { override ->
-            if (ResourcePacks.defaultVanillaResourcePack?.model(override.model()) != null) return@map override
-            val modelKey = obfuscatedModels.findObf(override.model())?.key()
-                ?: resourcePack.takeUnless { override.model() == this.key() }?.model(override.model())?.let { obfuscateModel(it) }?.key()
-                ?: override.model()
+            val overrideKey = override.model()
+            if (ResourcePacks.defaultVanillaResourcePack?.model(overrideKey) != null) return@map override
+            val modelKey = obfuscatedModels.findObf(overrideKey)?.key()
+                ?: resourcePack.takeUnless { overrideKey == this.key() }?.model(overrideKey)?.let(::obfuscateModel)?.key()
+                ?: overrideKey
 
             return@map ItemOverride.of(modelKey, override.predicate())
         }
@@ -193,7 +205,7 @@ class PackObfuscator(private val resourcePack: ResourcePack) {
         this.toBuilder().key(this.key().obfuscateKey()).build()
             .also { obfuscatedTextures += ObfuscatedTexture(this@obfuscate, it) }
 
-    private fun obfuscateItemTexture(modelTexture: ModelTexture): Texture? {
+    private fun obfuscateModelTexture(modelTexture: ModelTexture): Texture? {
         val keyPng = modelTexture.key()?.removeSuffix(".png") ?: return null
         return obfuscatedTextures.findObf(keyPng) ?: resourcePack.texture(keyPng)?.obfuscate()
     }

@@ -34,7 +34,7 @@ class PackyUIScope(val player: Player) {
 fun PackyMainMenu(player: Player) {
     val owner = LocalGuiyOwner.current
     val scope = remember { PackyUIScope(player) }
-    var packyData: PackyData by remember { mutableStateOf(PackyData(mutableSetOf())) }
+    var packyData: PackyData by remember { mutableStateOf(PackyData(mutableMapOf())) }
     LaunchedEffect(Unit) {
         withContext(packy.plugin.minecraftDispatcher) {
             packyData = player.packyData

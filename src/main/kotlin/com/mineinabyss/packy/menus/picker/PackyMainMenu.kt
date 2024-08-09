@@ -29,8 +29,8 @@ fun PackyMenu() {
             Item(subMenu.button.toItemStack(), subMenu.modifiers.toModifier().clickable {
                 // Return if the task returns null, meaning button was spammed whilst a set was currently generating
                 when {
-                    templateId !in packyData.enabledPackIds -> PackPicker.addPack(scope, player, packyData, templateId)
-                    else -> PackPicker.removePack(scope, player, packyData, templateId)
+                    templateId !in packyData.enabledPackIds -> PackPicker.enablePack(scope, player, packyData, templateId)
+                    else -> PackPicker.disablePack(scope, player, packyData, templateId)
                 } ?: return@clickable
 
                 scope.nav.refresh()
@@ -42,14 +42,14 @@ fun PackyMenu() {
             )
 
             PackyConfig.SubMenuType.CYCLING -> {
-                val templateId = packyData.enabledPackAddons.firstOrNull { it.id in subMenu.packs.keys }?.id ?: packs.first().first
+                val templateId = packyData.enabledPackIds.firstOrNull(subMenu.packs.keys::contains) ?: packs.first().first
                 val pack = subMenu.packs[templateId] ?: return
                 val currentTemplateIndex = packs.indexOf(templateId to pack)
                 val nextTemplateId = packs[(currentTemplateIndex + 1) % packs.size].first
 
                 CycleButton(subMenu, pack) {
                     // Return if the task returns null, meaning button was spammed whilst a set was currently generating
-                    PackPicker.addPack(scope, player, packyData, nextTemplateId) ?: return@CycleButton
+                    PackPicker.enablePack(scope, player, packyData, nextTemplateId) ?: return@CycleButton
 
                     packs = packs.rotatedLeft()
                     scope.nav.refresh()

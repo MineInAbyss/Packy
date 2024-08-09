@@ -15,11 +15,11 @@ fun PackySubMenu(subMenu: PackyConfig.PackySubMenu) {
     val scope = PackyScopeProvider.current
     val player = scope.player
     subMenu.packs.forEach { (templateId, pack) ->
-        val template = packy.templates[templateId] ?: return@forEach
+        val template = packy.templates[templateId]?.id ?: return@forEach
         Button(pack.modifiers.toModifier(), onClick = {
             when {
-                template !in player.packyData.enabledPackAddons -> PackPicker.addPack(scope, player, packyData, templateId)
-                else -> PackPicker.removePack(scope, player, packyData, templateId)
+                template !in player.packyData.templates -> PackPicker.enablePack(scope, player, packyData, templateId)
+                else -> PackPicker.disablePack(scope, player, packyData, templateId)
             }
             scope.nav.back()
         }

@@ -1,8 +1,6 @@
 package com.mineinabyss.packy.config
 
 import com.mineinabyss.geary.serialization.serializers.InnerSerializer
-import com.mineinabyss.geary.serialization.serializers.PolymorphicListAsMapSerializer
-import com.mineinabyss.idofront.messaging.broadcastVal
 import com.mineinabyss.packy.listener.LoadTrigger
 import kotlinx.serialization.*
 import kotlinx.serialization.EncodeDefault.Mode.NEVER
@@ -10,7 +8,6 @@ import kotlinx.serialization.Transient
 import kotlinx.serialization.builtins.MapSerializer
 import kotlinx.serialization.builtins.serializer
 import org.bukkit.event.Listener
-import java.io.File
 import java.nio.file.Path
 import kotlin.io.path.*
 
@@ -24,6 +21,7 @@ data class PackyTemplates(private val templates: List<PackyTemplate> = listOf())
     fun forEach(action: (PackyTemplate) -> Unit) = templates.forEach(action)
     fun filter(filter: (PackyTemplate) -> Boolean) = templates.filter(filter)
     fun find(predicate: (PackyTemplate) -> Boolean) = templates.find(predicate)
+    fun <K, V> associate(transform: (PackyTemplate) -> Pair<K, V>) = templates.associate(transform)
     operator fun get(id: String) = templates.find { it.id == id }
 
     class Serializer : InnerSerializer<Map<String, PackyTemplate>, PackyTemplates>(
@@ -49,6 +47,9 @@ data class PackyTemplate(
     @EncodeDefault(NEVER) private val filePath: String? = null
 ) {
 
+    fun conflictsWith(template: PackyTemplate) =
+        template.id in this.conflictsWith || this.id in template.conflictsWith
+
     @Transient var triggerListener: Listener? = null
 
     val path: Path get() = filePath?.takeIf { it.isNotEmpty() }?.let { packy.plugin.dataFolder.parentFile.toPath() / it }
@@ -69,7 +70,3 @@ data class PackyTemplate(
 
 @Serializable
 data class PackyAccessToken(internal val token: String = "")
-
-fun PackyTemplate.conflictsWith(template: PackyTemplate) =
-    template.id in this.conflictsWith || this.id in template.conflictsWith
-
