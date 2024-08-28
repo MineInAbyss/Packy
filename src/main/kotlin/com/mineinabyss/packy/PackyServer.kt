@@ -22,6 +22,7 @@ import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.format.NamedTextColor
 import net.minecraft.network.Connection
 import net.minecraft.network.protocol.Packet
+import net.minecraft.network.protocol.common.ClientboundCustomPayloadPacket
 import net.minecraft.network.protocol.configuration.ClientboundSelectKnownPacks
 import net.minecraft.server.MinecraftServer
 import net.minecraft.server.network.ConfigurationTask
@@ -61,11 +62,12 @@ object PackyServer {
     }
 
     private val configurationTasks = ServerConfigurationPacketListenerImpl::class.java.getDeclaredField("configurationTasks").apply { isAccessible = true }
+    private val currentTask = ServerConfigurationPacketListenerImpl::class.java.getDeclaredField("currentTask").apply { isAccessible = true }
     private val startNextTaskMethod = ServerConfigurationPacketListenerImpl::class.java.getDeclaredMethod("startNextTask").apply { isAccessible = true }
     fun registerConfigPacketHandler() {
 
         packy.plugin.interceptClientbound { packet: Packet<*>, connection: Connection ->
-            if (packet !is ClientboundSelectKnownPacks) return@interceptClientbound packet
+            if (packet !is ClientboundCustomPayloadPacket) return@interceptClientbound packet
             val configListener = connection.packetListener as? ServerConfigurationPacketListenerImpl ?: return@interceptClientbound packet
             val taskQueue = configurationTasks.get(configListener) as? Queue<ConfigurationTask> ?: return@interceptClientbound packet
             val offlinePdc = connection.player?.bukkitEntity?.getOfflinePDC() ?: return@interceptClientbound packet
@@ -87,6 +89,7 @@ object PackyServer {
                 )
 
                 headTask?.let(taskQueue::add)
+                while (currentTask.get(configListener) != null) delay(1.ticks)
                 startNextTaskMethod.invoke(configListener)
             }
 
