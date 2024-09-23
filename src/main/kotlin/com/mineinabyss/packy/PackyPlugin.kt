@@ -65,7 +65,6 @@ class PackyPlugin : JavaPlugin() {
         PackyDownloader.downloadTemplates()
         TemplateLoadTriggers.registerTemplateHandlers()
         PackyGenerator.setupRequiredPackTemplates()
-        PackyServer.registerConfigPacketHandler()
     }
 
     private val templateFormat = ConfigFormats(
