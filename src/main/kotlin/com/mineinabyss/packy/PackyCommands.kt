@@ -3,6 +3,7 @@ package com.mineinabyss.packy
 import com.github.shynixn.mccoroutine.bukkit.launch
 import com.mineinabyss.guiy.inventory.guiy
 import com.mineinabyss.idofront.commands.brigadier.commands
+import com.mineinabyss.idofront.commands.brigadier.executes
 import com.mineinabyss.idofront.messaging.error
 import com.mineinabyss.idofront.messaging.info
 import com.mineinabyss.idofront.messaging.success
@@ -32,24 +33,26 @@ object PackyCommands {
                     }
                 }
                 "menu" {
+                    requiresPermission("")
                     playerExecutes {
                         guiy { PackyMainMenu(player) }
                     }
                 }
                 "send" {
+                    requiresPermission("")
                     playerExecutes {
                         packy.plugin.launch {
                             PackyServer.sendPack(player)
                             sender.success("Sent pack to ${player.name}")
                         }
                     }
-                    val players by ArgumentTypes.players()
-                    executes {
+                    requiresPermission("packy.send.others")
+                    executes(ArgumentTypes.players().resolve()) { players ->
                         packy.plugin.launch {
-                            players().forEach {
+                            players.forEach {
                                 PackyServer.sendPack(it)
                             }
-                            sender.success("Sent pack to ${players().take(6).joinToString(",") { it.name }}...")
+                            sender.success("Sent pack to ${players.take(6).joinToString(",") { it.name }}...")
                         }
                     }
                 }
@@ -64,7 +67,6 @@ object PackyCommands {
                 }
                 "debug" {
                     playerExecutes {
-
                         player.packyData.templates.mapNotNull { (packy.templates[it.key] ?: return@mapNotNull null) to it.value }
                             .map {
                                 Component.textOfChildren(
