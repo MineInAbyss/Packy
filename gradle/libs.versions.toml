@@ -1,8 +1,7 @@
 [versions]
-gearyPaper = "0.30.11"
-guiy="0.12.1"
+gearyPaper = "0.31.0-dev.2"
+guiy="0.12.4"
 
 [libraries]
 geary-papermc = { module = "com.mineinabyss:geary-papermc", version.ref = "gearyPaper" }
 guiy = { module = "com.mineinabyss:guiy-compose", version.ref = "guiy" }
-betterhud = "com.github.toxicity188:BetterHud:1.0"

@@ -1,18 +1,12 @@
 package com.mineinabyss.packy.listener
 
-import com.mineinabyss.geary.addons.GearyPhase
-import com.mineinabyss.geary.modules.geary
-import com.mineinabyss.geary.papermc.gearyPaper
-import com.mineinabyss.idofront.di.DI
-import com.mineinabyss.idofront.messaging.broadcast
 import com.mineinabyss.idofront.plugin.Plugins
 import com.mineinabyss.idofront.plugin.listeners
 import com.mineinabyss.idofront.plugin.unregisterListeners
-import com.mineinabyss.packy.config.PackyTemplate
-import com.mineinabyss.packy.config.packy
 import com.mineinabyss.packy.PackyGenerator
 import com.mineinabyss.packy.PackySquash
-import com.mineinabyss.packy.config.PackyContext
+import com.mineinabyss.packy.config.PackyTemplate
+import com.mineinabyss.packy.config.packy
 import com.mineinabyss.packy.listener.TemplateLoadTriggers.unregisterTemplateHandlers
 import com.ticxo.modelengine.api.events.ModelRegistrationEvent
 import com.ticxo.modelengine.api.generator.ModelGenerator
@@ -21,12 +15,8 @@ import io.th0rgal.oraxen.OraxenPlugin
 import io.th0rgal.oraxen.api.events.OraxenPackPreUploadEvent
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import kr.toxicity.hud.api.event.PluginReloadedEvent
-import kr.toxicity.hud.api.plugin.ReloadState
 import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
-import team.unnamed.creative.ResourcePack
-import team.unnamed.creative.part.ResourcePackPart
 
 object TemplateLoadTriggers {
 
@@ -131,28 +121,6 @@ sealed interface LoadTrigger {
                         PackySquash.squashPackyTemplate(template)
                         packy.logger.s("Finished PackSquash process for $id-template")
                     }
-                }
-            }
-            template.triggerListener = listener
-            packy.plugin.listeners(listener)
-        }
-    }
-
-    @Serializable
-    @SerialName("BetterHud")
-    data object BetterHudTrigger : LoadTrigger {
-        override fun registerLoadHandler(template: PackyTemplate) {
-            if (!Plugins.isEnabled("BetterHud")) return
-
-            val id = template.id
-            unregisterTemplateHandlers()
-            val listener = object : Listener {
-                @EventHandler
-                fun PluginReloadedEvent.onPluginReload() {
-                    if (result.state != ReloadState.SUCCESS) return
-
-                    packy.logger.w("BetterHud loadTrigger detected...")
-                    template.clearFromCache()
                 }
             }
             template.triggerListener = listener

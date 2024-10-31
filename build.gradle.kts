@@ -37,7 +37,6 @@ dependencies {
     // Geary platform
     compileOnly(packyLibs.geary.papermc)
     compileOnly(packyLibs.guiy)
-    compileOnly(packyLibs.betterhud)
 
     compileOnly(idofrontLibs.minecraft.plugin.modelengine)
     compileOnly(idofrontLibs.minecraft.plugin.oraxen)
@@ -49,10 +48,12 @@ dependencies {
     implementation("com.squareup.okhttp3:okhttp:4.12.0")
 }
 
-tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
+kotlin {
     compilerOptions {
-        freeCompilerArgs = listOf(
-            "-Xcontext-receivers",
+        freeCompilerArgs.addAll(
+            "-opt-in=kotlinx.serialization.ExperimentalSerializationApi",
+            "-opt-in=kotlin.ExperimentalUnsignedTypes",
+            "-Xcontext-receivers"
         )
     }
 }
@@ -64,7 +65,7 @@ paper {
     val version: String by project
     this.version = version
     authors = listOf("boy0000")
-    apiVersion = "1.20"
+    apiVersion = "1.21"
 
     serverDependencies {
         register("Geary") {
@@ -90,11 +91,6 @@ paper {
             joinClasspath = true
         }
         register("MythicCrucible") {
-            required = false
-            load = PaperPluginDescription.RelativeLoadOrder.BEFORE
-            joinClasspath = true
-        }
-        register("BetterHud") {
             required = false
             load = PaperPluginDescription.RelativeLoadOrder.BEFORE
             joinClasspath = true

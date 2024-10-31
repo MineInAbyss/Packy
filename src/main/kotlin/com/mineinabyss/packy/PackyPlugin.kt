@@ -4,8 +4,11 @@ import com.charleskorn.kaml.PolymorphismStyle
 import com.charleskorn.kaml.SingleLineStringStyle
 import com.charleskorn.kaml.Yaml
 import com.charleskorn.kaml.YamlConfiguration
+import com.mineinabyss.geary.addons.dsl.createAddon
 import com.mineinabyss.geary.autoscan.autoscan
 import com.mineinabyss.geary.modules.geary
+import com.mineinabyss.geary.papermc.configure
+import com.mineinabyss.geary.papermc.gearyPaper
 import com.mineinabyss.idofront.config.ConfigFormats
 import com.mineinabyss.idofront.config.Format
 import com.mineinabyss.idofront.config.config
@@ -23,11 +26,15 @@ import team.unnamed.creative.ResourcePack
 
 class PackyPlugin : JavaPlugin() {
 
+    private val PackyAddon = createAddon("Packy", configuration = {
+        autoscan(classLoader, "com.mineinabyss.packy") {
+            all()
+        }
+    })
+
     override fun onLoad() {
-        geary {
-            autoscan(classLoader, "com.mineinabyss.packy") {
-                all()
-            }
+        gearyPaper.configure {
+            install(PackyAddon)
         }
     }
 
