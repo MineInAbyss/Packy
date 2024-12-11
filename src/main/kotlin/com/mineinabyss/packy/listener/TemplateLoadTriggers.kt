@@ -11,8 +11,6 @@ import com.mineinabyss.packy.listener.TemplateLoadTriggers.unregisterTemplateHan
 import com.ticxo.modelengine.api.events.ModelRegistrationEvent
 import com.ticxo.modelengine.api.generator.ModelGenerator
 import io.lumine.mythiccrucible.events.MythicCrucibleGeneratePackEvent
-import io.th0rgal.oraxen.OraxenPlugin
-import io.th0rgal.oraxen.api.events.OraxenPackPreUploadEvent
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import org.bukkit.event.EventHandler
@@ -115,38 +113,6 @@ sealed interface LoadTrigger {
 
                     template.clearFromCache()
                     packy.logger.s("Copying MythicCrucible-pack for $id-template")
-
-                    if (packy.config.packSquash.enabled) {
-                        packy.logger.i("Starting PackSquash process for $id-template...")
-                        PackySquash.squashPackyTemplate(template)
-                        packy.logger.s("Finished PackSquash process for $id-template")
-                    }
-                }
-            }
-            template.triggerListener = listener
-            packy.plugin.listeners(listener)
-        }
-    }
-
-    @Serializable
-    @SerialName("Oraxen")
-    data object OraxenTrigger : LoadTrigger {
-        override fun registerLoadHandler(template: PackyTemplate) {
-            if (!Plugins.isEnabled("Oraxen")) return
-
-            val id = template.id
-            unregisterTemplateHandlers()
-            val listener = object : Listener {
-                @EventHandler
-                fun OraxenPackPreUploadEvent.onOraxenPackPreUpload() {
-                    packy.logger.w("Oraxen loadTrigger detected...")
-                    isCancelled = true
-                    val oraxenPack = OraxenPlugin.get().resourcePack?.file?.takeIf { it.exists() }
-                        ?: return packy.logger.e("Oraxen-pack is missing, skipping loadTrigger for $id-template")
-                    oraxenPack.copyTo(template.path.toFile(), true)
-
-                    template.clearFromCache()
-                    packy.logger.s("Copying Oraxen-pack for $id-template")
 
                     if (packy.config.packSquash.enabled) {
                         packy.logger.i("Starting PackSquash process for $id-template...")
