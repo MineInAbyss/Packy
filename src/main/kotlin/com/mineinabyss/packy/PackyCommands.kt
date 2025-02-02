@@ -46,15 +46,15 @@ object PackyCommands {
                             sender.success("Sent pack to ${player.name}")
                         }
                     }
-                    requiresPermission("packy.send.others")
-                    executes(ArgumentTypes.players().resolve()) { players ->
-                        packy.plugin.launch {
-                            players.forEach {
-                                PackyServer.sendPack(it)
-                            }
-                            sender.success("Sent pack to ${players.take(6).joinToString(",") { it.name }}...")
-                        }
-                    }
+                    //requiresPermission("packy.send.others")
+                    //executes(ArgumentTypes.players().resolve()) { players ->
+                    //    packy.plugin.launch {
+                    //        players.forEach {
+                    //            PackyServer.sendPack(it)
+                    //        }
+                    //        sender.success("Sent pack to ${players.take(6).joinToString(",") { it.name }}...")
+                    //    }
+                    //}
                 }
                 "bypass" {
                     playerExecutes {
