@@ -42,7 +42,7 @@ fun PackyMainMenu(player: Player) {
     }
     CompositionLocalProvider(PackyScopeProvider provides scope, PackyDataProvider provides packyData) {
         scope.nav.withScreen(setOf(player), onEmpty = owner::exit) { screen ->
-            Chest(setOf(player), screen.title, Modifier.height(screen.height), onClose = {
+            Chest(screen.title, Modifier.height(screen.height), onClose = {
                 owner.exit()
                 scope.changedAction?.invoke()?.run {
                     packy.plugin.launch {

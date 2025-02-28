@@ -8,6 +8,7 @@ import com.mineinabyss.packy.components.PackyPack
 import com.mineinabyss.packy.config.PackyTemplate
 import com.mineinabyss.packy.config.packy
 import com.mineinabyss.packy.helpers.CacheMap
+import com.mineinabyss.packy.helpers.ModernVersionPatcher
 import com.mineinabyss.packy.helpers.TemplateIds
 import kotlinx.coroutines.*
 import team.unnamed.creative.ResourcePack
@@ -60,8 +61,9 @@ object PackyGenerator {
                         .forEach { ResourcePacks.mergeResourcePacks(cachedPack, it) }
 
                     PackObfuscator(cachedPack).obfuscatePack()
+                    ModernVersionPatcher(cachedPack).patchPack()
 
-                    ResourcePacks.resourcePackWriter.writeToZipFile(packy.plugin.dataFolder.resolve("test2.zip"), cachedPack)
+                    //ResourcePacks.resourcePackWriter.writeToZipFile(packy.plugin.dataFolder.resolve("test2.zip"), cachedPack)
                     val builtPack = ResourcePacks.resourcePackWriter.build(cachedPack)
                     PackyPack(builtPack, templateIds).apply {
                         cachedPacks[templateIds] = this
