@@ -2,8 +2,10 @@ package com.mineinabyss.packy
 
 import com.github.shynixn.mccoroutine.bukkit.asyncDispatcher
 import com.github.shynixn.mccoroutine.bukkit.launch
+import com.google.gson.JsonParser
 import com.mineinabyss.idofront.resourcepacks.ResourcePacks
 import com.mineinabyss.idofront.textcomponents.miniMsg
+import com.mineinabyss.idofront.util.filterFast
 import com.mineinabyss.packy.components.PackyPack
 import com.mineinabyss.packy.config.PackyTemplate
 import com.mineinabyss.packy.config.packy
@@ -60,8 +62,9 @@ object PackyGenerator {
                         .mapNotNull { ResourcePacks.readToResourcePack(it.path.toFile()) }
                         .forEach { ResourcePacks.mergeResourcePacks(cachedPack, it) }
 
-                    PackObfuscator(cachedPack).obfuscatePack()
                     ModernVersionPatcher(cachedPack).patchPack()
+                    removeStandardItemModels(cachedPack)
+                    PackObfuscator(cachedPack).obfuscatePack()
 
                     //ResourcePacks.resourcePackWriter.writeToZipFile(packy.plugin.dataFolder.resolve("test2.zip"), cachedPack)
                     val builtPack = ResourcePacks.resourcePackWriter.build(cachedPack)
@@ -76,6 +79,18 @@ object PackyGenerator {
                     }
                 }
             }
+        }
+    }
+
+    private fun removeStandardItemModels(resourcePack: ResourcePack) {
+        // Remove standard ItemModel files as they are no longer needed
+        resourcePack.unknownFiles().filterFast { it.key.startsWith("assets/minecraft/items/") }.forEach { (key, writable) ->
+            runCatching {
+                val itemModelObject = writable.toUTF8String().let(JsonParser::parseString)?.asJsonObject ?: return@forEach
+                if (!ModernVersionPatcher.isStandardItemModel(key, itemModelObject)) return@forEach
+
+                resourcePack.removeUnknownFile(key)
+            }.onFailure { it.printStackTrace() }
         }
     }
 }

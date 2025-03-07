@@ -18,6 +18,11 @@ import team.unnamed.creative.ResourcePack
 import team.unnamed.creative.base.Writable
 import team.unnamed.creative.model.ItemOverride
 import team.unnamed.creative.model.ItemPredicate
+import kotlin.plus
+import kotlin.text.contains
+import kotlin.text.equals
+import kotlin.text.get
+import kotlin.toString
 
 // Patch for handling CustomModelData for 1.21.4+ until creative updated
 class ModernVersionPatcher(val resourcePack: ResourcePack) {
@@ -203,16 +208,15 @@ class ModernVersionPatcher(val resourcePack: ResourcePack) {
 
                 val fallback = overrides.find { it.predicate().pull == null }?.model()?.asString()
                 val fallbackObject = JsonBuilder.jsonObject.plus("type", "minecraft:model").plus("model", fallback)
-                val fireworkObject = overrides.firstOrNull { it.predicate().firework != null }?.model()?.asString()?.let {
-                    JsonBuilder.jsonObject
-                        .plus("model", JsonBuilder.jsonObject.plus("type", "minecraft:model").plus("model", it))
-                        .plus("when", "rocket")
-                }
-                val chargedObject = overrides.firstOrNull { it.predicate().charged != null }?.model()?.asString()?.let {
-                    JsonBuilder.jsonObject
-                        .plus("model", JsonBuilder.jsonObject.plus("type", "minecraft:model").plus("model", it))
-                        .plus("when", "arrow")
-                }
+
+                val fireworkObject = JsonBuilder.jsonObject.plus("when", "rocket")
+                    .plus("model", overrides.firstOrNull { it.predicate().charged != null }?.model()?.asString()?.let {
+                        JsonBuilder.jsonObject.plus("type", "minecraft:model").plus("model", it)
+                    } ?: fallbackObject)
+                val chargedObject = JsonBuilder.jsonObject.plus("when", "arrow")
+                    .plus("model", overrides.firstOrNull { it.predicate().charged != null }?.model()?.asString()?.let {
+                        JsonBuilder.jsonObject.plus("type", "minecraft:model").plus("model", it)
+                    } ?: fallbackObject)
 
                 JsonBuilder.jsonObject
                     .plus("threshold", cmd ?: return@mapNotNull null)
@@ -226,7 +230,7 @@ class ModernVersionPatcher(val resourcePack: ResourcePack) {
                                     .plus("type", "minecraft:select")
                                     .plus("property", "minecraft:charge_type")
                                     .plus("fallback", fallbackObject)
-                                    .plus("cases", JsonBuilder.jsonArray.plus(fireworkObject).plus(chargedObject).filterNotNull().toJsonArray())
+                                    .plus("cases", JsonBuilder.jsonArray.plus(fireworkObject).plus(chargedObject))
                             )
                             .plus("on_true",
                                 JsonBuilder.jsonObject
