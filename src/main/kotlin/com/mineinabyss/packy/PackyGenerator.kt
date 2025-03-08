@@ -66,7 +66,7 @@ object PackyGenerator {
                     removeStandardItemModels(cachedPack)
                     PackObfuscator(cachedPack).obfuscatePack()
 
-                    //ResourcePacks.resourcePackWriter.writeToZipFile(packy.plugin.dataFolder.resolve("test2.zip"), cachedPack)
+                    ResourcePacks.resourcePackWriter.writeToZipFile(packy.plugin.dataFolder.resolve("test2.zip"), cachedPack)
                     val builtPack = ResourcePacks.resourcePackWriter.build(cachedPack)
                     PackyPack(builtPack, templateIds).apply {
                         cachedPacks[templateIds] = this

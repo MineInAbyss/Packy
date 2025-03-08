@@ -75,11 +75,12 @@ sealed interface LoadTrigger {
                 @EventHandler
                 fun ModelRegistrationEvent.onMegPackZipped() {
 
-                    if (phase != ModelGenerator.Phase.POST_ZIPPING) return
+                    if (phase != ModelGenerator.Phase.FINISHED) return
                     packy.logger.w("ModelEngine loadTrigger detected...")
                     val megPack = packy.plugin.server.pluginsFolder.resolve("ModelEngine/resource pack.zip").takeIf { it.exists() }
+                        packy.plugin.server.pluginsFolder.resolve("ModelEngine/resource pack").takeIf { it.exists() }
                         ?: return packy.logger.e("ModelEngine pack is missing, skipping loadTrigger for $id-template")
-                    megPack.copyTo(template.path.toFile(), overwrite = true)
+                    megPack?.copyTo(template.path.toFile(), overwrite = true)
 
                     template.clearFromCache()
                     packy.logger.s("Copying ModelEngine-pack for $id-template")

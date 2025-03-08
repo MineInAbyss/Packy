@@ -42,7 +42,7 @@ data class PackyConfig(
 ) {
 
     @Serializable
-    data class Obfuscation(val type: Type = Type.FULL, val cache: Boolean = true) {
+    data class Obfuscation(val type: Type = Type.NONE, val cache: Boolean = true) {
         enum class Type {
             FULL, SIMPLE, NONE
         }

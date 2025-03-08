@@ -53,7 +53,7 @@ class ModernVersionPatcher(val resourcePack: ResourcePack) {
 
     fun patchPack() {
         resourcePack.models().filterFast { it.key() in standardTextureModels }
-            .associateFast { it.key().value().removePrefix("item/").appendIfMissing(".json") to it.overrides() }
+            .associateFast { it.key().value().removePrefix("block/").removePrefix("item/").appendIfMissing(".json") to it.overrides() }
             .forEach { (model, overrides) ->
                 val standardItemModel = standardItemModels["assets/minecraft/items/$model"]?.toJsonObject()
                 // If not standard (shield etc.) we need to traverse the tree
@@ -62,12 +62,13 @@ class ModernVersionPatcher(val resourcePack: ResourcePack) {
                     val baseItemModel = existingItemModel.`object`("model")?.takeUnless { it.isSimpleItemModel } ?: return@let null
 
                     runCatching {
-                        val keys = baseItemModel.keySet()
-                        when (model) {
-                            "crossbow.json" -> handleCrossbowEntries(existingItemModel, baseItemModel, overrides)
-                            "bow.json" -> handleBowEntries(existingItemModel, baseItemModel, overrides)
-                            "player_head.json" -> handlePlayerEntries(existingItemModel, baseItemModel, overrides)
+                        when {
+                            model == "crossbow.json" -> handleCrossbowEntries(existingItemModel, baseItemModel, overrides)
+                            model == "bow.json" -> handleBowEntries(existingItemModel, baseItemModel, overrides)
+                            model == "player_head.json" -> handlePlayerEntries(existingItemModel, baseItemModel, overrides)
+                            model.endsWith("shulker_box.json") -> handleShulkerBoxEntries(existingItemModel, baseItemModel, overrides)
                             else -> {
+                                val keys = baseItemModel.keySet()
                                 if ("on_false" in keys) handleOnBoolean(false, baseItemModel, overrides)
                                 if ("on_true" in keys) handleOnBoolean(true, baseItemModel, overrides)
                                 if ("tints" in keys) handleTints(existingItemModel, baseItemModel, overrides)
@@ -81,10 +82,7 @@ class ModernVersionPatcher(val resourcePack: ResourcePack) {
                     }
 
                     existingItemModel
-                } ?: JsonBuilder.jsonObject.plus(
-                    "model",
-                    modelObject(standardItemModel?.`object`("model"), overrides, model)
-                )
+                } ?: JsonBuilder.jsonObject.plus("model", modelObject(standardItemModel?.`object`("model"), overrides, model))
 
                 val key = "assets/minecraft/items/$model"
                 val existingWritable = resourcePack.unknownFile(key)?.let {
@@ -188,6 +186,24 @@ class ModernVersionPatcher(val resourcePack: ResourcePack) {
                         )
                     }.toJsonArray())
             ).let { baseItemModel.plus("on_$boolean", it) }
+    }
+
+    private fun handleShulkerBoxEntries(
+        existingItemModel: JsonObject,
+        baseItemModel: JsonObject,
+        overrides: List<ItemOverride>,
+    ) {
+        JsonBuilder.jsonObject.plus("type", "minecraft:range_dispatch")
+            .plus("property", "minecraft:custom_model_data")
+            .plus("fallback", baseItemModel)
+            .plus(
+                "entries", JsonBuilder.jsonArray
+                    .plus(overrides.mapNotNull { override ->
+                        val cmd = override.predicate().customModelData ?: return@mapNotNull null
+                        JsonBuilder.jsonObject.plus("threshold", cmd)
+                            .plus("model", JsonBuilder.jsonObject.plus("model", override.model().asString()).plus("type", "minecraft:model"))
+                    }.toJsonArray())
+            ).let { existingItemModel.plus("model", it) }
     }
 
     private fun handleCrossbowEntries(
