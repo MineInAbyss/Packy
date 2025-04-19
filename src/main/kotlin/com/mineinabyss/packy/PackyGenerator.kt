@@ -15,6 +15,7 @@ import com.mineinabyss.packy.helpers.TemplateIds
 import kotlinx.coroutines.*
 import team.unnamed.creative.ResourcePack
 import team.unnamed.creative.base.Writable
+import kotlin.collections.containsValue
 import kotlin.io.path.div
 import kotlin.io.path.exists
 
@@ -62,8 +63,8 @@ object PackyGenerator {
                         .mapNotNull { ResourcePacks.readToResourcePack(it.path.toFile()) }
                         .forEach { ResourcePacks.mergeResourcePacks(cachedPack, it) }
 
-                    ModernVersionPatcher(cachedPack).patchPack()
-                    removeStandardItemModels(cachedPack)
+                    ModernVersionPatcher.convertResources(cachedPack)
+                    cachedPack.items().removeIf { ModernVersionPatcher.standardItemModels.containsValue(it) }
                     PackObfuscator(cachedPack).obfuscatePack()
 
                     ResourcePacks.resourcePackWriter.writeToZipFile(packy.plugin.dataFolder.resolve("test2.zip"), cachedPack)
@@ -79,18 +80,6 @@ object PackyGenerator {
                     }
                 }
             }
-        }
-    }
-
-    private fun removeStandardItemModels(resourcePack: ResourcePack) {
-        // Remove standard ItemModel files as they are no longer needed
-        resourcePack.unknownFiles().filterFast { it.key.startsWith("assets/minecraft/items/") }.forEach { (key, writable) ->
-            runCatching {
-                val itemModelObject = writable.toUTF8String().let(JsonParser::parseString)?.asJsonObject ?: return@forEach
-                if (!ModernVersionPatcher.isStandardItemModel(key, itemModelObject)) return@forEach
-
-                resourcePack.removeUnknownFile(key)
-            }.onFailure { it.printStackTrace() }
         }
     }
 }
