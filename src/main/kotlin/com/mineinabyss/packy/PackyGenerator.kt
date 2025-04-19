@@ -9,6 +9,7 @@ import com.mineinabyss.idofront.util.filterFast
 import com.mineinabyss.packy.components.PackyPack
 import com.mineinabyss.packy.config.PackyTemplate
 import com.mineinabyss.packy.config.packy
+import com.mineinabyss.packy.helpers.AtlasGenerator
 import com.mineinabyss.packy.helpers.CacheMap
 import com.mineinabyss.packy.helpers.ModernVersionPatcher
 import com.mineinabyss.packy.helpers.TemplateIds
@@ -62,6 +63,8 @@ object PackyGenerator {
                     packy.templates.filter { !it.required && it.id in templateIds }
                         .mapNotNull { ResourcePacks.readToResourcePack(it.path.toFile()) }
                         .forEach { ResourcePacks.mergeResourcePacks(cachedPack, it) }
+
+                    AtlasGenerator.generateAtlasFile(cachedPack)
 
                     ModernVersionPatcher.convertResources(cachedPack)
                     cachedPack.items().removeIf { ModernVersionPatcher.standardItemModels.containsValue(it) }
