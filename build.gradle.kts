@@ -84,11 +84,6 @@ paper {
             load = PaperPluginDescription.RelativeLoadOrder.BEFORE
             joinClasspath = true
         }
-//        register("Oraxen") {
-//            required = false
-//            load = PaperPluginDescription.RelativeLoadOrder.BEFORE
-//            joinClasspath = true
-//        }
         register("MythicCrucible") {
             required = false
             load = PaperPluginDescription.RelativeLoadOrder.BEFORE
