@@ -1,6 +1,7 @@
 package com.mineinabyss.packy
 
 import com.github.shynixn.mccoroutine.bukkit.launch
+import com.github.shynixn.mccoroutine.bukkit.ticks
 import com.mineinabyss.guiy.inventory.guiy
 import com.mineinabyss.idofront.commands.brigadier.commands
 import com.mineinabyss.idofront.commands.brigadier.executes
@@ -12,6 +13,7 @@ import com.mineinabyss.packy.components.packyData
 import com.mineinabyss.packy.config.packy
 import com.mineinabyss.packy.menus.picker.PackyMainMenu
 import io.papermc.paper.command.brigadier.argument.ArgumentTypes
+import kotlinx.coroutines.delay
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.format.NamedTextColor
 import org.bukkit.Bukkit
@@ -25,8 +27,8 @@ object PackyCommands {
                     executes {
                         packy.plugin.createPackyContext()
                         sender.success("Packy has been reloaded!")
-                        if (packy.config.sendOnReload) packy.plugin.server.onlinePlayers.forEach {
-                            packy.plugin.launch {
+                        packy.plugin.launch {
+                            if (packy.config.sendOnReload) packy.plugin.server.onlinePlayers.forEach {
                                 PackyServer.sendPack(it)
                             }
                         }

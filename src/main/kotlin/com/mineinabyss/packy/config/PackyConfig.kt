@@ -30,7 +30,7 @@ data class PackyConfig(
     @EncodeDefault(ALWAYS) val force: Boolean = false,
     @EncodeDefault(ALWAYS) val sendOnReload: Boolean = false,
     @YamlComment("What ObfuscationType to use, valid options are FULL, SIMPLE & NONE")
-    @EncodeDefault(ALWAYS) val obfuscation: Obfuscation = Obfuscation(),
+    @EncodeDefault(ALWAYS) val obfuscation: ObfuscationType = ObfuscationType.SIMPLE,
     @YamlComment("This will use PackSquash to automatically squash all templates")
     @EncodeDefault(ALWAYS) val packSquash: PackSquash = PackSquash(),
     @YamlComment(
@@ -41,14 +41,9 @@ data class PackyConfig(
     @EncodeDefault(ALWAYS) val menu: PackyMenu = PackyMenu()
 ) {
 
-    @Serializable
-    data class Obfuscation(val type: Type = Type.NONE, val cache: Boolean = true) {
-        enum class Type {
-            FULL, SIMPLE, NONE
-        }
+    enum class ObfuscationType {
+        FULL, SIMPLE, NONE
     }
-
-
 
     @Serializable
     data class PackSquash(

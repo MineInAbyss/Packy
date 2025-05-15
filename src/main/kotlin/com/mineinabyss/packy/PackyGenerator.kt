@@ -22,12 +22,14 @@ import kotlin.io.path.exists
 
 object PackyGenerator {
     private val generatorDispatcher = Dispatchers.IO.limitedParallelism(1)
+    private var requiredTemplateJob: Job? = null
     val activeGeneratorJob: MutableMap<TemplateIds, Deferred<PackyPack>> = mutableMapOf()
     val cachedPacks: CacheMap<TemplateIds, PackyPack> = CacheMap(packy.config.cachedPackAmount)
     val cachedPacksByteArray: CacheMap<TemplateIds, ByteArray> = CacheMap(packy.config.cachedPackAmount)
 
     fun setupRequiredPackTemplates() {
-        packy.plugin.launch(packy.plugin.asyncDispatcher) {
+        requiredTemplateJob?.cancel()
+        requiredTemplateJob = packy.plugin.launch(packy.plugin.asyncDispatcher) {
             (packy.plugin.dataFolder.toPath() / packy.config.icon).takeIf { it.exists() }
                 ?.let { packy.defaultPack.icon(Writable.path(it)) }
             packy.config.mcmeta.description.takeIf { it.isNotEmpty() }
@@ -46,6 +48,7 @@ object PackyGenerator {
 
     suspend fun getOrCreateCachedPack(templateIds: TemplateIds): Deferred<PackyPack> = coroutineScope {
         PackyDownloader.startupJob?.join() // Ensure templates are downloaded
+        requiredTemplateJob?.join()
 
         // Make sure we read data on sync thread
 

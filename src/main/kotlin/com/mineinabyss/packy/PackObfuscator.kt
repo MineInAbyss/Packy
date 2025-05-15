@@ -1,26 +1,12 @@
 package com.mineinabyss.packy
 
-import com.google.gson.JsonObject
-import com.google.gson.JsonPrimitive
 import com.mineinabyss.idofront.resourcepacks.ResourcePacks
-import com.mineinabyss.idofront.util.associateFastWith
 import com.mineinabyss.idofront.util.filterFast
-import com.mineinabyss.idofront.util.flatMapFast
 import com.mineinabyss.idofront.util.mapNotNullFast
-import com.mineinabyss.idofront.util.plusFast
 import com.mineinabyss.idofront.util.toFastMap
 import com.mineinabyss.packy.config.PackyConfig
 import com.mineinabyss.packy.config.packy
-import com.mineinabyss.packy.helpers.JsonBuilder.array
-import com.mineinabyss.packy.helpers.JsonBuilder.`object`
-import com.mineinabyss.packy.helpers.JsonBuilder.plus
-import com.mineinabyss.packy.helpers.JsonBuilder.toJsonArray
-import com.mineinabyss.packy.helpers.ModernVersionPatcher
-import com.mineinabyss.packy.helpers.toJsonObject
-import com.mineinabyss.packy.helpers.toWritable
-import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet
-import java.util.*
 import net.kyori.adventure.key.Key
 import team.unnamed.creative.ResourcePack
 import team.unnamed.creative.atlas.AtlasSource
@@ -30,14 +16,7 @@ import team.unnamed.creative.blockstate.MultiVariant
 import team.unnamed.creative.blockstate.Selector
 import team.unnamed.creative.blockstate.Variant
 import team.unnamed.creative.font.BitMapFontProvider
-import team.unnamed.creative.item.CompositeItemModel
-import team.unnamed.creative.item.ConditionItemModel
-import team.unnamed.creative.item.Item
-import team.unnamed.creative.item.ItemModel
-import team.unnamed.creative.item.RangeDispatchItemModel
-import team.unnamed.creative.item.ReferenceItemModel
-import team.unnamed.creative.item.SelectItemModel
-import team.unnamed.creative.item.SpecialItemModel
+import team.unnamed.creative.item.*
 import team.unnamed.creative.model.ItemOverride
 import team.unnamed.creative.model.Model
 import team.unnamed.creative.model.ModelTexture
@@ -47,7 +26,7 @@ import team.unnamed.creative.overlay.ResourceContainer
 import team.unnamed.creative.sound.Sound
 import team.unnamed.creative.sound.SoundRegistry
 import team.unnamed.creative.texture.Texture
-import kotlin.text.get
+import java.util.*
 
 class PackObfuscator(private val resourcePack: ResourceContainer) {
 
@@ -83,7 +62,7 @@ class PackObfuscator(private val resourcePack: ResourceContainer) {
     private fun ObjectOpenHashSet<ObfuscatedSound>.findObf(key: Key) = find { it.find(key) != null }?.obfuscatedSound
 
     fun obfuscatePack() {
-        if (resourcePack !is ResourcePack || packy.config.obfuscation.type == PackyConfig.Obfuscation.Type.NONE) return
+        if (resourcePack !is ResourcePack || packy.config.obfuscation == PackyConfig.ObfuscationType.NONE) return
         packy.logger.i("Obfuscating pack...")
 
         obfuscateModels()
@@ -322,12 +301,12 @@ class PackObfuscator(private val resourcePack: ResourceContainer) {
     }
 
     private val obfuscatedNamespaceCache = mutableMapOf<String, String>()
-    private fun Key.obfuscateKey() = when (packy.config.obfuscation.type) {
-        PackyConfig.Obfuscation.Type.NONE -> this
-        PackyConfig.Obfuscation.Type.FULL -> Key.key(obfuscatedNamespaceCache.getOrPut(namespace()) {
+    private fun Key.obfuscateKey() = when (packy.config.obfuscation) {
+        PackyConfig.ObfuscationType.NONE -> this
+        PackyConfig.ObfuscationType.FULL -> Key.key(obfuscatedNamespaceCache.getOrPut(namespace()) {
             UUID.randomUUID().toString()
         }, UUID.randomUUID().toString())
-        PackyConfig.Obfuscation.Type.SIMPLE -> Key.key(this.namespace(), UUID.randomUUID().toString())
+        PackyConfig.ObfuscationType.SIMPLE -> Key.key(this.namespace(), UUID.randomUUID().toString())
     }
 
     private fun Key.emissiveKey() = removeSuffix(".png").appendSuffix("_e.png")

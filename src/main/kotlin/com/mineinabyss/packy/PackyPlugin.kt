@@ -66,7 +66,7 @@ class PackyPlugin : JavaPlugin() {
             override val logger by plugin.observeLogger()
         })
 
-        PackyGenerator.activeGeneratorJob.apply { values.forEach(Job::cancel) }.clear()
+        PackyGenerator.activeGeneratorJob.onEach { it.value.cancel() }.clear()
         PackyGenerator.cachedPacks.clear()
         PackyGenerator.cachedPacksByteArray.clear()
         PackyDownloader.downloadTemplates()
