@@ -30,11 +30,6 @@ object PackyGenerator {
     fun setupRequiredPackTemplates() {
         requiredTemplateJob?.cancel()
         requiredTemplateJob = packy.plugin.launch(packy.plugin.asyncDispatcher) {
-            (packy.plugin.dataFolder.toPath() / packy.config.icon).takeIf { it.exists() }
-                ?.let { packy.defaultPack.icon(Writable.path(it)) }
-            packy.config.mcmeta.description.takeIf { it.isNotEmpty() }
-                ?.let { packy.defaultPack.packMeta(packy.config.mcmeta.format, it.miniMsg()) }
-
             // Add all forced packs to defaultPack
             packy.templates.filter(PackyTemplate::required).mapNotNull { ResourcePacks.readToResourcePack(it.path.toFile()) }.forEach {
                 ResourcePacks.mergeResourcePacks(packy.defaultPack, it)
@@ -72,6 +67,11 @@ object PackyGenerator {
                     ModernVersionPatcher.convertResources(cachedPack)
                     cachedPack.items().removeIf { ModernVersionPatcher.standardItemModels.containsValue(it) }
                     PackObfuscator(cachedPack).obfuscatePack()
+
+                    (packy.plugin.dataFolder.toPath() / packy.config.icon).takeIf { it.exists() }
+                        ?.let { packy.defaultPack.icon(Writable.path(it)) }
+                    packy.config.mcmeta.description.takeIf { it.isNotEmpty() }
+                        ?.let { packy.defaultPack.packMeta(packy.config.mcmeta.format, it.miniMsg()) }
 
                     ResourcePacks.resourcePackWriter.writeToZipFile(packy.plugin.dataFolder.resolve("test2.zip"), cachedPack)
                     val builtPack = ResourcePacks.resourcePackWriter.build(cachedPack)
