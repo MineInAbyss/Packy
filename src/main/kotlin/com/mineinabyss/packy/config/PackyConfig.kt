@@ -37,8 +37,7 @@ data class PackyConfig(
         "The amount of TemplateID combinations Packy should cache the ResourcePack off",
         "If your ResourcePack is large it is recommended to lower this value"
     )
-    @EncodeDefault(ALWAYS) val cachedPackAmount: Int = 10,
-    @EncodeDefault(ALWAYS) val menu: PackyMenu = PackyMenu()
+    @EncodeDefault(ALWAYS) val cachedPackAmount: Int = 10
 ) {
 
     enum class ObfuscationType {
@@ -64,47 +63,5 @@ data class PackyConfig(
         val publicAddress: String = "http://$ip:$port"
     ) {
         fun publicUrl(hash: String, ids: TemplateIds) = "$publicAddress/$hash.zip?packs=${ids.joinToString(",")}"
-    }
-
-    @Serializable
-    data class PackyMenu(
-        val title: String = "Packy Pack Picker",
-        val height: Int = 6,
-        val subMenus: Map<String, PackySubMenu> = mapOf()
-    )
-
-    enum class SubMenuType {
-        MENU, CYCLING
-    }
-
-    @Serializable
-    data class PackySubMenu(
-        val title: String = "Packy SubMenu",
-        val height: Int = 6,
-        @EncodeDefault(NEVER) val button: SerializableItemStack = ItemStack(Material.STONE).toSerializable(),
-        val modifiers: Modifiers = Modifiers(),
-        val type: SubMenuType = SubMenuType.MENU,
-        val packs: Map<String, PackyPack> = mapOf()
-    )
-
-    @Serializable
-    data class PackyPack(
-        @EncodeDefault(NEVER) val button: SerializableItemStack? = null,
-        @EncodeDefault(NEVER) val modifiers: Modifiers = Modifiers()
-    )
-
-    @Serializable
-    data class Modifiers(val offset: Offset = Offset(), val size: Size = Size()) {
-        fun toModifier(): Modifier = Modifier.at(offset.x, offset.y).size(size.width, size.height)
-    }
-
-    @Serializable
-    data class Offset(val x: Int = 0, val y: Int = 0) {
-        fun toAtModifier(modifier: Modifier = Modifier): Modifier = modifier.at(x, y)
-    }
-
-    @Serializable
-    data class Size(val width: Int = 1, val height: Int = 1) {
-        fun toSizeModifier(modifier: Modifier = Modifier): Modifier = modifier.size(width, height)
     }
 }

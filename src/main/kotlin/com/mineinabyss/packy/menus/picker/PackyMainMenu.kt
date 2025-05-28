@@ -8,6 +8,7 @@ import com.mineinabyss.guiy.modifiers.click.clickable
 import com.mineinabyss.idofront.items.editItemMeta
 import com.mineinabyss.idofront.textcomponents.miniMsg
 import com.mineinabyss.packy.config.PackyConfig
+import com.mineinabyss.packy.config.PackyMenu
 import com.mineinabyss.packy.config.packy
 import com.mineinabyss.packy.helpers.rotatedLeft
 import com.mineinabyss.packy.menus.Button
@@ -36,12 +37,12 @@ fun PackyMenu() {
                 scope.nav.refresh()
             })
         } else when (subMenu.type) {
-            PackyConfig.SubMenuType.MENU -> Item(
+            PackyMenu.SubMenuType.MENU -> Item(
                 subMenu.button.toItemStack(),
                 subMenu.modifiers.toModifier().clickable { scope.nav.open(PackySubScreen(subMenu)) }
             )
 
-            PackyConfig.SubMenuType.CYCLING -> {
+            PackyMenu.SubMenuType.CYCLING -> {
                 val templateId = packyData.enabledPackIds.firstOrNull(subMenu.packs.keys::contains) ?: packs.first().first
                 val pack = subMenu.packs[templateId] ?: return
                 val currentTemplateIndex = packs.indexOf(templateId to pack)
@@ -60,7 +61,7 @@ fun PackyMenu() {
 }
 
 @Composable
-fun CycleButton(subMenu: PackyConfig.PackySubMenu, pack: PackyConfig.PackyPack, onClick: () -> Unit) {
+fun CycleButton(subMenu: PackyMenu.PackySubMenu, pack: PackyMenu.PackyPack, onClick: () -> Unit) {
     val modifier = subMenu.modifiers.offset.toAtModifier()
     VerticalGrid(subMenu.modifiers.size.toSizeModifier(modifier)) {
         Button(enabled = true, onClick = onClick) {

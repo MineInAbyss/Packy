@@ -12,6 +12,7 @@ val packy by DI.observe<PackyContext>()
 interface PackyContext {
     val plugin: PackyPlugin
     val config: PackyConfig
+    val menu: PackyMenu
     val defaultPack: ResourcePack
     val templates: PackyTemplates
     val accessToken: PackyAccessToken

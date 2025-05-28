@@ -13,6 +13,7 @@ import com.mineinabyss.packy.components.packyData
 import com.mineinabyss.packy.config.PackyConfig
 import com.mineinabyss.packy.config.packy
 import com.mineinabyss.packy.PackyServer
+import com.mineinabyss.packy.config.PackyMenu
 import kotlinx.coroutines.withContext
 import org.bukkit.entity.Player
 
@@ -21,7 +22,7 @@ sealed class PackyScreen(val title: String, val height: Int) {
 
 }
 
-class PackySubScreen(val subMenu: PackyConfig.PackySubMenu) : PackyScreen(subMenu.title, subMenu.height)
+class PackySubScreen(val subMenu: PackyMenu.PackySubMenu) : PackyScreen(subMenu.title, subMenu.height)
 
 typealias PackyNav = Navigator<PackyScreen>
 

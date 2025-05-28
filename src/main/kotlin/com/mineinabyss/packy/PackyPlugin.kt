@@ -58,6 +58,7 @@ class PackyPlugin : JavaPlugin() {
         DI.add<PackyContext>(object : PackyContext {
             override val plugin = this@PackyPlugin
             override val config: PackyConfig by config("config", dataFolder.toPath(), PackyConfig())
+            override val menu: PackyMenu by config("menu", dataFolder.toPath(), PackyMenu())
             override val templates: PackyTemplates = config<PackyTemplates>(
                 "templates", dataPath, PackyTemplates(), formats = templateFormat
             ).getOrLoad()
