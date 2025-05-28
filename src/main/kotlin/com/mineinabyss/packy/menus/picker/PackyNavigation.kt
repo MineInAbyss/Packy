@@ -18,7 +18,7 @@ import kotlinx.coroutines.withContext
 import org.bukkit.entity.Player
 
 sealed class PackyScreen(val title: String, val height: Int) {
-    data object Default : PackyScreen(packy.config.menu.title, packy.config.menu.height)
+    data object Default : PackyScreen(packy.menu.title, packy.menu.height)
 
 }
 
@@ -53,7 +53,7 @@ fun PackyMainMenu(player: Player) {
                 }
             }) {
                 when (screen) {
-                    PackyScreen.Default -> PackyMenu()
+                    PackyScreen.Default -> PackyMainMenu()
                     is PackySubScreen -> PackySubMenu(screen.subMenu)
                 }
             }

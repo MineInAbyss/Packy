@@ -5,6 +5,8 @@ import com.mineinabyss.guiy.modifiers.placement.absolute.at
 import com.mineinabyss.guiy.modifiers.size
 import com.mineinabyss.idofront.serialization.SerializableItemStack
 import com.mineinabyss.idofront.serialization.toSerializable
+import io.papermc.paper.datacomponent.DataComponentTypes
+import io.papermc.paper.datacomponent.item.CustomModelData
 import kotlinx.serialization.EncodeDefault
 import kotlinx.serialization.EncodeDefault.Mode.NEVER
 import kotlinx.serialization.ExperimentalSerializationApi
@@ -26,11 +28,21 @@ data class PackyMenu(
     data class PackySubMenu(
         val title: String = "Packy SubMenu",
         val height: Int = 6,
-        @EncodeDefault(NEVER) val button: SerializableItemStack = ItemStack(Material.STONE).toSerializable(),
+        @EncodeDefault(NEVER) val button: SerializableItemStack = ItemStack(Material.PAPER).toSerializable(),
         val modifiers: Modifiers = Modifiers(),
         val type: SubMenuType = SubMenuType.MENU,
         val packs: Map<String, PackyPack> = mapOf()
-    )
+    ) {
+        fun refreshItem(itemStack: ItemStack, state: Boolean) {
+            val cmd = CustomModelData.customModelData().addFlag(state).build()
+            itemStack.setData(DataComponentTypes.CUSTOM_MODEL_DATA, cmd)
+        }
+
+        fun refreshItem(itemStack: ItemStack, index: Int) {
+            val cmd = CustomModelData.customModelData().addFloat(index.toFloat()).build()
+            itemStack.setData(DataComponentTypes.CUSTOM_MODEL_DATA, cmd)
+        }
+    }
 
     @Serializable
     data class PackyPack(
