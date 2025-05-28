@@ -31,6 +31,7 @@ data class PackyMenu(
         @EncodeDefault(NEVER) val button: SerializableItemStack = ItemStack(Material.PAPER).toSerializable(),
         val modifiers: Modifiers = Modifiers(),
         val type: SubMenuType = SubMenuType.MENU,
+        val allSlotsEmptyExceptFirst: Boolean = false,
         val packs: Map<String, PackyPack> = mapOf()
     ) {
         fun refreshItem(itemStack: ItemStack, state: Boolean) {

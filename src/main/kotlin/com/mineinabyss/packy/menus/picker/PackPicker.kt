@@ -14,7 +14,7 @@ object PackPicker {
     fun enablePack(scope: PackyUIScope, player: Player, packyData: PackyData, pack: String, sender: CommandSender = player): Unit? {
         return packy.templates[pack]?.let { template ->
             val disabledConflicting = disableConflictingPacks(player, template).map { it.id }
-            packyData.templates[template.id] = true
+            packyData.templates.put(template.id, true)?.apply { if (this) return null }
 
             if ((sender as? Player)?.uniqueId != player.uniqueId) sender.success("TemplatePack ${template.id} was added to ${player.name}'s addon-packs")
             scope.changedAction = {
@@ -36,7 +36,7 @@ object PackPicker {
 
     fun disablePack(scope: PackyUIScope, player: Player, packyData: PackyData, pack: String, sender: CommandSender = player): Unit? {
         return packy.templates.find { it.id == pack }?.let { template ->
-            packyData.templates[template.id] = false
+            packyData.templates.put(template.id, false)?.apply { if (!this) return null }
 
             scope.changedAction = {
                 if ((sender as? Player)?.uniqueId != player.uniqueId) sender.success("TemplatePack ${template.id} was removed from ${player.name}'s addon-packs")

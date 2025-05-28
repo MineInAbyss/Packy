@@ -5,6 +5,12 @@ import com.mineinabyss.guiy.components.Item
 import com.mineinabyss.guiy.components.VerticalGrid
 import com.mineinabyss.guiy.modifiers.Modifier
 import com.mineinabyss.guiy.modifiers.click.clickable
+import com.mineinabyss.guiy.modifiers.fillMaxSize
+import com.mineinabyss.guiy.modifiers.placement.absolute.at
+import com.mineinabyss.guiy.modifiers.placement.offset.offset
+import com.mineinabyss.guiy.modifiers.placement.padding.padding
+import com.mineinabyss.guiy.modifiers.size
+import com.mineinabyss.guiy.modifiers.sizeIn
 import com.mineinabyss.idofront.items.editItemMeta
 import com.mineinabyss.idofront.serialization.SerializableDataTypes
 import com.mineinabyss.idofront.textcomponents.miniMsg
@@ -13,6 +19,8 @@ import com.mineinabyss.packy.config.PackyMenu
 import com.mineinabyss.packy.config.packy
 import com.mineinabyss.packy.helpers.rotatedLeft
 import com.mineinabyss.packy.menus.Button
+import io.papermc.paper.datacomponent.DataComponentTypes
+import net.kyori.adventure.key.Key
 import org.bukkit.Material
 import org.bukkit.inventory.ItemStack
 
@@ -67,12 +75,18 @@ fun PackyMainMenu() {
 @Composable
 fun CycleButton(subMenu: PackyMenu.PackySubMenu, pack: PackyMenu.PackyPack, onClick: () -> Unit) {
     val modifier = subMenu.modifiers.offset.toAtModifier()
+    val size = subMenu.modifiers.size
+    val item = subMenu.button.toItemStack(pack.button?.toItemStackOrNull() ?: ItemStack.empty())
+    val emptyItem = item.clone().apply { setData(DataComponentTypes.ITEM_MODEL, Key.key("minecraft:empty")) }
+    subMenu.refreshItem(item, subMenu.packs.values.indexOf(pack).coerceAtLeast(0))
+
     VerticalGrid(subMenu.modifiers.size.toSizeModifier(modifier)) {
         Button(enabled = true, onClick = onClick) {
-            val item = subMenu.button.toItemStack(pack.button?.toItemStackOrNull() ?: ItemStack.empty())
-            subMenu.refreshItem(item, subMenu.packs.values.indexOf(pack).coerceAtLeast(0))
-            Item(item, subMenu.modifiers.size.toSizeModifier())
+            Item(if (subMenu.allSlotsEmptyExceptFirst) emptyItem else item, size.toSizeModifier())
         }
+    }
+    if (subMenu.allSlotsEmptyExceptFirst) Button(enabled = true, onClick = onClick) {
+        Item(item, modifier)
     }
 
 }

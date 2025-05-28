@@ -35,6 +35,7 @@ class PackyUIScope(val player: Player) {
 fun PackyMainMenu(player: Player) {
     val owner = LocalGuiyOwner.current
     val scope = remember { PackyUIScope(player) }
+    val originalTemplates = player.packyData.templates.toMap()
     var packyData: PackyData by remember { mutableStateOf(PackyData(mutableMapOf())) }
     LaunchedEffect(Unit) {
         withContext(packy.plugin.minecraftDispatcher) {
@@ -45,7 +46,7 @@ fun PackyMainMenu(player: Player) {
         scope.nav.withScreen(setOf(player), onEmpty = owner::exit) { screen ->
             Chest(setOf(player), screen.title, Modifier.height(screen.height), onClose = {
                 owner.exit()
-                scope.changedAction?.invoke()?.run {
+                if (originalTemplates != packyData.templates) scope.changedAction?.invoke()?.run {
                     packy.plugin.launch {
                         player.packyData = packyData
                         PackyServer.sendPack(player)
