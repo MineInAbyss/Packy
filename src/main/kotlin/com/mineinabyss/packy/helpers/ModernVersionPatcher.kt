@@ -163,7 +163,7 @@ object ModernVersionPatcher {
         get() = predicate().any { it.name() == "cast" }
 
     val standardItemModels by lazy {
-        ResourcePacks.vanillaResourcePack.items().associateByTo(Object2ObjectOpenHashMap()) { it.key() }
+        ResourcePacks.vanillaResourcePack.items().associateByTo(Object2ObjectOpenHashMap()) { it.key() }.minus(ResourcePacks.EMPTY_MODEL)
     }
 
     val ItemModel.isSimpleItemModel: Boolean get() {
