@@ -5,6 +5,7 @@ import com.mineinabyss.guiy.components.Item
 import com.mineinabyss.guiy.modifiers.Modifier
 import com.mineinabyss.guiy.modifiers.placement.absolute.at
 import com.mineinabyss.guiy.modifiers.size
+import com.mineinabyss.idofront.resourcepacks.ResourcePacks
 import com.mineinabyss.idofront.serialization.SerializableDataTypes
 import com.mineinabyss.packy.components.packyData
 import com.mineinabyss.packy.config.PackyConfig
@@ -38,7 +39,7 @@ fun PackySubMenu(subMenu: PackyMenu.PackySubMenu) {
             Item(item, pack.modifiers.toModifier())
             if (subMenu.allSlotsEmptyExceptFirst) {
                 Item(item.clone(), pack.modifiers.toModifier().size(1))
-                item.setData(DataComponentTypes.ITEM_MODEL, Key.key("mineinabyss:empty"))
+                item.setData(DataComponentTypes.ITEM_MODEL, ResourcePacks.EMPTY_MODEL)
             }
         }
     }

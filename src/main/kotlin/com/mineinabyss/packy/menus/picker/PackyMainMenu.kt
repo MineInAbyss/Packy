@@ -12,6 +12,7 @@ import com.mineinabyss.guiy.modifiers.placement.padding.padding
 import com.mineinabyss.guiy.modifiers.size
 import com.mineinabyss.guiy.modifiers.sizeIn
 import com.mineinabyss.idofront.items.editItemMeta
+import com.mineinabyss.idofront.resourcepacks.ResourcePacks
 import com.mineinabyss.idofront.serialization.SerializableDataTypes
 import com.mineinabyss.idofront.textcomponents.miniMsg
 import com.mineinabyss.packy.config.PackyConfig
@@ -77,7 +78,7 @@ fun CycleButton(subMenu: PackyMenu.PackySubMenu, pack: PackyMenu.PackyPack, onCl
     val modifier = subMenu.modifiers.offset.toAtModifier()
     val size = subMenu.modifiers.size
     val item = subMenu.button.toItemStack(pack.button?.toItemStackOrNull() ?: ItemStack.empty())
-    val emptyItem = item.clone().apply { setData(DataComponentTypes.ITEM_MODEL, Key.key("minecraft:empty")) }
+    val emptyItem = item.clone().apply { setData(DataComponentTypes.ITEM_MODEL, ResourcePacks.EMPTY_MODEL) }
     subMenu.refreshItem(item, subMenu.packs.values.indexOf(pack).coerceAtLeast(0))
 
     VerticalGrid(subMenu.modifiers.size.toSizeModifier(modifier)) {
