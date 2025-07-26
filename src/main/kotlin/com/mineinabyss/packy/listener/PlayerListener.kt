@@ -15,6 +15,7 @@ import com.mineinabyss.packy.components.packyData
 import com.mineinabyss.packy.config.packy
 import io.papermc.paper.adventure.PaperAdventure
 import io.papermc.paper.event.connection.configuration.AsyncPlayerConnectionConfigureEvent
+import io.papermc.paper.event.connection.configuration.PlayerConnectionReconfigureEvent
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.future.asCompletableFuture
 import kotlinx.coroutines.job
@@ -67,5 +68,20 @@ class PlayerListener : Listener {
             })
         }
         future.orTimeout(10, TimeUnit.SECONDS).join()
+    }
+
+    @EventHandler
+    fun PlayerConnectionReconfigureEvent.onConfig() {
+        val pdc = Bukkit.getOfflinePlayer(connection.profile.id!!).persistentDataContainer
+        val packyData = with(gearyPaper.worldManager.global) {
+            pdc.decode<PackyData>() ?: PackyData()
+        }
+
+        packy.plugin.launch(packy.plugin.minecraftDispatcher) {
+            val info = PackyGenerator.getOrCreateCachedPack(packyData.enabledPackIds).await().resourcePackInfo
+            connection.audience.sendResourcePacks(ResourcePackRequest.addingRequest(info).callback { _, status, _ ->
+                if (!status.intermediate()) connection.completeReconfiguration()
+            })
+        }
     }
 }

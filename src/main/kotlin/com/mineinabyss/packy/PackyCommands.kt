@@ -29,7 +29,8 @@ object PackyCommands {
                         sender.success("Packy has been reloaded!")
                         packy.plugin.launch {
                             if (packy.config.sendOnReload) packy.plugin.server.onlinePlayers.forEach {
-                                PackyServer.sendPack(it)
+                                if (packy.config.reconfigureOnReload) it.connection.reenterConfiguration()
+                                else PackyServer.sendPack(it)
                             }
                         }
                     }
