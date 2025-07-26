@@ -41,28 +41,6 @@ sealed interface LoadTrigger {
         }
     }
 
-    /*@Serializable
-    @SerialName("Geary")
-    data object GearyTrigger : LoadTrigger {
-        override fun registerLoadHandler(template: PackyTemplate) {
-            if (!Plugins.isEnabled("Geary")) return
-
-            val id = template.id
-            geary.pipeline.runOnOrAfter(GearyPhase.ENABLE) {
-                if (!gearyPaper.config.resourcePack.generate) return@runOnOrAfter
-                packy.logger.w("Geary loadTrigger detected...")
-
-                template.clearFromCache()
-                packy.logger.s("")
-                if (gearyPaper.config.resourcePack.outputPath.startsWith("../Packy/templates", true)) {
-                    return@runOnOrAfter // Geary is copying it so we ignore
-                } else {
-                    val resourcePack =
-                }
-            }
-        }
-    }*/
-
     @Serializable
     @SerialName("ModelEngine")
     data object ModelEngineTrigger : LoadTrigger {
@@ -78,8 +56,8 @@ sealed interface LoadTrigger {
                     if (phase != ModelGenerator.Phase.FINISHED) return
                     packy.logger.w("ModelEngine loadTrigger detected...")
                     val megPack = packy.plugin.server.pluginsFolder.resolve("ModelEngine/resource pack.zip").takeIf { it.exists() }
-                        packy.plugin.server.pluginsFolder.resolve("ModelEngine/resource pack").takeIf { it.exists() }
-                        ?: return packy.logger.e("ModelEngine pack is missing, skipping loadTrigger for $id-template")
+                    packy.plugin.server.pluginsFolder.resolve("ModelEngine/resource pack").takeIf { it.exists() }
+                    ?: return packy.logger.e("ModelEngine pack is missing, skipping loadTrigger for $id-template")
                     megPack?.copyTo(template.path.toFile(), overwrite = true)
 
                     template.clearFromCache()
