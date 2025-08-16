@@ -16,6 +16,7 @@ import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap
 import it.unimi.dsi.fastutil.objects.ObjectArrayList
 import net.kyori.adventure.key.Key
 import team.unnamed.creative.ResourcePack
+import team.unnamed.creative.base.Vector3Float
 import team.unnamed.creative.base.Writable
 import team.unnamed.creative.item.ConditionItemModel
 import team.unnamed.creative.item.EmptyItemModel
@@ -27,8 +28,11 @@ import team.unnamed.creative.item.SelectItemModel
 import team.unnamed.creative.item.SpecialItemModel
 import team.unnamed.creative.item.property.ItemNumericProperty
 import team.unnamed.creative.item.property.ItemStringProperty
+import team.unnamed.creative.item.special.HeadSpecialRender
 import team.unnamed.creative.model.ItemOverride
 import team.unnamed.creative.model.ItemPredicate
+import team.unnamed.creative.model.ItemTransform
+import team.unnamed.creative.model.Model
 import kotlin.collections.get
 import kotlin.plus
 import kotlin.text.contains
@@ -36,29 +40,53 @@ import kotlin.text.equals
 import kotlin.text.get
 import kotlin.toString
 
-// Patch for handling CustomModelData for 1.21.4+ until creative updated
 object ModernVersionPatcher {
+
     fun convertResources(resourcePack: ResourcePack) {
-        resourcePack.models().associateBy { Key.key(it.key().asString().replace("block/", "").replace("item/", "")) }.forEach { (itemKey, model) ->
-            val overrides = model.overrides().takeUnless { it.isEmpty() } ?: return@forEach
+        resourcePack.models().associateBy(itemKeyPredicate).forEach { (itemKey, model) ->
             val standardItem = resourcePack.item(itemKey) ?: standardItemModels[itemKey]
+            val overrides = model.overrides().ifEmpty {
+                if (standardItem?.model() !is SpecialItemModel) return@forEach
+                if (DisplayProperties.fromModel(model) == model.display()) return@forEach
+                listOf()
+            }
+            val handSwap = standardItem?.handAnimationOnSwap() ?: Item.DEFAULT_HAND_ANIMATION_ON_SWAP
+            val oversizedInGui = when {
+                itemKey.value() == "player_head" && model.display()[ItemTransform.Type.GUI]?.scale() != Vector3Float.ONE -> true
+                else -> standardItem?.oversizedInGui() ?: Item.DEFAULT_OVERSIZED_IN_GUI
+            }
+
             val finalNewItemModel = standardItem?.let { existingItemModel ->
-                val baseItemModel = existingItemModel.model().takeUnless { it.isSimpleItemModel } ?: return@let null
+                val baseItemModel = existingItemModel.model().takeUnless(simpleItemModelPredicate) ?: return@let null
 
                 when (baseItemModel) {
-                    is RangeDispatchItemModel -> ItemModel.rangeDispatch(ItemNumericProperty.customModelData(), 1f, overrides.mapNotNull {
-                        RangeDispatchItemModel.Entry.entry(it.predicate().customModelData ?: return@mapNotNull null, ItemModel.reference(it.model()))
-                    }, baseItemModel)
+                    is RangeDispatchItemModel -> {
+                        val fallback = baseItemModel.fallback() ?: baseItemModel
+                        val entries = baseItemModel.entries().plus(overrides.mapNotNull {
+                            val model = when {
+                                fallback is SpecialItemModel && fallback.render() is HeadSpecialRender -> ItemModel.special(fallback.render(), it.model())
+                                else -> ItemModel.reference(it.model())
+                            }
+                            RangeDispatchItemModel.Entry.entry(it.predicate().customModelData ?: return@mapNotNull null, model)
+                        }).distinctBy { it.threshold() }
+                        ItemModel.rangeDispatch(ItemNumericProperty.customModelData(), 1f, entries, fallback)
+                    }
 
-                    is SelectItemModel -> ItemModel.rangeDispatch(ItemNumericProperty.customModelData(), 1f, overrides.mapNotNull { override ->
-                        RangeDispatchItemModel.Entry.entry(override.predicate().customModelData ?: return@mapNotNull null, ItemModel.reference(override.model()))
-                    }, baseItemModel)
+                    is SelectItemModel -> {
+                        ItemModel.rangeDispatch(ItemNumericProperty.customModelData(), 1f, overrides.mapNotNull { override ->
+                            val model = when {
+                                baseItemModel is SpecialItemModel && baseItemModel.render() is HeadSpecialRender -> ItemModel.special(baseItemModel.render(), override.model())
+                                else -> ItemModel.reference(override.model())
+                            }
+                            RangeDispatchItemModel.Entry.entry(override.predicate().customModelData ?: return@mapNotNull null, model)
+                        }, baseItemModel)
+                    }
 
                     is ConditionItemModel -> {
-                        val (trueOverrides, falseOverrides) = overrides.groupBy { it.predicate().customModelData?.takeUnless { it == 0f } }.let { grouped ->
+                        val (trueOverrides, falseOverrides) = overrides.groupByFast { it.predicate().customModelData?.takeUnless { it == 0f } }.let { grouped ->
                             when {
                                 itemKey.asString().endsWith("bow") ->
-                                    grouped.values.flatMap { it.filter { p-> p.pulling } } to grouped.values.flatMap { it.filterNot { p -> p.pulling } }
+                                    grouped.values.flatMap { it.filter { it.pulling } } to grouped.values.flatMap { it.filterNot { it.pulling } }
 
                                 itemKey.asString().endsWith("shield") ->
                                     grouped.values.mapNotNull { it.firstOrNull { it.blocking } } to grouped.values.mapNotNull { it.firstOrNull { !it.blocking } }
@@ -73,13 +101,14 @@ object ModernVersionPatcher {
                         // If there are any pull-override predicates it is a bow, and we build a RangeDispatchItemModel for the Entry, otherwise a simple ReferenceItemModel
                         val onTrueCmdEntries = trueOverrides.groupBy { it.predicate().customModelData }.mapNotNull { (cmd, overrides) ->
                             val baseOverrideModel = overrides.firstOrNull()?.let { ItemModel.reference(it.model()) } ?: return@mapNotNull null
+                            val scale = RangeDispatchItemModel.DEFAULT_SCALE.takeUnless { itemKey.asMinimalString() == "bow" } ?: 0.05f
 
                             // If the overrides contain any pull, we make a bow-type model
                             val finalModel = overrides.drop(1).mapNotNull {
                                 RangeDispatchItemModel.Entry.entry(it.predicate().pull ?: return@mapNotNull null, ItemModel.reference(it.model()))
                             }.takeUnless { it.isEmpty() }?.let { pullingEntries ->
-                                val property = if (itemKey.asString().contains("crossbow")) ItemNumericProperty.crossbowPull() else ItemNumericProperty.useDuration()
-                                ItemModel.rangeDispatch(property, 0.05f, pullingEntries, baseOverrideModel)
+                                val property = if ("crossbow" in itemKey.asString()) ItemNumericProperty.crossbowPull() else ItemNumericProperty.useDuration()
+                                ItemModel.rangeDispatch(property, scale, pullingEntries, baseOverrideModel)
                             } ?: baseOverrideModel
 
                             RangeDispatchItemModel.Entry.entry(cmd ?: return@mapNotNull null, finalModel)
@@ -101,18 +130,18 @@ object ModernVersionPatcher {
                             RangeDispatchItemModel.Entry.entry(cmd ?: return@mapNotNull null, finalModel)
                         }
 
-                        val onTrue = ItemModel.rangeDispatch(ItemNumericProperty.customModelData(), 1f, onTrueCmdEntries, baseItemModel.onTrue())
-                        val onFalse = ItemModel.rangeDispatch(ItemNumericProperty.customModelData(), 1f, onFalseCmdEntries, baseItemModel.onFalse())
+                        val onTrue = ItemModel.rangeDispatch(ItemNumericProperty.customModelData(), RangeDispatchItemModel.DEFAULT_SCALE, onTrueCmdEntries, baseItemModel.onTrue())
+                        val onFalse = ItemModel.rangeDispatch(ItemNumericProperty.customModelData(), RangeDispatchItemModel.DEFAULT_SCALE, onFalseCmdEntries, baseItemModel.onFalse())
 
                         ItemModel.conditional(baseItemModel.condition(), onTrue, onFalse)
                     }
 
-                    is ReferenceItemModel -> ItemModel.rangeDispatch().fallback(baseItemModel).property(ItemNumericProperty.customModelData()).also { builder ->
-                        builder.addEntries(overrides.mapNotNull { override ->
+                    is ReferenceItemModel -> {
+                        ItemModel.rangeDispatch(ItemNumericProperty.customModelData(), RangeDispatchItemModel.DEFAULT_SCALE, overrides.mapNotNull { override ->
                             val cmd = override.predicate().customModelData ?: return@mapNotNull null
                             RangeDispatchItemModel.Entry.entry(cmd, ItemModel.reference(override.model(), baseItemModel.tints()))
-                        })
-                    }.build()
+                        }, baseItemModel)
+                    }
 
                     is SpecialItemModel -> {
                         val defaultDisplay = DisplayProperties.fromModel(model)
@@ -121,19 +150,17 @@ object ModernVersionPatcher {
                             else -> baseItemModel.base()
                         })
 
-                        if (overrides.isNotEmpty()) ItemModel.rangeDispatch().fallback(newBase).property(ItemNumericProperty.customModelData()).apply {
-                            addEntries(overrides.mapNotNull { override ->
-                                val cmd = override.predicate().customModelData ?: return@mapNotNull null
-                                RangeDispatchItemModel.Entry.entry(cmd, ItemModel.special(baseItemModel.render(), override.model()))
-                            })
-                        }.build()
+                        if (overrides.isNotEmpty()) ItemModel.rangeDispatch(ItemNumericProperty.customModelData(), RangeDispatchItemModel.DEFAULT_SCALE, overrides.mapNotNull { override ->
+                            val cmd = override.predicate().customModelData ?: return@mapNotNull null
+                            RangeDispatchItemModel.Entry.entry(cmd, ItemModel.special(baseItemModel.render(), override.model()))
+                        }, newBase)
                         else newBase
                     }
                     else -> baseItemModel
                 }
             } ?: modelObject(standardItem?.model(), overrides, itemKey)
 
-            resourcePack.item(Item.item(itemKey, finalNewItemModel))
+            resourcePack.item(Item.item(itemKey, finalNewItemModel, handSwap, oversizedInGui))
         }
     }
 
@@ -166,7 +193,6 @@ object ModernVersionPatcher {
         ResourcePacks.vanillaResourcePack.items().associateByTo(Object2ObjectOpenHashMap()) { it.key() }.minus(ResourcePacks.EMPTY_MODEL)
     }
 
-    val ItemModel.isSimpleItemModel: Boolean get() {
-        return (this as? ReferenceItemModel)?.tints()?.isEmpty() == true || this is EmptyItemModel
-    }
+    private val simpleItemModelPredicate = { item: ItemModel -> item is ReferenceItemModel && item.tints().isEmpty()}
+    private val itemKeyPredicate = { model: Model -> Key.key(model.key().asString().replace("block/", "").replace("item/", "")) }
 }
