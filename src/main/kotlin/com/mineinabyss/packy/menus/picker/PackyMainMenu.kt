@@ -21,6 +21,7 @@ import com.mineinabyss.packy.config.packy
 import com.mineinabyss.packy.helpers.rotatedLeft
 import com.mineinabyss.packy.menus.Button
 import io.papermc.paper.datacomponent.DataComponentTypes
+import io.papermc.paper.datacomponent.item.CustomModelData
 import net.kyori.adventure.key.Key
 import org.bukkit.Material
 import org.bukkit.inventory.ItemStack
@@ -97,9 +98,9 @@ fun CycleButton(subMenu: PackyMenu.PackySubMenu, pack: PackyMenu.PackyPack, onCl
 fun BackButton(modifier: Modifier = Modifier) {
     val scope = PackyScopeProvider.current
     Button(onClick = { scope.nav.back() }, modifier = modifier) {
-        Item(ItemStack(Material.PAPER).editItemMeta {
-            displayName("<red><b>Back".miniMsg())
-            setCustomModelData(1)
+        Item(ItemStack(Material.PAPER).apply {
+            setData(DataComponentTypes.CUSTOM_NAME, "<red><b>Back".miniMsg())
+            setData(DataComponentTypes.CUSTOM_MODEL_DATA, CustomModelData.customModelData().addFloat(1f).build())
         })
     }
 }
