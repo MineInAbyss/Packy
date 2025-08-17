@@ -71,9 +71,9 @@ object PackyGenerator {
                     cachedPack.items().removeIf(standardItemModels::containsValue)
 
                     (packy.plugin.dataFolder.toPath() / packy.config.icon).takeIf { it.exists() }
-                        ?.let { packy.defaultPack.icon(Writable.path(it)) }
+                        ?.let { cachedPack.icon(Writable.path(it)) }
                     packy.config.mcmeta.description.takeIf { it.isNotEmpty() }
-                        ?.let { packy.defaultPack.packMeta(packy.config.mcmeta.format, it.miniMsg()) }
+                        ?.let { cachedPack.packMeta(packy.config.mcmeta.format, it.miniMsg()) }
 
                     val builtPack = ResourcePacks.resourcePackWriter.build(cachedPack)
                     PackyPack(builtPack, templateIds).apply {

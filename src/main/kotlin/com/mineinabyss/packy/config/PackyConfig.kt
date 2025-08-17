@@ -54,7 +54,7 @@ data class PackyConfig(
         val settingsPath: String = "packsquash.toml"
     )
     @Serializable
-    data class PackyMcMeta(val format: Int = 15, val description: String = "Packy Resourcepack")
+    data class PackyMcMeta(val format: Int = 64, val description: String = "Packy Resourcepack")
 
     @Serializable
     data class PackyServer(
