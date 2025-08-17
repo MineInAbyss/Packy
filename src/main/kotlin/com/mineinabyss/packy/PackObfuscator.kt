@@ -1,6 +1,9 @@
 package com.mineinabyss.packy
 
 import com.mineinabyss.idofront.resourcepacks.ResourcePacks
+import com.mineinabyss.idofront.util.associateFast
+import com.mineinabyss.idofront.util.associateFastNotNull
+import com.mineinabyss.idofront.util.associateFastWith
 import com.mineinabyss.idofront.util.filterFast
 import com.mineinabyss.idofront.util.mapNotNullFast
 import com.mineinabyss.idofront.util.toFastMap
@@ -16,8 +19,14 @@ import team.unnamed.creative.blockstate.MultiVariant
 import team.unnamed.creative.blockstate.Selector
 import team.unnamed.creative.blockstate.Variant
 import team.unnamed.creative.font.BitMapFontProvider
-import team.unnamed.creative.item.*
-import team.unnamed.creative.model.ItemOverride
+import team.unnamed.creative.item.CompositeItemModel
+import team.unnamed.creative.item.ConditionItemModel
+import team.unnamed.creative.item.Item
+import team.unnamed.creative.item.ItemModel
+import team.unnamed.creative.item.RangeDispatchItemModel
+import team.unnamed.creative.item.ReferenceItemModel
+import team.unnamed.creative.item.SelectItemModel
+import team.unnamed.creative.item.SpecialItemModel
 import team.unnamed.creative.model.Model
 import team.unnamed.creative.model.ModelTexture
 import team.unnamed.creative.model.ModelTextures
@@ -222,7 +231,6 @@ class PackObfuscator(private val resourcePack: ResourceContainer) {
         val builder = model.toBuilder()
 
         obfuscateModelTextures(model, builder)
-        obfuscateOverrides(model, builder)
         (model.key().takeUnless { model.key() in skippedKeys || ResourcePacks.vanillaResourcePack.model(it) != null }?.obfuscateKey())?.apply(builder::key)
 
         val obfuscatedModel = ObfuscatedModel(model, builder.build()).apply(obfuscatedModels::add)
@@ -252,7 +260,7 @@ class PackObfuscator(private val resourcePack: ResourceContainer) {
 
     private fun Variant.obfuscateVariant(): Variant {
         return Variant.builder()
-            .model(obfuscatedModels.findObf(model())?.key() ?: model())
+            .model(obfuscatedModels.findObf(model()).key())
             .uvLock(uvLock()).weight(weight()).x(x()).y(y()).build()
     }
 
@@ -266,20 +274,6 @@ class PackObfuscator(private val resourcePack: ResourceContainer) {
         }
 
         builder.parent(obfuscatedParent)
-    }
-
-    private fun obfuscateOverrides(model: Model, builder: Model.Builder) {
-        val obfuscatedOverrides = obfuscatedModels.findObfOrNull(model.key())?.overrides() ?: model.overrides().map { override ->
-            val overrideKey = override.model()
-            val modelKey = obfuscatedModels.findObfOrNull(overrideKey)?.key()
-                ?: ResourcePacks.vanillaResourcePack.model(overrideKey)?.let { overrideKey }
-                ?: resourcePack.takeUnless { overrideKey == model.key() }?.model(overrideKey)?.let(::obfuscateModel)?.key()
-                ?: return@map override
-
-            ItemOverride.of(modelKey, override.predicate())
-        }
-
-        builder.overrides(obfuscatedOverrides)
     }
 
 
@@ -316,10 +310,10 @@ class PackObfuscator(private val resourcePack: ResourceContainer) {
             .plus(ResourcePacks.vanillaResourcePack.models())
             .distinctBy { it.key().asString() }
             .mapNotNull { it.textures().layers() + listOfNotNull(it.textures().particle()) + it.textures().variables().values }.flatten()
-            .mapNotNullFast {
-                val key = it.key()?.appendSuffix(".png") ?: return@mapNotNullFast null
-                key to (resourcePack.texture(key) ?: ResourcePacks.vanillaResourcePack.texture(key) ?: return@mapNotNullFast null)
-            }.toFastMap()
+            .associateFastNotNull {
+                val key = it.key()?.appendSuffix(".png") ?: return@associateFastNotNull null
+                key to (resourcePack.texture(key) ?: ResourcePacks.vanillaResourcePack.texture(key) ?: return@associateFastNotNull null)
+            }
     }
 
     private val vanillaFontTextures by lazy {
@@ -327,7 +321,6 @@ class PackObfuscator(private val resourcePack: ResourceContainer) {
             .plus(ResourcePacks.vanillaResourcePack.fonts())
             .distinctBy { it.key().asString() }
             .mapNotNull { it.providers().mapNotNullFast { (it as? BitMapFontProvider)?.file()?.appendSuffix(".png") } }.flatten()
-            .mapNotNullFast { it to (resourcePack.texture(it) ?: ResourcePacks.vanillaResourcePack.texture(it) ?: return@mapNotNullFast null) }
-            .toFastMap()
+            .associateFastWith { resourcePack.texture(it) ?: ResourcePacks.vanillaResourcePack.texture(it) ?: return@associateFastWith null }
     }
 }
