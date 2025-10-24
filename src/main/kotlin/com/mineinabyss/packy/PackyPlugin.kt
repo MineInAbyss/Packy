@@ -4,10 +4,8 @@ import com.charleskorn.kaml.PolymorphismStyle
 import com.charleskorn.kaml.SingleLineStringStyle
 import com.charleskorn.kaml.Yaml
 import com.charleskorn.kaml.YamlConfiguration
-import com.github.shynixn.mccoroutine.bukkit.registerSuspendingEvents
 import com.mineinabyss.geary.addons.dsl.createAddon
 import com.mineinabyss.geary.autoscan.autoscan
-import com.mineinabyss.geary.modules.geary
 import com.mineinabyss.geary.papermc.configure
 import com.mineinabyss.geary.papermc.gearyPaper
 import com.mineinabyss.idofront.config.ConfigFormats
@@ -20,9 +18,7 @@ import com.mineinabyss.idofront.plugin.listeners
 import com.mineinabyss.packy.config.*
 import com.mineinabyss.packy.listener.PlayerListener
 import com.mineinabyss.packy.listener.TemplateLoadTriggers
-import kotlinx.coroutines.Job
 import kotlinx.serialization.modules.EmptySerializersModule
-import org.bukkit.Bukkit
 import org.bukkit.plugin.java.JavaPlugin
 import team.unnamed.creative.ResourcePack
 

@@ -24,6 +24,12 @@ data class PackyMenu(
         MENU, CYCLING
     }
 
+    /**
+     * Describes a customization button displayed in the packy menu.
+     *
+     * - If [type] is `CYCLING`, will switch between different display items on click.
+     * - If it is `MENU`, will open a submenu on click and let the user select a pack.
+     */
     @Serializable
     data class PackySubMenu(
         val title: String = "Packy SubMenu",
@@ -34,14 +40,18 @@ data class PackyMenu(
         val allSlotsEmptyExceptFirst: Boolean = false,
         val packs: Map<String, PackyPack> = mapOf()
     ) {
-        fun refreshItem(itemStack: ItemStack, state: Boolean) {
+        fun buttonFor(state: Boolean): ItemStack {
+            val item = button.toItemStack()
             val cmd = CustomModelData.customModelData().addFlag(state).build()
-            itemStack.setData(DataComponentTypes.CUSTOM_MODEL_DATA, cmd)
+            item.setData(DataComponentTypes.CUSTOM_MODEL_DATA, cmd)
+            return item
         }
 
-        fun refreshItem(itemStack: ItemStack, index: Int) {
+        fun buttonFor(parent: PackyPack, index: Int): ItemStack {
+            val item = button.toItemStack(parent.button?.toItemStackOrNull() ?: ItemStack.empty())
             val cmd = CustomModelData.customModelData().addFloat(index.toFloat()).build()
-            itemStack.setData(DataComponentTypes.CUSTOM_MODEL_DATA, cmd)
+            item.setData(DataComponentTypes.CUSTOM_MODEL_DATA, cmd)
+            return item
         }
     }
 
