@@ -1,23 +1,15 @@
 package com.mineinabyss.packy
 
 import com.github.shynixn.mccoroutine.bukkit.launch
-import com.github.shynixn.mccoroutine.bukkit.ticks
-import com.mineinabyss.guiy.inventory.guiy
+import com.mineinabyss.guiy.canvas.guiy
 import com.mineinabyss.idofront.commands.brigadier.commands
-import com.mineinabyss.idofront.commands.brigadier.executes
 import com.mineinabyss.idofront.messaging.error
-import com.mineinabyss.idofront.messaging.info
 import com.mineinabyss.idofront.messaging.success
-import com.mineinabyss.idofront.textcomponents.miniMsg
 import com.mineinabyss.packy.components.packyData
 import com.mineinabyss.packy.config.packy
-import com.mineinabyss.packy.menus.picker.PackyMainMenu
-import io.papermc.paper.command.brigadier.argument.ArgumentTypes
-import kotlinx.coroutines.delay
+import com.mineinabyss.packy.menus.picker.PackyMenu
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.format.NamedTextColor
-import org.bukkit.Bukkit
-import org.bukkit.entity.Player
 
 object PackyCommands {
     fun registerCommands() {
@@ -38,7 +30,7 @@ object PackyCommands {
                 "menu" {
                     requiresPermission("")
                     playerExecutes {
-                        guiy { PackyMainMenu(player) }
+                        guiy(player) { PackyMenu() }
                     }
                 }
                 "send" {
