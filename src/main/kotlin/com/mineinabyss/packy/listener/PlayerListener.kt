@@ -40,7 +40,7 @@ class PlayerListener : Listener {
 
         packy.plugin.launch(packy.plugin.minecraftDispatcher) {
             val info = PackyGenerator.getOrCreateCachedPack(packyData.enabledPackIds).await().resourcePackInfo
-            connection.audience.sendResourcePacks(ResourcePackRequest.addingRequest(info).callback { _, status, _ ->
+            connection.audience.sendResourcePacks(ResourcePackRequest.addingRequest(info).replace(true).callback { _, status, _ ->
                 if (!status.intermediate()) future.complete(null)
             })
         }
@@ -56,7 +56,7 @@ class PlayerListener : Listener {
 
         packy.plugin.launch(packy.plugin.minecraftDispatcher) {
             val info = PackyGenerator.getOrCreateCachedPack(packyData.enabledPackIds).await().resourcePackInfo
-            connection.audience.sendResourcePacks(ResourcePackRequest.addingRequest(info).callback { _, status, _ ->
+            connection.audience.sendResourcePacks(ResourcePackRequest.addingRequest(info).replace(true).callback { _, status, _ ->
                 if (!status.intermediate()) connection.completeReconfiguration()
             })
         }
