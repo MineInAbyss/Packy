@@ -22,8 +22,8 @@ object AtlasGenerator {
         sources.sortBy { (it as? SingleAtlasSource)?.resource() }
 
         val atlas = resourcePack.atlas(Atlas.BLOCKS)?.let {
-            it.toBuilder().sources(it.sources().plus(sources)).build()
-        } ?: Atlas.atlas(Atlas.BLOCKS, sources)
+            it.toBuilder().sources(it.sources().plus(sources).distinct()).build()
+        } ?: Atlas.atlas(Atlas.BLOCKS, sources.distinct())
 
         atlas.addTo(resourcePack)
     }
