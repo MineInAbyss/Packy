@@ -12,18 +12,16 @@ import team.unnamed.creative.model.ModelTexture
 
 object AtlasGenerator {
     fun generateAtlasFile(resourcePack: ResourcePack) {
-        val sources = ObjectArrayList<AtlasSource>()
-        resourcePack.models().forEach { model ->
-            addKey(model.textures().layers().mapNotNullFast(ModelTexture::key), sources)
-            addKey(model.textures().variables().values.mapNotNullFast(ModelTexture::key), sources)
+        val textures = resourcePack.models().flatMap { model ->
+            model.textures().layers().plus(model.textures().variables().values).plus(model.textures().particle())
+        }.filterNotNull().mapNotNull(ModelTexture::key)
 
-            model.textures().particle()?.key()?.let { addKey(listOf(it), sources) }
-        }
-        sources.sortBy { (it as? SingleAtlasSource)?.resource() }
+        val sources = textures.distinctBy { it.asString() }.mapNotNull { key ->
+            if (ResourcePacks.vanillaResourcePack.texture(key) != null) return@mapNotNull null
+            else AtlasSource.single(key)
+        }.sortedBy { it.resource() }.distinct()
 
-        val atlas = resourcePack.atlas(Atlas.BLOCKS)?.let {
-            it.toBuilder().sources(it.sources().plus(sources)).build()
-        } ?: Atlas.atlas(Atlas.BLOCKS, sources)
+        val atlas = resourcePack.atlas(Atlas.BLOCKS)?.toBuilder()?.apply { sources.forEach(::addSource) }?.build() ?: Atlas.atlas(Atlas.BLOCKS, sources.distinct())
 
         atlas.addTo(resourcePack)
     }
