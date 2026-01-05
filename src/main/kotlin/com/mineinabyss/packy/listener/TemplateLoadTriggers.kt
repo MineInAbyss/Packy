@@ -10,7 +10,6 @@ import com.mineinabyss.packy.config.packy
 import com.mineinabyss.packy.listener.TemplateLoadTriggers.unregisterTemplateHandlers
 import com.ticxo.modelengine.api.events.ModelRegistrationEvent
 import com.ticxo.modelengine.api.generator.ModelGenerator
-import io.lumine.mythiccrucible.events.MythicCrucibleGeneratePackEvent
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import org.bukkit.event.EventHandler
@@ -62,36 +61,6 @@ sealed interface LoadTrigger {
 
                     template.clearFromCache()
                     packy.logger.s("Copying ModelEngine-pack for $id-template")
-
-                    if (packy.config.packSquash.enabled) {
-                        packy.logger.i("Starting PackSquash process for $id-template...")
-                        PackySquash.squashPackyTemplate(template)
-                        packy.logger.s("Finished PackSquash process for $id-template")
-                    }
-                }
-            }
-            template.triggerListener = listener
-            packy.plugin.listeners(listener)
-        }
-    }
-
-    @Serializable
-    @SerialName("Crucible")
-    data object CrucibleTrigger : LoadTrigger {
-        override fun registerLoadHandler(template: PackyTemplate) {
-            if (!Plugins.isEnabled("MythicCrucible")) return
-
-            val id = template.id
-            unregisterTemplateHandlers()
-            val listener = object : Listener {
-                @EventHandler
-                fun MythicCrucibleGeneratePackEvent.onCruciblePack() {
-                    packy.logger.w("MythicCrucible loadTrigger detected...")
-                    zippedPack?.copyTo(template.path.toFile(), true).takeIf { it?.exists() == true }
-                        ?: return packy.logger.e("MythicCrucible-pack is missing, skipping loadTrigger for $id-template")
-
-                    template.clearFromCache()
-                    packy.logger.s("Copying MythicCrucible-pack for $id-template")
 
                     if (packy.config.packSquash.enabled) {
                         packy.logger.i("Starting PackSquash process for $id-template...")

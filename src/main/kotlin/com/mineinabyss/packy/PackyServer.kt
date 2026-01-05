@@ -27,12 +27,12 @@ object PackyServer {
         val templateIds = player.packyData.enabledPackIds
         val actionBarJob = packy.plugin.launch { while (isActive) player.sendPackGeneratingActionBar() }
         val resourcePack = PackyGenerator.getOrCreateCachedPack(templateIds).apply { invokeOnCompletion { actionBarJob.cancel() } }.await()
-
-        player.sendResourcePacks(ResourcePackRequest.resourcePackRequest()
+        val request = ResourcePackRequest.resourcePackRequest()
             .packs(resourcePack.resourcePackInfo).replace(true)
             .required(packy.config.force && !player.packyData.bypassForced)
-            .prompt(packy.config.prompt?.miniMsg())
-        )
+            .prompt(packy.config.prompt?.miniMsg()).build()
+
+        player.sendResourcePacks(request)
     }
 
     private suspend fun Player.sendPackGeneratingActionBar() {

@@ -39,7 +39,6 @@ dependencies {
     compileOnly(packyLibs.guiy)
 
     compileOnly(idofrontLibs.minecraft.plugin.modelengine)
-    compileOnly(idofrontLibs.minecraft.plugin.mythic.crucible)
     compileOnly(idofrontLibs.creative.api)
     compileOnly(idofrontLibs.creative.serializer.minecraft)
     compileOnly(idofrontLibs.creative.server)
