@@ -3,12 +3,10 @@ package com.mineinabyss.packy.menus.picker
 import androidx.compose.runtime.Composable
 import com.mineinabyss.guiy.components.Item
 import com.mineinabyss.guiy.components.VerticalGrid
-import com.mineinabyss.guiy.components.items.LocalItemTheme
-import com.mineinabyss.idofront.resourcepacks.ResourcePacks
 import com.mineinabyss.packy.config.PackyMenu
 import com.mineinabyss.packy.menus.Button
 import io.papermc.paper.datacomponent.DataComponentTypes
-import org.bukkit.inventory.ItemStack
+import net.kyori.adventure.key.Key
 
 @Composable
 fun CycleButton(subMenu: PackyMenu.PackySubMenu, pack: PackyMenu.PackyPack, onClick: () -> Unit) {
@@ -18,8 +16,11 @@ fun CycleButton(subMenu: PackyMenu.PackySubMenu, pack: PackyMenu.PackyPack, onCl
 
     VerticalGrid(subMenu.modifiers.size.toSizeModifier(modifier)) {
         Button(enabled = true, onClick = onClick) {
-            val emptyItem = LocalItemTheme.current.invisible
-            Item(if (subMenu.allSlotsEmptyExceptFirst) emptyItem else item, size.toSizeModifier())
+            Item(when {
+                subMenu.allSlotsEmptyExceptFirst -> item.clone()
+                    .apply { setData(DataComponentTypes.ITEM_MODEL, Key.key("minecraft:empty")) }
+                else -> item
+            }, size.toSizeModifier())
         }
     }
     if (subMenu.allSlotsEmptyExceptFirst) Button(enabled = true, onClick = onClick) {
