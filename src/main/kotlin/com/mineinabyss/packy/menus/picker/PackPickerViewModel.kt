@@ -49,7 +49,7 @@ class PackPickerViewModel(
                 }
             })
 
-            packy.plugin.launch {
+            packy.launch {
                 player.packyData = packyData
                 PackyServer.sendPack(player)
             }

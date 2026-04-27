@@ -38,7 +38,7 @@ class PlayerListener : Listener {
         }
         val future = CompletableFuture<Void>()
 
-        packy.plugin.launch(packy.plugin.minecraftDispatcher) {
+        packy.launch(packy.minecraftDispatcher) {
             val info = PackyGenerator.getOrCreateCachedPack(packyData.enabledPackIds).await().resourcePackInfo
             connection.audience.sendResourcePacks(ResourcePackRequest.addingRequest(info).replace(true).callback { _, status, _ ->
                 if (!status.intermediate()) future.complete(null)
@@ -54,7 +54,7 @@ class PlayerListener : Listener {
             pdc.decode<PackyData>() ?: PackyData()
         }
 
-        packy.plugin.launch(packy.plugin.minecraftDispatcher) {
+        packy.launch(packy.minecraftDispatcher) {
             val info = PackyGenerator.getOrCreateCachedPack(packyData.enabledPackIds).await().resourcePackInfo
             connection.audience.sendResourcePacks(ResourcePackRequest.addingRequest(info).replace(true).callback { _, status, _ ->
                 if (!status.intermediate()) connection.completeReconfiguration()

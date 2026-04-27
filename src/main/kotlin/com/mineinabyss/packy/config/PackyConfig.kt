@@ -1,24 +1,12 @@
 package com.mineinabyss.packy.config
 
 import com.charleskorn.kaml.YamlComment
-import com.mineinabyss.guiy.modifiers.Modifier
-import com.mineinabyss.guiy.modifiers.placement.absolute.at
-import com.mineinabyss.guiy.modifiers.size
-import com.mineinabyss.idofront.serialization.DurationSerializer
-import com.mineinabyss.idofront.serialization.SerializableItemStack
-import com.mineinabyss.idofront.serialization.toSerializable
 import com.mineinabyss.packy.helpers.TemplateIds
 import kotlinx.serialization.EncodeDefault
 import kotlinx.serialization.EncodeDefault.Mode.ALWAYS
-import kotlinx.serialization.EncodeDefault.Mode.NEVER
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.Serializable
-import net.kyori.adventure.resource.ResourcePackStatus
 import org.bukkit.Bukkit
-import org.bukkit.Material
-import org.bukkit.inventory.ItemStack
-import kotlin.time.Duration
-import kotlin.time.Duration.Companion.seconds
 
 @OptIn(ExperimentalSerializationApi::class)
 @Serializable
@@ -38,7 +26,7 @@ data class PackyConfig(
         "The amount of TemplateID combinations Packy should cache the ResourcePack off",
         "If your ResourcePack is large it is recommended to lower this value"
     )
-    @EncodeDefault(ALWAYS) val cachedPackAmount: Int = 10
+    @EncodeDefault(ALWAYS) val cachedPackAmount: Int = 10,
 ) {
 
     enum class ObfuscationType {
@@ -51,8 +39,9 @@ data class PackyConfig(
         @YamlComment("Path to the PackSquash executable")
         val exePath: String = Bukkit.getServer().pluginsFolder.resolve("Packy/packsquash").absolutePath.replace("\\", "/"),
         @YamlComment("Path to the settings file for PackSquash")
-        val settingsPath: String = "packsquash.toml"
+        val settingsPath: String = "packsquash.toml",
     )
+
     @Serializable
     data class PackyMcMeta(val format: Int = 64, val description: String = "Packy Resourcepack")
 
@@ -61,7 +50,7 @@ data class PackyConfig(
         @YamlComment("Change this to your server's actual IP, unless on localhost")
         val ip: String = "0.0.0.0",
         val port: Int = 8082,
-        val publicAddress: String = "http://$ip:$port"
+        val publicAddress: String = "http://$ip:$port",
     ) {
         fun publicUrl(hash: String, ids: TemplateIds) = "$publicAddress/$hash.zip?packs=${ids.joinToString(",")}"
     }

@@ -1,16 +1,17 @@
 package com.mineinabyss.packy.menus.picker
 
 import androidx.compose.runtime.*
+import androidx.compose.ui.unit.dp
 import com.mineinabyss.guiy.components.Item
 import com.mineinabyss.guiy.components.canvases.Chest
-import com.mineinabyss.guiy.modifiers.Modifier
 import com.mineinabyss.guiy.modifiers.click.clickable
-import com.mineinabyss.guiy.modifiers.height
 import com.mineinabyss.guiy.viewmodel.viewModel
 import com.mineinabyss.packy.config.PackyMenu
 import com.mineinabyss.packy.config.PackyMenu.SubMenuType.CYCLING
 import com.mineinabyss.packy.config.PackyMenu.SubMenuType.MENU
 import com.mineinabyss.packy.config.packy
+import me.dvyy.compose.mini.layout.modifiers.height
+import me.dvyy.compose.mini.modifier.Modifier
 
 @Composable
 fun PackyMainMenu(
@@ -18,7 +19,7 @@ fun PackyMainMenu(
     packPickerViewModel: PackPickerViewModel = viewModel(),
 ) = Chest(
     title = packy.menu.title,
-    modifier = Modifier.height(packy.menu.height),
+    modifier = Modifier.height(packy.menu.height.dp),
     onClose = {
         packPickerViewModel.sendPackChanges()
         exit()

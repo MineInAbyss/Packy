@@ -16,12 +16,7 @@ repositories {
     mavenCentral()
     maven("https://repo.mineinabyss.com/releases")
     maven("https://repo.mineinabyss.com/snapshots")
-    maven("https://repo.nexomc.com/releases")
-    maven("https://repo.nexomc.com/snapshots")
-    maven("https://maven.pkg.jetbrains.space/public/p/compose/dev")
-    maven("https://repo.unnamed.team/repository/unnamed-public/")
-    maven("https://mvn.lumine.io/repository/maven-public/") { metadataSources { artifact() } }
-    maven("https://jitpack.io")
+    maven("https://repo.mineinabyss.com/mirror")
     mavenLocal()
 }
 
@@ -51,7 +46,7 @@ kotlin {
         freeCompilerArgs.addAll(
             "-opt-in=kotlinx.serialization.ExperimentalSerializationApi",
             "-opt-in=kotlin.ExperimentalUnsignedTypes",
-            "-Xcontext-receivers"
+            "-Xcontext-parameters",
         )
     }
 }

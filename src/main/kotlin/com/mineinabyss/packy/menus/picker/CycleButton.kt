@@ -3,8 +3,8 @@ package com.mineinabyss.packy.menus.picker
 import androidx.compose.runtime.Composable
 import com.mineinabyss.guiy.components.Item
 import com.mineinabyss.guiy.components.VerticalGrid
+import com.mineinabyss.guiy.components.button.Button
 import com.mineinabyss.packy.config.PackyMenu
-import com.mineinabyss.packy.menus.Button
 import io.papermc.paper.datacomponent.DataComponentTypes
 import net.kyori.adventure.key.Key
 

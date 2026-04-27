@@ -1,20 +1,20 @@
 package com.mineinabyss.packy.config
 
-import com.mineinabyss.idofront.di.DI
 import com.mineinabyss.idofront.messaging.ComponentLogger
-import com.mineinabyss.packy.PackyPlugin
-import team.unnamed.creative.BuiltResourcePack
+import org.bukkit.plugin.Plugin
 import team.unnamed.creative.ResourcePack
-import team.unnamed.creative.serialize.minecraft.MinecraftResourcePackReader
-import team.unnamed.creative.serialize.minecraft.MinecraftResourcePackWriter
 
-val packy by DI.observe<PackyContext>()
-interface PackyContext {
-    val plugin: PackyPlugin
+val packy get() = PackyContext.instance ?: error("PackyContext not initialized")
+
+interface PackyContext : Plugin {
     val config: PackyConfig
     val menu: PackyMenu
     val defaultPack: ResourcePack
     val templates: PackyTemplates
     val accessToken: PackyAccessToken
     val logger: ComponentLogger
+
+    companion object {
+        var instance: PackyContext? = null
+    }
 }

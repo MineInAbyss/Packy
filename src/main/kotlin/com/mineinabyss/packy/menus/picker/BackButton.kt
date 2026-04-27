@@ -2,19 +2,19 @@ package com.mineinabyss.packy.menus.picker
 
 import androidx.compose.runtime.Composable
 import com.mineinabyss.guiy.components.Item
-import com.mineinabyss.guiy.modifiers.Modifier
+import com.mineinabyss.guiy.components.button.Button
 import com.mineinabyss.guiy.navigation.LocalBackGestureDispatcher
 import com.mineinabyss.idofront.serialization.SerializableDataTypes
 import com.mineinabyss.idofront.serialization.SerializableItemStack
 import com.mineinabyss.idofront.textcomponents.miniMsg
-import com.mineinabyss.packy.menus.Button
 import io.papermc.paper.datacomponent.DataComponentTypes
 import io.papermc.paper.datacomponent.item.CustomModelData
+import me.dvyy.compose.mini.modifier.Modifier
 import org.bukkit.Material
 import org.bukkit.inventory.ItemStack
 
 @Composable
-internal fun BackButton(modifier: Modifier = Modifier.Companion) {
+internal fun BackButton(modifier: Modifier = Modifier) {
     val backGesture = LocalBackGestureDispatcher.current
     Button(onClick = { backGesture.onBack() }, modifier = modifier) {
         SerializableItemStack(

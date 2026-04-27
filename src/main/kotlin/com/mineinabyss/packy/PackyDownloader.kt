@@ -21,7 +21,7 @@ object PackyDownloader {
         val template = templates.first()
         val templateIds = templates.joinToString("|") { it.id }
         val regex = "$templateIds=.*".replace("|", "\\|").toRegex()
-        val hashFile = packy.plugin.dataFolder.toPath() / "templates" / "localHashes.txt"
+        val hashFile = packy.dataFolder.toPath() / "templates" / "localHashes.txt"
         hashFile.createParentDirectories()
         hashFile.toFile().createNewFile()
 
@@ -64,7 +64,7 @@ object PackyDownloader {
     }
 
     fun downloadTemplates() {
-        startupJob = packy.plugin.launch(packy.plugin.asyncDispatcher) {
+        startupJob = packy.launch(packy.asyncDispatcher) {
             packy.templates.filter { it.githubDownload != null }
                 .sortedBy { it.id }.groupBy { it.githubDownload!!.key() }
                 .map { (_, templates) ->

@@ -3,12 +3,10 @@ package com.mineinabyss.packy.components
 import com.mineinabyss.geary.papermc.tracking.entities.toGeary
 import com.mineinabyss.geary.serialization.getOrSetPersisting
 import com.mineinabyss.geary.serialization.setPersisting
-import com.mineinabyss.packy.config.PackyTemplate
 import com.mineinabyss.packy.config.packy
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import org.bukkit.entity.Player
-import java.util.SortedMap
 
 @Serializable
 @SerialName("packy:packy_data")

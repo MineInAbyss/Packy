@@ -52,8 +52,8 @@ data class PackyTemplate(
 
     @Transient var triggerListener: Listener? = null
 
-    val path: Path get() = filePath?.takeIf { it.isNotEmpty() }?.let { packy.plugin.dataFolder.parentFile.toPath() / it }
-        ?: (packy.plugin.dataFolder.toPath() / "templates" / id)
+    val path: Path get() = filePath?.takeIf { it.isNotEmpty() }?.let { packy.dataFolder.parentFile.toPath() / it }
+        ?: (packy.dataFolder.toPath() / "templates" / id)
             .let { if (it.exists() && it.isDirectory()) it else Path(it.pathString + ".zip") }
 
     @Serializable

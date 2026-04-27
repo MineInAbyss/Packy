@@ -32,7 +32,7 @@ object PackyGenerator {
 
     fun setupRequiredPackTemplates() {
         requiredTemplateJob?.cancel()
-        requiredTemplateJob = packy.plugin.launch(packy.plugin.asyncDispatcher) {
+        requiredTemplateJob = packy.launch(packy.asyncDispatcher) {
             // Add all forced packs to defaultPack
             packy.templates.filter(PackyTemplate::required).mapNotNull { ResourcePacks.readToResourcePack(it.path.toFile()) }.forEach {
                 ResourcePacks.mergePack(packy.defaultPack, it)
@@ -70,7 +70,7 @@ object PackyGenerator {
 
                     cachedPack.items().removeIf(standardItemModels::containsValue)
 
-                    (packy.plugin.dataFolder.toPath() / packy.config.icon).takeIf { it.exists() }
+                    (packy.dataFolder.toPath() / packy.config.icon).takeIf { it.exists() }
                         ?.let { cachedPack.icon(Writable.path(it)) }
                     packy.config.mcmeta.description.takeIf { it.isNotEmpty() }
                         ?.let { cachedPack.packMeta(packy.config.mcmeta.format, it.miniMsg()) }

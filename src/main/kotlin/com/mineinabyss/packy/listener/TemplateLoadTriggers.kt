@@ -24,7 +24,7 @@ object TemplateLoadTriggers {
 
     fun unregisterTemplateHandlers() {
         runCatching {
-            packy.templates.forEach { t -> t.triggerListener?.let { packy.plugin.unregisterListeners(it) } }
+            packy.templates.forEach { t -> t.triggerListener?.let { packy.unregisterListeners(it) } }
         }
     }
 }
@@ -54,8 +54,8 @@ sealed interface LoadTrigger {
 
                     if (phase != ModelGenerator.Phase.FINISHED) return
                     packy.logger.w("ModelEngine loadTrigger detected...")
-                    val megPack = packy.plugin.server.pluginsFolder.resolve("ModelEngine/resource pack.zip").takeIf { it.exists() }
-                    packy.plugin.server.pluginsFolder.resolve("ModelEngine/resource pack").takeIf { it.exists() }
+                    val megPack = packy.server.pluginsFolder.resolve("ModelEngine/resource pack.zip").takeIf { it.exists() }
+                    packy.server.pluginsFolder.resolve("ModelEngine/resource pack").takeIf { it.exists() }
                     ?: return packy.logger.e("ModelEngine pack is missing, skipping loadTrigger for $id-template")
                     megPack?.copyTo(template.path.toFile(), overwrite = true)
 
@@ -70,13 +70,13 @@ sealed interface LoadTrigger {
                 }
             }
             template.triggerListener = listener
-            packy.plugin.listeners(listener)
+            packy.listeners(listener)
         }
     }
 
     fun PackyTemplate.clearFromCache() {
         when {
-            required -> packy.plugin.createPackyContext()
+            required -> TODO("Update from packy.createPackyContext()")
             else -> {
                 PackyGenerator.cachedPacks.keys.removeIf { id in it }
                 PackyGenerator.cachedPacksByteArray.keys.removeIf { id in it }

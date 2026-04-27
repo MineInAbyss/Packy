@@ -23,10 +23,10 @@ object PackySquash {
         if (packSquash.settingsPath.isEmpty()) return
 
         val baseToml = File(packSquash.settingsPath).takeIf { it.exists() && it.isFile && it.extension == "toml" }
-            ?: packy.plugin.dataFolder.resolve(packSquash.settingsPath)
+            ?: packy.dataFolder.resolve(packSquash.settingsPath)
 
         val packName = UUID.randomUUID().toString()
-        val packDir = packy.plugin.dataFolder.resolve("packsquash").resolve(packName)
+        val packDir = packy.dataFolder.resolve("packsquash").resolve(packName)
         ResourcePacks.resourcePackWriter.writeToDirectory(packDir, resourcePack)
 
         val toml = packDir.parentFile.resolve("$packName.toml")
@@ -38,7 +38,7 @@ object PackySquash {
         runCatching {
             packy.logger.i("Squashing Packy-pack...")
             val processBuilder = ProcessBuilder(packSquash.exePath, toml.absolutePath.replace("\\", "/"))
-            processBuilder.directory(packy.plugin.dataFolder)
+            processBuilder.directory(packy.dataFolder)
             processBuilder.redirectInput(ProcessBuilder.Redirect.PIPE)
             processBuilder.redirectOutput(ProcessBuilder.Redirect.PIPE)
             processBuilder.redirectErrorStream(true)
@@ -77,7 +77,7 @@ object PackySquash {
 
 
         val baseToml = File(packSquash.settingsPath).takeIf { it.exists() && it.isFile && it.extension == "toml" }
-            ?: packy.plugin.dataFolder.resolve(packSquash.settingsPath)
+            ?: packy.dataFolder.resolve(packSquash.settingsPath)
         val toml = File("$templatePath.toml")
         val tomlContent = baseToml.readText()
             .replace("pack_directory = .*".toRegex(), "pack_directory = '${templatePath}'")
@@ -86,7 +86,7 @@ object PackySquash {
 
         runCatching {
             val processBuilder = ProcessBuilder(packSquash.exePath, toml.absolutePath.replace("\\", "/"))
-            processBuilder.directory(packy.plugin.dataFolder)
+            processBuilder.directory(packy.dataFolder)
             processBuilder.redirectInput(ProcessBuilder.Redirect.PIPE)
             processBuilder.redirectOutput(ProcessBuilder.Redirect.PIPE)
             processBuilder.redirectErrorStream(true)
