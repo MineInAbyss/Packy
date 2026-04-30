@@ -1,5 +1,6 @@
 package com.mineinabyss.packy.listener
 
+import com.destroystokyo.paper.event.player.PlayerConnectionCloseEvent
 import com.github.shynixn.mccoroutine.bukkit.launch
 import com.github.shynixn.mccoroutine.bukkit.minecraftDispatcher
 import com.mineinabyss.geary.papermc.datastore.decode
@@ -16,10 +17,13 @@ import org.bukkit.event.EventHandler
 import org.bukkit.event.EventPriority
 import org.bukkit.event.Listener
 import org.bukkit.event.player.PlayerJoinEvent
+import java.util.UUID
 import java.util.concurrent.CompletableFuture
-import java.util.concurrent.TimeUnit
+import java.util.concurrent.ConcurrentHashMap
 
 class PlayerListener : Listener {
+
+    private val futures = ConcurrentHashMap<UUID, CompletableFuture<Void>>()
 
     @EventHandler(priority = EventPriority.NORMAL)
     fun PlayerJoinEvent.filterPackyData() {
@@ -32,11 +36,14 @@ class PlayerListener : Listener {
 
     @EventHandler
     fun AsyncPlayerConnectionConfigureEvent.onConfig() {
-        val pdc = Bukkit.getOfflinePlayer(connection.profile.id!!).persistentDataContainer
+        val uuid = connection.profile.id ?: return
+        val pdc = Bukkit.getOfflinePlayer(uuid).persistentDataContainer
         val packyData = with(gearyPaper.worldManager.global) {
             pdc.decode<PackyData>() ?: PackyData()
         }
+        try { futures.remove(uuid)?.complete(null) } catch (_: Exception) {}
         val future = CompletableFuture<Void>()
+        futures[uuid] = future
 
         packy.launch(packy.minecraftDispatcher) {
             val info = PackyGenerator.getOrCreateCachedPack(packyData.enabledPackIds).await().resourcePackInfo
@@ -44,7 +51,7 @@ class PlayerListener : Listener {
                 if (!status.intermediate()) future.complete(null)
             })
         }
-        future.orTimeout(20, TimeUnit.SECONDS).join()
+        future.join()
     }
 
     @EventHandler
@@ -60,5 +67,10 @@ class PlayerListener : Listener {
                 if (!status.intermediate()) connection.completeReconfiguration()
             })
         }
+    }
+
+    @EventHandler
+    fun PlayerConnectionCloseEvent.onClose() {
+        try { futures.remove(playerUniqueId)?.complete(null) } catch (_: Exception) {}
     }
 }
