@@ -1,14 +1,14 @@
 import net.minecrell.pluginyml.paper.PaperPluginDescription
 
 plugins {
-    alias(idofrontLibs.plugins.mia.kotlin.jvm)
-    alias(idofrontLibs.plugins.kotlinx.serialization)
-    alias(idofrontLibs.plugins.mia.papermc)
-    alias(idofrontLibs.plugins.mia.nms)
-    alias(idofrontLibs.plugins.mia.copyjar)
-    alias(idofrontLibs.plugins.mia.publication)
-    alias(idofrontLibs.plugins.mia.autoversion)
-    alias(idofrontLibs.plugins.compose.compiler)
+    alias(miaLibs.plugins.mia.kotlin.jvm)
+    alias(miaLibs.plugins.kotlinx.serialization)
+    alias(miaLibs.plugins.mia.papermc)
+    alias(miaLibs.plugins.mia.nms)
+    alias(miaLibs.plugins.mia.copyjar)
+    alias(miaLibs.plugins.mia.publication)
+    alias(miaLibs.plugins.mia.autoversion)
+    alias(miaLibs.plugins.compose.compiler)
     id("net.minecrell.plugin-yml.paper") version "0.6.0"
 }
 
@@ -22,21 +22,21 @@ repositories {
 
 dependencies {
     // MineInAbyss platform
-    compileOnly(idofrontLibs.bundles.idofront.core)
-    compileOnly(idofrontLibs.idofront.nms)
-    compileOnly(idofrontLibs.kotlinx.serialization.json)
-    compileOnly(idofrontLibs.kotlinx.serialization.kaml)
-    compileOnly(idofrontLibs.kotlinx.coroutines)
-    compileOnly(idofrontLibs.minecraft.mccoroutine)
+    compileOnly(miaLibs.bundles.idofront.core)
+    compileOnly(miaLibs.idofront.nms)
+    compileOnly(miaLibs.kotlinx.serialization.json)
+    compileOnly(miaLibs.kotlinx.serialization.kaml)
+    compileOnly(miaLibs.kotlinx.coroutines)
+    compileOnly(miaLibs.minecraft.mccoroutine)
 
     // Geary platform
-    compileOnly(packyLibs.geary.papermc)
-    compileOnly(packyLibs.guiy)
+    compileOnly(miaLibs.geary.papermc)
+    compileOnly(miaLibs.guiy)
 
-    compileOnly(idofrontLibs.minecraft.plugin.modelengine)
-    compileOnly(idofrontLibs.creative.api)
-    compileOnly(idofrontLibs.creative.serializer.minecraft)
-    compileOnly(idofrontLibs.creative.server)
+    compileOnly(miaLibs.minecraft.plugin.modelengine)
+    compileOnly(miaLibs.creative.api)
+    compileOnly(miaLibs.creative.serializer.minecraft)
+    compileOnly(miaLibs.creative.server)
 
     implementation("com.squareup.okhttp3:okhttp:4.12.0")
 }

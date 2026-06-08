@@ -11,15 +11,10 @@ import com.mineinabyss.packy.helpers.AtlasGenerator
 import com.mineinabyss.packy.helpers.CacheMap
 import com.mineinabyss.packy.helpers.TemplateIds
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap
-import kotlinx.coroutines.Deferred
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.async
-import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.*
 import team.unnamed.creative.ResourcePack
 import team.unnamed.creative.base.Writable
+import team.unnamed.creative.metadata.pack.FormatVersion
 import kotlin.io.path.div
 import kotlin.io.path.exists
 
@@ -73,7 +68,7 @@ object PackyGenerator {
                     (packy.dataFolder.toPath() / packy.config.icon).takeIf { it.exists() }
                         ?.let { cachedPack.icon(Writable.path(it)) }
                     packy.config.mcmeta.description.takeIf { it.isNotEmpty() }
-                        ?.let { cachedPack.packMeta(packy.config.mcmeta.format, it.miniMsg()) }
+                        ?.let { cachedPack.packMeta(FormatVersion.of(packy.config.mcmeta.format), it.miniMsg()) }
 
                     val builtPack = ResourcePacks.resourcePackWriter.build(cachedPack)
                     PackyPack(builtPack, templateIds).apply {
