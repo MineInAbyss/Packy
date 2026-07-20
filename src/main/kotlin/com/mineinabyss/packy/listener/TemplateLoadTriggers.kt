@@ -5,6 +5,7 @@ import com.mineinabyss.idofront.plugin.listeners
 import com.mineinabyss.idofront.plugin.unregisterListeners
 import com.mineinabyss.packy.PackyGenerator
 import com.mineinabyss.packy.PackySquash
+import com.mineinabyss.packy.config.PackyContext
 import com.mineinabyss.packy.config.PackyTemplate
 import com.mineinabyss.packy.config.packy
 import com.mineinabyss.packy.listener.TemplateLoadTriggers.unregisterTemplateHandlers
@@ -75,12 +76,7 @@ sealed interface LoadTrigger {
     }
 
     fun PackyTemplate.clearFromCache() {
-        when {
-            required -> TODO("Update from packy.createPackyContext()")
-            else -> {
-                PackyGenerator.cachedPacks.keys.removeIf { id in it }
-                PackyGenerator.cachedPacksByteArray.keys.removeIf { id in it }
-            }
-        }
+        PackyGenerator.cachedPacks.keys.removeIf { id in it }
+        PackyGenerator.cachedPacksByteArray.keys.removeIf { id in it }
     }
 }
