@@ -9,7 +9,6 @@ plugins {
     alias(miaLibs.plugins.mia.publication)
     alias(miaLibs.plugins.mia.autoversion)
     alias(miaLibs.plugins.compose.compiler)
-    id("net.minecrell.plugin-yml.paper") version "0.6.0"
 }
 
 repositories {
@@ -18,6 +17,7 @@ repositories {
     maven("https://repo.mineinabyss.com/snapshots")
     maven("https://repo.mineinabyss.com/mirror")
     mavenLocal()
+    google() // guiy-compose pulls androidx.compose.runtime, only published on Google Maven
 }
 
 dependencies {
