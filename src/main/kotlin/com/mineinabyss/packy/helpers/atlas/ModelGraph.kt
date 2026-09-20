@@ -5,6 +5,7 @@ import net.kyori.adventure.key.Key
 import team.unnamed.creative.ResourcePack
 import team.unnamed.creative.model.Model
 import team.unnamed.creative.model.ModelTexture
+import team.unnamed.creative.model.ModelTextures
 
 /** Model lookups across the pack, its overlays and vanilla, cached since the same roots are walked repeatedly */
 internal class ModelGraph(private val resourcePack: ResourcePack) {
@@ -12,7 +13,7 @@ internal class ModelGraph(private val resourcePack: ResourcePack) {
     private val modelCache = mutableMapOf<Key, Model?>()
     private val textureCache = mutableMapOf<Key, Collection<Key>>()
 
-    private fun model(key: Key): Model? = modelCache.getOrPut(key) {
+    fun model(key: Key): Model? = modelCache.getOrPut(key) {
         resourcePack.model(key)
             ?: resourcePack.overlays().firstNotNullOfOrNull { it.model(key) }
             ?: ResourcePacks.vanillaResourcePack.model(key)
@@ -34,6 +35,30 @@ internal class ModelGraph(private val resourcePack: ResourcePack) {
 
     /** The models textures with parent-inheritance applied (child wins) and #references resolved */
     fun effectiveTextures(key: Key): Collection<Key> = textureCache.getOrPut(key) {
+        resolved(key).values.mapNotNull(ModelTexture::key)
+    }
+
+    /**
+     * Inheritance and `#references` collapsed onto the model itself, so a clone carries its textures
+     * without its parent, which the other atlas side may rewrite out from under it.
+     */
+    fun flattened(key: Key, remap: Map<Key, Key>): ModelTextures {
+        val variables = resolved(key).mapValues { (_, texture) ->
+            texture.key()?.let { remap[it] }?.let(ModelTexture::ofKey) ?: texture
+        }
+        val layers = variables.keys.filter { it.startsWith("layer") }
+            .sortedBy { it.removePrefix("layer").toIntOrNull() ?: 0 }
+            .map { variables.getValue(it) }
+
+        return ModelTextures.builder()
+            .layers(layers)
+            .particle(variables["particle"])
+            .variables(variables.filterKeys { !it.startsWith("layer") && it != "particle" })
+            .build()
+    }
+
+    /** Named slot to the texture it ends up at, walking parents and `#reference` indirection */
+    private fun resolved(key: Key): Map<String, ModelTexture> {
         val merged = linkedMapOf<String, ModelTexture>()
         chain(key).forEach { model ->
             model.textures().layers().forEachIndexed { index, texture -> merged.putIfAbsent("layer$index", texture) }
@@ -41,14 +66,14 @@ internal class ModelGraph(private val resourcePack: ResourcePack) {
             model.textures().particle()?.let { merged.putIfAbsent("particle", it) }
         }
 
-        merged.values.mapNotNull { texture ->
-            var resolved = texture
+        return merged.mapNotNull { (name, texture) ->
+            var current = texture
             var guard = 0
             while (guard++ < 16) {
-                val reference = resolved.reference() ?: break
-                resolved = merged[reference] ?: return@mapNotNull null
+                val reference = current.reference() ?: break
+                current = merged[reference] ?: return@mapNotNull null
             }
-            resolved.key()
-        }
+            name to current
+        }.toMap()
     }
 }

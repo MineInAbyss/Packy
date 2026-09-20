@@ -2,6 +2,8 @@ package com.mineinabyss.packy.helpers.atlas
 
 import net.kyori.adventure.key.Key
 import team.unnamed.creative.blockstate.BlockState
+import team.unnamed.creative.blockstate.MultiVariant
+import team.unnamed.creative.blockstate.Selector
 import team.unnamed.creative.item.CompositeItemModel
 import team.unnamed.creative.item.ConditionItemModel
 import team.unnamed.creative.item.ItemModel
@@ -37,4 +39,17 @@ internal fun ItemModel.referencedModels(): Set<Key> = buildSet {
 internal fun BlockState.referencedModels(): Set<Key> = buildSet {
     variants().values.forEach { multiVariant -> multiVariant.variants().forEach { add(it.model()) } }
     multipart().forEach { selector -> selector.variant().variants().forEach { add(it.model()) } }
+}
+
+/** The same blockstate pointed at [remap]ped models, rotations and weights left as they were */
+internal fun BlockState.remapModels(remap: Map<Key, Key>): BlockState {
+    fun MultiVariant.remap() = MultiVariant.of(variants().map { variant ->
+        remap[variant.model()]?.let { variant.toBuilder().model(it).build() } ?: variant
+    })
+
+    return BlockState.of(
+        key(),
+        variants().mapValues { (_, multiVariant) -> multiVariant.remap() },
+        multipart().map { Selector.of(it.condition(), it.variant().remap()) },
+    )
 }
