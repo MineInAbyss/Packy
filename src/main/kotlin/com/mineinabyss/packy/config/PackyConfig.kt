@@ -23,6 +23,11 @@ data class PackyConfig(
     @YamlComment("This will use PackSquash to automatically squash all templates")
     @EncodeDefault(ALWAYS) val packSquash: PackSquash = PackSquash(),
     @YamlComment(
+        "Toggles for the loadTriggers a template can use",
+        "A disabled trigger is never registered, even if a template specifies it"
+    )
+    @EncodeDefault(ALWAYS) val loadTriggers: LoadTriggers = LoadTriggers(),
+    @YamlComment(
         "The amount of TemplateID combinations Packy should cache the ResourcePack off",
         "If your ResourcePack is large it is recommended to lower this value"
     )
@@ -40,6 +45,12 @@ data class PackyConfig(
         val exePath: String = Bukkit.getServer().pluginsFolder.resolve("Packy/packsquash").absolutePath.replace("\\", "/"),
         @YamlComment("Path to the settings file for PackSquash")
         val settingsPath: String = "packsquash.toml",
+    )
+
+    @Serializable
+    data class LoadTriggers(
+        val modelEngine: Boolean = true,
+        val nexo: Boolean = true,
     )
 
     @Serializable

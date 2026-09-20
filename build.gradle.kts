@@ -34,6 +34,7 @@ dependencies {
     compileOnly(miaLibs.guiy)
 
     compileOnly(miaLibs.minecraft.plugin.modelengine)
+    compileOnly(miaLibs.minecraft.plugin.nexo)
     compileOnly(miaLibs.creative.api)
     compileOnly(miaLibs.creative.serializer.minecraft)
     compileOnly(miaLibs.creative.server)
@@ -74,6 +75,11 @@ paper {
 
         // LoadTrigger dependencies
         register("ModelEngine") {
+            required = false
+            load = PaperPluginDescription.RelativeLoadOrder.BEFORE
+            joinClasspath = true
+        }
+        register("Nexo") {
             required = false
             load = PaperPluginDescription.RelativeLoadOrder.BEFORE
             joinClasspath = true

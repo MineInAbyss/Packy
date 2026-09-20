@@ -28,8 +28,11 @@ object PackyGenerator {
     fun setupRequiredPackTemplates() {
         requiredTemplateJob?.cancel()
         requiredTemplateJob = packy.launch(packy.asyncDispatcher) {
+            // Cleared first as loadTriggers re-run this whenever a required template changes
+            ResourcePacks.clearPack(packy.defaultPack)
+
             // Add all forced packs to defaultPack
-            packy.templates.filter(PackyTemplate::required).mapNotNull { ResourcePacks.readToResourcePack(it.path.toFile()) }.forEach {
+            packy.templates.filter(PackyTemplate::required).mapNotNull(PackyTemplate::readPack).forEach {
                 ResourcePacks.mergePack(packy.defaultPack, it)
             }
 
@@ -58,7 +61,7 @@ object PackyGenerator {
                     // Filters out all required files as they are already in defaultPack
                     // Filter all TemplatePacks that are not default or not in players enabledPackAddons
                     packy.templates.filter { !it.required && it.id in templateIds }
-                        .mapNotNull { ResourcePacks.readToResourcePack(it.path.toFile()) }
+                        .mapNotNull(PackyTemplate::readPack)
                         .forEach { ResourcePacks.mergePack(cachedPack, it) }
 
                     AtlasGenerator.generateAtlasFile(cachedPack)

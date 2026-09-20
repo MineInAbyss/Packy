@@ -1,6 +1,7 @@
 package com.mineinabyss.packy.config
 
 import com.mineinabyss.geary.serialization.serializers.InnerSerializer
+import com.mineinabyss.idofront.resourcepacks.ResourcePacks
 import com.mineinabyss.packy.listener.LoadTrigger
 import kotlinx.serialization.*
 import kotlinx.serialization.EncodeDefault.Mode.NEVER
@@ -8,6 +9,7 @@ import kotlinx.serialization.Transient
 import kotlinx.serialization.builtins.MapSerializer
 import kotlinx.serialization.builtins.serializer
 import org.bukkit.event.Listener
+import team.unnamed.creative.ResourcePack
 import java.nio.file.Path
 import kotlin.io.path.*
 
@@ -55,6 +57,9 @@ data class PackyTemplate(
     val path: Path get() = filePath?.takeIf { it.isNotEmpty() }?.let { packy.dataFolder.parentFile.toPath() / it }
         ?: (packy.dataFolder.toPath() / "templates" / id)
             .let { if (it.exists() && it.isDirectory()) it else Path(it.pathString + ".zip") }
+
+    /** Reads a fresh ResourcePack, merging mutates the imported pack so this must never return a shared instance */
+    fun readPack(): ResourcePack? = loadTrigger.readPack(this) ?: ResourcePacks.readToResourcePack(path.toFile())
 
     @Serializable
     data class GithubDownload(
