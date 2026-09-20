@@ -12,6 +12,8 @@ import com.mineinabyss.packy.helpers.CacheMap
 import com.mineinabyss.packy.helpers.TemplateIds
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap
 import kotlinx.coroutines.*
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import team.unnamed.creative.ResourcePack
 import team.unnamed.creative.base.Writable
 import team.unnamed.creative.metadata.pack.FormatVersion
@@ -20,6 +22,7 @@ import kotlin.io.path.exists
 
 object PackyGenerator {
     private val generatorDispatcher = Dispatchers.IO.limitedParallelism(1)
+    private val defaultPackMutex = Mutex()
     private var requiredTemplateJob: Job? = null
     val activeGeneratorJob: MutableMap<TemplateIds, Deferred<PackyPack>> = mutableMapOf()
     val cachedPacks: CacheMap<TemplateIds, PackyPack> = CacheMap(packy.config.cachedPackAmount)
@@ -28,15 +31,26 @@ object PackyGenerator {
     fun setupRequiredPackTemplates() {
         requiredTemplateJob?.cancel()
         requiredTemplateJob = packy.launch(packy.asyncDispatcher) {
-            // Cleared first as loadTriggers re-run this whenever a required template changes
-            ResourcePacks.clearPack(packy.defaultPack)
+            // Several loadTriggers land at once on startup and asyncDispatcher is a pool, so unlocked one
+            // rebuild clears defaultPack while another is still merging into it and templates go missing.
+            // clearPack and mergePack never suspend either, so the cancel above only takes effect here
+            defaultPackMutex.withLock {
+                // Cleared first as loadTriggers re-run this whenever a required template changes
+                ResourcePacks.clearPack(packy.defaultPack)
 
-            // Add all forced packs to defaultPack
-            packy.templates.filter(PackyTemplate::required).mapNotNull(PackyTemplate::readPack).forEach {
-                ResourcePacks.mergePack(packy.defaultPack, it)
+                // Add all forced packs to defaultPack
+                packy.templates.filter(PackyTemplate::required).mapNotNull(PackyTemplate::readPack).forEach {
+                    ResourcePacks.mergePack(packy.defaultPack, it)
+                }
+
+                // Required templates are baked into every cached pack, so they all hold the old defaultPack now
+                withContext(generatorDispatcher) {
+                    cachedPacks.clear()
+                    cachedPacksByteArray.clear()
+                }
+
+                packy.logger.s("Finished configuring defaultPack")
             }
-
-            packy.logger.s("Finished configuring defaultPack")
         }
     }
 

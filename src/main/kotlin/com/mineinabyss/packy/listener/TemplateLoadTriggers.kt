@@ -116,9 +116,11 @@ sealed interface LoadTrigger {
     }
 
     fun PackyTemplate.refreshTemplate() {
-        clearFromCache()
-        // Required templates are baked into the defaultPack on startup, so that has to be rebuilt to pick up the new content
+        // Required templates are baked into the defaultPack, so that has to be rebuilt to pick up the new
+        // content. Cached packs are keyed by the addons a player enabled and never name a required template,
+        // so dropping them by id would miss all of them, the rebuild clears them outright instead
         if (required) PackyGenerator.setupRequiredPackTemplates()
+        else clearFromCache()
     }
 
     fun PackyTemplate.squashTemplate() {
