@@ -10,6 +10,7 @@ import com.mineinabyss.packy.config.packy
 import com.mineinabyss.packy.helpers.TemplateIds
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
+import kotlinx.coroutines.runBlocking
 import net.kyori.adventure.resource.ResourcePackRequest
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.format.NamedTextColor
@@ -58,15 +59,21 @@ object PackyServer {
 
     private fun URI.parseTemplateIds(): TemplateIds? {
         // split query string into map
-        val queryMap = query.split('&').mapNotNull {
+        val queryMap = (query ?: return null).split('&').mapNotNull {
             it.split('=', limit = 2).takeIf { it.size == 2 }?.let { it.first() to it.last() }
         }.toMap()
-        return queryMap["packs"]?.split(",")?.toSortedSet()
+        // A player with no addons enabled is cached under an empty set, and "".split(",") is [""], not []
+        return queryMap["packs"]?.split(",")?.filterNot(String::isBlank)?.toSortedSet()
     }
 
     private val handler = ResourcePackRequestHandler { _, exchange ->
-        val data = exchange.requestURI.parseTemplateIds()?.let(cachedPacksByteArray::get)
-            ?: ResourcePacks.resourcePackWriter.build(packy.defaultPack).data().toByteArray()
+        val templateIds = exchange.requestURI.parseTemplateIds()
+        // defaultPack never has AtlasGenerator run over it, serving it on a cache-miss leaves every
+        // non-vanilla texture out of the atlas, so build the real pack instead
+        val data = templateIds?.let { ids ->
+            cachedPacksByteArray[ids]
+                ?: runBlocking { PackyGenerator.getOrCreateCachedPack(ids).await() }.builtPack.data().toByteArray()
+        } ?: ResourcePacks.resourcePackWriter.build(packy.defaultPack).data().toByteArray()
         exchange.responseHeaders["Content-Type"] = "application/zip"
         exchange.sendResponseHeaders(200, data.size.toLong())
         exchange.responseBody.use { responseStream -> responseStream.write(data) }
