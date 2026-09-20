@@ -12,6 +12,13 @@ import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.format.NamedTextColor
 
 fun IdoCommand.packySubcommands() {
+    // Idofront builds the reload command off a single name, so the short form forwards to it
+    // rather than repeating the reload itself, which would drift as that changes
+    "rl" {
+        executes {
+            packy.server.dispatchCommand(sender, "packy reload")
+        }
+    }
     "menu" {
         permission = "packy.default"
         executes.asPlayer {
