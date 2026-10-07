@@ -14,6 +14,7 @@ import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap
 import kotlinx.coroutines.*
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import net.kyori.adventure.key.Key
 import team.unnamed.creative.ResourcePack
 import team.unnamed.creative.base.Writable
 import team.unnamed.creative.metadata.pack.FormatVersion
@@ -78,9 +79,12 @@ object PackyGenerator {
                         .mapNotNull(PackyTemplate::readPack)
                         .forEach { ResourcePacks.mergePack(cachedPack, it) }
 
-                    AtlasGenerator.generateAtlasFile(cachedPack)
-
+                    // Removed before the atlases so unchanged definitions are treated as vanilla ones
                     cachedPack.items().removeIf(standardItemModels::containsValue)
+
+                    AtlasGenerator.generateAtlasFile(cachedPack, FormatVersion.of(packy.config.mcmeta.format)).takeIf { it.isNotEmpty() }?.let { missing ->
+                        packy.logger.w("${missing.size} texture(s) used by item-models do not exist: ${missing.sortedBy(Key::asString).joinToString(transform = Key::asString)}")
+                    }
 
                     (packy.dataFolder.toPath() / packy.config.icon).takeIf { it.exists() }
                         ?.let { cachedPack.icon(Writable.path(it)) }

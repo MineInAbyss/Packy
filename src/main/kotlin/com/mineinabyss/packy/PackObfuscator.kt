@@ -117,21 +117,23 @@ class PackObfuscator(private val resourcePack: ResourceContainer) {
     private fun obfuscateItems() {
         fun obfuscateItemModel(itemModel: ItemModel): ItemModel {
             return when (itemModel) {
-                is SpecialItemModel -> ItemModel.special(itemModel.render(), obfuscatedModels.findObf(itemModel.base()))
-                is ReferenceItemModel -> ItemModel.reference(obfuscatedModels.findObf(itemModel.model()), itemModel.tints())
-                is CompositeItemModel -> ItemModel.composite(itemModel.models().map(::obfuscateItemModel))
-                is ConditionItemModel -> ItemModel.conditional(itemModel.condition(), obfuscateItemModel(itemModel.onTrue()), obfuscateItemModel(itemModel.onFalse()))
+                is SpecialItemModel -> ItemModel.special(itemModel.render(), obfuscatedModels.findObf(itemModel.base()), itemModel.transformation())
+                is ReferenceItemModel -> ItemModel.reference(obfuscatedModels.findObf(itemModel.model()), itemModel.tints(), itemModel.transformation())
+                is CompositeItemModel -> ItemModel.composite(itemModel.models().map(::obfuscateItemModel), itemModel.transformation())
+                is ConditionItemModel -> ItemModel.conditional(itemModel.condition(), obfuscateItemModel(itemModel.onTrue()), obfuscateItemModel(itemModel.onFalse()), itemModel.transformation())
 
                 is SelectItemModel -> ItemModel.select(
                     itemModel.property(),
                     itemModel.cases().asSequence().map { SelectItemModel.Case._case(obfuscateItemModel(it.model()), it.`when`()) }.toList(),
-                    itemModel.fallback()?.let(::obfuscateItemModel)
+                    itemModel.fallback()?.let(::obfuscateItemModel),
+                    itemModel.transformation(),
                 )
                 is RangeDispatchItemModel -> ItemModel.rangeDispatch(
                     itemModel.property(),
                     itemModel.scale(),
                     itemModel.entries().asSequence().map { RangeDispatchItemModel.Entry.entry(it.threshold(), obfuscateItemModel(it.model())) }.toList(),
-                    itemModel.fallback()?.let(::obfuscateItemModel)
+                    itemModel.fallback()?.let(::obfuscateItemModel),
+                    itemModel.transformation(),
                 )
                 else -> itemModel
             }
