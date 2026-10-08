@@ -2,6 +2,7 @@ package com.mineinabyss.packy
 
 import com.github.shynixn.mccoroutine.bukkit.asyncDispatcher
 import com.github.shynixn.mccoroutine.bukkit.launch
+import com.mineinabyss.idofront.plugin.Plugins
 import com.mineinabyss.idofront.resourcepacks.ResourcePacks
 import com.mineinabyss.idofront.textcomponents.miniMsg
 import com.mineinabyss.packy.components.PackyPack
@@ -10,6 +11,7 @@ import com.mineinabyss.packy.config.packy
 import com.mineinabyss.packy.helpers.AtlasGenerator
 import com.mineinabyss.packy.helpers.CacheMap
 import com.mineinabyss.packy.helpers.TemplateIds
+import com.nexomc.nexo.api.NexoBlocks
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap
 import kotlinx.coroutines.*
 import kotlinx.coroutines.sync.Mutex
@@ -78,6 +80,9 @@ object PackyGenerator {
                     packy.templates.filter { !it.required && it.id in templateIds }
                         .mapNotNull(PackyTemplate::readPack)
                         .forEach { ResourcePacks.mergePack(cachedPack, it) }
+
+                    // The models Nexo block variants offset only exist once all templates are merged
+                    if (Plugins.isEnabled("Nexo")) NexoBlocks.generateOffsetModels(cachedPack)
 
                     // Removed before the atlases so unchanged definitions are treated as vanilla ones
                     cachedPack.items().removeIf(standardItemModels::containsValue)
