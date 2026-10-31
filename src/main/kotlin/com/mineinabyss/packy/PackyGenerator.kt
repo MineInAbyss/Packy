@@ -12,6 +12,7 @@ import com.mineinabyss.packy.helpers.AtlasGenerator
 import com.mineinabyss.packy.helpers.CacheMap
 import com.mineinabyss.packy.helpers.TemplateIds
 import com.nexomc.nexo.api.NexoBlocks
+import com.nexomc.nexo.api.NexoFurniture
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap
 import kotlinx.coroutines.*
 import kotlinx.coroutines.sync.Mutex
@@ -81,8 +82,11 @@ object PackyGenerator {
                         .mapNotNull(PackyTemplate::readPack)
                         .forEach { ResourcePacks.mergePack(cachedPack, it) }
 
-                    // The models Nexo block variants offset only exist once all templates are merged
-                    if (Plugins.isEnabled("Nexo")) NexoBlocks.generateOffsetModels(cachedPack)
+                    // The models Nexo block variants offset and furniture previews fade only exist once all templates are merged
+                    if (Plugins.isEnabled("Nexo")) {
+                        NexoBlocks.generateOffsetModels(cachedPack)
+                        NexoFurniture.generatePreviewModels(cachedPack)
+                    }
 
                     // Removed before the atlases so unchanged definitions are treated as vanilla ones
                     cachedPack.items().removeIf(standardItemModels::containsValue)
