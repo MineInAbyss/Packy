@@ -1,5 +1,6 @@
 package com.mineinabyss.packy.config
 
+import com.mineinabyss.geary.autoscan.ExcludeAutoScan
 import com.mineinabyss.geary.serialization.serializers.InnerSerializer
 import com.mineinabyss.idofront.resourcepacks.ResourcePacks
 import com.mineinabyss.packy.listener.LoadTrigger
@@ -13,6 +14,7 @@ import team.unnamed.creative.ResourcePack
 import java.nio.file.Path
 import kotlin.io.path.*
 
+@ExcludeAutoScan
 @Serializable(with = PackyTemplates.Serializer::class)
 data class PackyTemplates(private val templates: List<PackyTemplate> = listOf()) {
 
